@@ -26,12 +26,8 @@ class UserSerializer(ModelSerializer):
     def create(self, validated_data):
         email = validated_data.get('email').strip()
         password = validated_data.get('password').strip()
-        confirm_password = validated_data.get('confirm_password').strip()
-        if len(password) <= 8:
+        if len(password) < 8:
             raise serializers.ValidationError({"password": "password must be atleast 8 in length"})
-        
-        if password != confirm_password:
-            raise serializers.ValidationError({"password": "passwords do not match"})
         user = User.objects.create_user(email, password)
         return user
     

@@ -13,7 +13,7 @@ class RegisterUserView(CreateAPIView):
     queryset = User.objects.all()
 
 class RetrieveUserView(RetrieveAPIView):
-    lookup_field = "uid"
+    lookup_field = "pk"
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
