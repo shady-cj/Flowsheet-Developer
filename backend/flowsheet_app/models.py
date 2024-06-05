@@ -57,17 +57,22 @@ class Concentrator(models.Model):
 class Miscellaneous(models.Model):
     MISC_TYPE = {
         "ORE": "ore", 
-        "FACILITY": {
+        "Facility": {
             "STOCKPILE": "stockpile",
             "BINS": "bins"
         }
     }
+    
     name = models.CharField(max_length=64)
     oid = models.UUIDField(blank=True, null=True, unique=True)
     image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     type = models.CharField(max_length=40, choices=MISC_TYPE, default="ORE")
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="misc", null=True, blank=True)
+    
+
+    class Meta:
+        verbose_name_plural = "Miscellaneous"
 
 
 
