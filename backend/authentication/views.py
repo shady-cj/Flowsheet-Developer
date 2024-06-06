@@ -13,6 +13,7 @@ class RegisterUserView(CreateAPIView):
     queryset = User.objects.all()
 
 class RetrieveUserView(RetrieveAPIView):
+    permission_classes = (permissions.AllowAny, )
     lookup_field = "pk"
     queryset = User.objects.all()
     serializer_class = UserSerializer

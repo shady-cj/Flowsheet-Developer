@@ -4,24 +4,23 @@ from .models import User
 
 
 class UserSerializer(ModelSerializer):
-    projects = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
-            "uid", 
+            "id", 
             "email", 
             "password",
             "projects"
         ]
+
+        depth = 1
         extra_kwargs = {
             "password": {"write_only": True}
         }
-        read_only_fields = ["uid", "projects"]
+        read_only_fields = ["id", "projects"]
     
 
-    def get_projects(self, instance):
-        return instance.projects.all()
     
     def create(self, validated_data):
         email = validated_data.get('email').strip()
