@@ -106,8 +106,10 @@ class ListCreateProject(UpdateCreatorMixin,ListCreateAPIView):
             return Project.objects.all()
         return Project.objects.filter(creator=user)
  
+# from rest_framework import permissions
 
 class RetrieveUpdateDestroyProject(ObjectPermissionMixin,RetrieveUpdateDestroyAPIView):
+    # permission_classes = [permissions.AllowAny]
     serializer_class = ProjectSerializer
     lookup_field = "id"
     queryset = Project.objects.all()
@@ -115,15 +117,38 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin,RetrieveUpdateDestroyAP
         user = self.request.user
         if user.is_superuser:
             return Project.objects.all()
-        return Project.objects.filter(creator=user)
+        # return Project.objects.filter(creator=user)
+        return Project.objects.all()
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        data = request.data
+        project_objects = data.get("project_objects")
+        print(project_objects)
+        instance = self.get_object()
+        if project_objects and isinstance(project_objects, list):
+            for item in project_objects:
+                print(item)
+                project_object_id = item.get("id")
+                project_object_instance = ProjectObject.objects.get(id=project_object_id, project=instance)
+                project_object_serializer = ProjectObjectSerializer(instance=project_object_instance, data=item, partial=partial)
+                project_object_serializer.is_valid(raise_exception=True)
+                object_instance = perform_create_update_util(self, None, item)
+                project_object_serializer.save(project=instance, object=object_instance)
+
+
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 
-from rest_framework import permissions
 # It should be able to handle list of objects
 class ListCreateProjectObject(ListCreateAPIView):
-    # permission_classes = (ProjectObjectPermission, )
-    permission_classes = (permissions.AllowAny, )
+    permission_classes = (ProjectObjectPermission, )
+    # permission_classes = (permissions.AllowAny, )
     serializer_class = ProjectObjectSerializer
     queryset = ProjectObject.objects.all()
     def get_queryset(self):
@@ -165,6 +190,7 @@ class ListCreateProjectObject(ListCreateAPIView):
 
 class RetrieveUpdateDestroyProjectObject(RetrieveUpdateDestroyAPIView):
     permission_classes = (ProjectObjectPermission, )
+    # permission_classes = (permissions.AllowAny, )
     serializer_class = ProjectObjectSerializer
     lookup_field = "id"
     queryset = ProjectObject.objects.all()
@@ -175,26 +201,10 @@ class RetrieveUpdateDestroyProjectObject(RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         project_id = self.request.parser_context.get("kwargs").get("project_id")
-        object_info = eval(self.request.data.get("object_info"))
-        print(object_info)
-        object_name = object_info.get("object_model_name") # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Miscellaneous")
-        object_model_id = object_info.get("object_id")
-        if object_name not in EXPECTED_OBJECT_NAMES:
-            raise serializers.ValidationError({"object_model_name": "Invalid object project name provided"})
-        object_model = eval(object_name)
-        object_instance = object_model.objects.get(id=int(object_model_id))
         project_instance = Project.objects.get(id=project_id)
-        if not object_instance:
-            raise serializers.ValidationError({"object_id": "Given id is not associated to any object in the database"})
+        data = self.request.data
         
-        # quick check if the current user has access to the object
-        user = self.request.user
-        if object_instance.creator:
-            if object_instance.creator == user or object_instance.creator.is_superuser:
-                pass
-            else:
-                raise PermissionDenied("You are not authorized to use this object")
-        
-        return serializer.save(project=project_instance, object=object_instance)
 
+        object_instance = perform_create_update_util(self, None, data)
+        return serializer.save(project=project_instance, object=object_instance)
 

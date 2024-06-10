@@ -123,6 +123,7 @@ class ProjectObjectSerializer(ModelSerializer):
             "project",
             "properties"
         ]
+        read_only_fields = ["id"]
 
     def get_object(self, instance):
         if instance.object:

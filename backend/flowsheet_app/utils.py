@@ -48,7 +48,6 @@ EXPECTED_OBJECT_NAMES = ("Shape", "Crusher", "Screener", "Grinder", "Concentrato
 def perform_create_update_util(self, index, data):
     data = data[index] if index is not None else data
     object_info = eval(data.get("object_info"))
-    print(object_info)
     object_name = object_info.get("object_model_name") # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Miscellaneous")
     object_model_id = object_info.get("object_id")
     if object_name not in EXPECTED_OBJECT_NAMES:
@@ -59,7 +58,6 @@ def perform_create_update_util(self, index, data):
         raise serializers.ValidationError({"object_id": "Given id is not associated to any object in the database"})
     # quick check if the current user has access to the object
     user = self.request.user
-    print(hasattr(object_instance, "creator"))
     if hasattr(object_instance, "creator"):
         if object_instance.creator == user or object_instance.creator.is_superuser:
             pass
