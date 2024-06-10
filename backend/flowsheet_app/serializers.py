@@ -1,8 +1,10 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
+# from rest_framework.exceptions import PermissionDenied
 
 from .models import Shape, Screener, Crusher, Grinder, Concentrator, Miscellaneous, Project, ProjectObject
 
+from .utils import object_formatter
 # Shapes Serializers
 
 class ShapeSerializer(ModelSerializer):
@@ -105,6 +107,7 @@ class ProjectSerializer(ModelSerializer):
 
 
 class ProjectObjectSerializer(ModelSerializer):
+    object = serializers.SerializerMethodField()
     class Meta:
         model = ProjectObject
 
@@ -115,10 +118,27 @@ class ProjectObjectSerializer(ModelSerializer):
             "x_coordinate",
             "y_coordinate",
             "scale",
-            "font-size",
+            "font_size",
             "description",
             "project",
             "properties"
         ]
+
+    def get_object(self, instance):
+        if instance.object:
+            return object_formatter(instance.object)
+        return instance.object
+
+
+
+    # def validate(self, attrs):
+    #     """
+    #     Carry out user validation here
+    #     """
+    #     project = attrs.get("project")
+    #     request = self.context.get('request')
+    #     if project.creator.id == request.user.id or request.user.is_superuser:
+    #         return super().validate(attrs)
+    #     raise PermissionDenied("This user is not authorized to view or make changes")
 
         

@@ -53,8 +53,8 @@ class Concentrator(models.Model):
     image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="concentrators", null=True, blank=True)
-    recovery_rate = models.DecimalField(max_digits=4, decimal_places=4) # amount of valuable mineral in the concentrate / total amount of valuable mineral in the feed
-    dilution_gain = models.DecimalField(max_digits=4, decimal_places=4) # amount of waste in the concentrate / toatal amount of concentrate
+    recovery_rate = models.DecimalField(max_digits=10, decimal_places=4) # amount of valuable mineral in the concentrate / total amount of valuable mineral in the feed
+    dilution_gain = models.DecimalField(max_digits=10, decimal_places=4) # amount of waste in the concentrate / toatal amount of concentrate
 
 
 # Miscellaneous like ore, holding facilities etc...
@@ -97,9 +97,9 @@ class ProjectObject(models.Model):
     object = GenericForeignKey('content_type', 'object_id') # foreign key To shapes, grinders, concentrators etc
     x_coordinate = models.DecimalField(max_digits=20, decimal_places=2) # how far is it from the container x-axis
     y_coordinate = models.DecimalField(max_digits=20, decimal_places=2) # how far is it from the container y-axis
-    scale = models.DecimalField(max_digits=4, decimal_places=2) # the scale of the object? how big or how small
-    font_size = models.DecimalField(max_digits=3, decimal_places=2) # the font size in pixels
-    description = models.TextField() # The description of the object Mapper
+    scale = models.DecimalField(max_digits=5, decimal_places=2) # the scale of the object? how big or how small
+    font_size = models.DecimalField(max_digits=10, decimal_places=2) # the font size in pixels
+    description = models.TextField(blank=True, null=True) # The description of the object Mapper
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="project_objects")
     properties = models.JSONField(blank=True, null=True) # property of the objects
 
