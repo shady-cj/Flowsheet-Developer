@@ -127,8 +127,6 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES':('rest_framework_simplejwt.tokens.AccessToken',)
 }
 # =======================================================================================================================
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 

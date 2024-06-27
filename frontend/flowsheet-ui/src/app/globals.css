@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: aliceblue;
+}
+.font-size-default {
+  font-size: clamp(0.7vw, 1rem, 4vw);
+}
+.landing-page-main {
+  height: clamp(50rem, 70vh, 200rem)
+}
+@media (min-width: 2000px) {
+  .font-size-default {
+    padding: 1rem;
+  }
+
+}
