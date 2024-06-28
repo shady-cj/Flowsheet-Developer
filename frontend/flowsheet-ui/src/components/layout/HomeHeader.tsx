@@ -1,7 +1,7 @@
 import Link from "next/link"
 const HomeHeader = () => {
   return (
-    <header className="w-full shadow-md sticky bg-primary top-0 drop-shadow-lg backdrop-blur">
+    <header className="w-full shadow-md sticky bg-primary top-0 drop-shadow-lg backdrop-blur z-10">
         <div className="flex p-4">
             <Link href={"/"} className="font-bold font-size-default">
                 Flowsheet
