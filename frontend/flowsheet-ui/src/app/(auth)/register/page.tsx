@@ -1,29 +1,44 @@
-import PasswordInput from '@/components/PasswordInput'
+"use client";
+import PasswordInput from '@/components/auth/PasswordInput'
+import Button from '@/components/auth/AuthButton';
+import { useFormState } from 'react-dom';
+import { register } from '@/lib/actions/auth';
+import AuthStatusBox from '@/components/auth/AuthStatusBox';
+import { useRouter } from 'next/navigation';
 
-const page = () => {
-  return (
-    <section className='h-screen bg-[#ffdda680] flex items-center justify-center'>
-        <form action="" className='flex flex-col gap-y-4'>
-            <h2 className='font-bold text-2xl mb-4 text-center'>Register</h2>
-            <div className='flex flex-col gap-2'>
-                <label htmlFor="email" className='font-bold'>Email</label>
-                <input type="email" id="email" name='email' className='p-2 rounded bg-gray-100 text-sm'/>
-            </div>
-            <div className='flex flex-col gap-2'>
-                <label htmlFor="password" className='font-bold'>Password</label>
-                <PasswordInput name="password" id="password"/>
-            </div>
-            <div className='flex flex-col gap-2'>
-                <label htmlFor="confirmpassword" className='font-bold'>Confirm Password</label>
-                <PasswordInput name="confirm_password" id="confirmpassword"/>
-            </div>
-            <button className='rounded-md px-4 py-2 w-fit bg-[#282c33] text-white hover:bg-white hover:text-[#282c33] font-bold transition-colors mx-auto mt-2'>
-                Register
-            </button>
-        </form>
+const Register = () => {
+    const router = useRouter()
+    const [state, formAction] = useFormState(register, null)
+    if (state?.success) {
+        setTimeout(()=>{
+            router.push('/login')
+        }, 2000)
+    }
+    return (
+        <section className='h-screen bg-[#ffdda680] flex items-center justify-center'>
+            <form action={formAction} className='flex flex-col gap-y-4'>
+                <h2 className='font-bold text-2xl mb-4 text-center'>Register</h2>
+                <div className='flex flex-col gap-2'>
+                    <label htmlFor="email" className='font-bold'>Email</label>
+                    <input type="email" id="email" name='email' className='p-2 rounded bg-gray-100 text-sm min-w-[20rem]' required/>
+                </div>
+                <div className='flex flex-col gap-2'>
+                    <label htmlFor="password" className='font-bold'>Password</label>
+                    <PasswordInput name="password" id="password"/>
+                </div>
+                <div className='flex flex-col gap-2'>
+                    <label htmlFor="confirmpassword" className='font-bold'>Confirm Password</label>
+                    <PasswordInput name="confirm_password" id="confirmpassword"/>
+                </div>
+                {
+                    state && <AuthStatusBox state={state}/>
+                }
+                
+                <Button title="Register"/>
+            </form>
 
-    </section>
-  )
+        </section>
+    )
 }
 
-export default page
+export default Register
