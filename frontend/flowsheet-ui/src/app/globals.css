@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background-color: aliceblue;
+  background-color: #f0f8ff;
 }
 .font-size-default {
   font-size: clamp(0.7vw, 1rem, 4vw);

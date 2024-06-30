@@ -15,7 +15,7 @@ const Register = () => {
         }, 2000)
     }
     return (
-        <section className='h-screen bg-[#ffdda680] flex items-center justify-center'>
+        <section className='bg-[#ffdda680] flex items-center justify-center flex-auto'>
             <form action={formAction} className='flex flex-col gap-y-4'>
                 <h2 className='font-bold text-2xl mb-4 text-center'>Register</h2>
                 <div className='flex flex-col gap-2'>

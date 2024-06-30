@@ -1,8 +1,9 @@
 "use server"
-import { revalidatePath } from 'next/cache'
+// import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
+import { MouseEvent } from 'react'
+// import { NextResponse } from 'next/server'
 
 const BASE_URL = "http://localhost:8000"
 
@@ -100,4 +101,11 @@ export async function register(prevState: any, formData: FormData) {
             return {error: "Something went wrong"}
     }
 
+}
+
+
+export async function logout() {
+    cookies().delete("access")
+    cookies().delete("refresh")
+    redirect("/")
 }

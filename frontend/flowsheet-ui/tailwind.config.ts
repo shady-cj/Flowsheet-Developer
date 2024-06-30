@@ -15,7 +15,11 @@ const config: Config = {
         "overlay-gradient": "linear-gradient(to right, #77a1d3, #79cbca, #e684ae)"
       },
       backgroundColor: {
-        "primary": "#f2f3f5"
+        "primary": "#f2f3f5",
+        "darkVariant": "#4C535D",
+        "default": "#f0f8ff",
+        "blueVariant": "#3c41c2",
+        "darkBlueVariant": "#1e2179"
       }
     },
   },

@@ -1,10 +1,15 @@
 import HomeHeader from '@/components/layout/HomeHeader'
 import React from 'react'
+import { cookies } from 'next/headers'
+import DashboardHeader from '@/components/layout/DashboardHeader'
 
 const NotFoundPage = () => {
+  const accessToken = cookies().get("access")?.value
   return (
     <>
-        <HomeHeader />
+        {
+          accessToken ? <DashboardHeader/> : <HomeHeader />
+        }
         <div className='h-screen -mt-14 flex justify-center items-center'>
             UH-OH Wrong Page
         </div>
