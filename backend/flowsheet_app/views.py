@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework import serializers, status
-from .serializers import ShapeSerializer, ScreenerSerializer, CrusherSerializer, GrinderSerializer, ConcentratorSerializer, MiscellaneousSerializer, ProjectSerializer, ProjectObjectSerializer
-from .models import Shape, Screener, Crusher,Grinder, Concentrator, Miscellaneous, Project, ProjectObject
+from .serializers import ShapeSerializer, ScreenerSerializer, CrusherSerializer, GrinderSerializer, ConcentratorSerializer, AuxilliarySerializer, ProjectSerializer, ProjectObjectSerializer
+from .models import Shape, Screener, Crusher,Grinder, Concentrator, Auxilliary, Project, ProjectObject
 from authentication.models import User
 from .utils import get_queryset_util, perform_create_update_util
 from .mixins import ObjectPermissionMixin,UpdateCreatorMixin
@@ -83,18 +83,18 @@ class RetrieveUpdateDestroyConcentrator(ObjectPermissionMixin,RetrieveUpdateDest
 
 
 
-class ListCreateMiscellaneous(UpdateCreatorMixin, ListCreateAPIView):
-    serializer_class = MiscellaneousSerializer
-    queryset = Miscellaneous.objects.all()
+class ListCreateAuxilliary(UpdateCreatorMixin, ListCreateAPIView):
+    serializer_class = AuxilliarySerializer
+    queryset = Auxilliary.objects.all()
     def get_queryset(self):
-        return get_queryset_util(self, Miscellaneous)
+        return get_queryset_util(self, Auxilliary)
 
-class RetrieveUpdateDestroyMiscellaneous(ObjectPermissionMixin,RetrieveUpdateDestroyAPIView):
-    serializer_class = MiscellaneousSerializer
+class RetrieveUpdateDestroyAuxilliary(ObjectPermissionMixin,RetrieveUpdateDestroyAPIView):
+    serializer_class = AuxilliarySerializer
     lookup_field = "id"
-    queryset = Miscellaneous.objects.all()
+    queryset = Auxilliary.objects.all()
     def get_queryset(self):
-        return get_queryset_util(self, Miscellaneous)
+        return get_queryset_util(self, Auxilliary)
     
 
 class ListCreateProject(UpdateCreatorMixin,ListCreateAPIView):

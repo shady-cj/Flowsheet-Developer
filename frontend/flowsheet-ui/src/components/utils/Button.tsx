@@ -5,7 +5,7 @@ const Button = ({title}: {title: string}) => {
     const {pending} = useFormStatus()
     return (
         <button type='submit' className={`rounded-md px-4 py-2 w-fit bg-[#282c33]
-            text-white ${pending ? "": "hover:bg-white hover:text-[#282c33]"} 
+            text-white ${pending ? "": "hover:bg-default hover:text-[#282c33]"} 
             font-bold transition-colors mx-auto mt-2 min-w-36`}
             disabled={pending}>
             {pending ? 

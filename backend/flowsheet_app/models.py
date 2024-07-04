@@ -38,8 +38,7 @@ class Crusher(models.Model):
 class Grinder(models.Model):
     name = models.CharField(max_length=20)
     image = models.ImageField(null=True, blank=True)
-    gape = models.DecimalField(max_digits=10,decimal_places=2, default=20.00) # size of the feed opening, basically size of expected must be 0.85 times this value
-    set = models.DecimalField(max_digits=10, decimal_places=2, default=0.1) # size of the machine outlet
+    gape = models.DecimalField(max_digits=10,decimal_places=2, default=20.00) # size of the feed opening, basically size of ore expected must be 0.80 times this value, this value is expected to be fixed since most times we can't adjust the gape
     # NOTE in grinding some milling machines don't have standard calibration for measuring gape size and set size (e.g ball mills and some other milling machines like it) in that case we just assume values for the gape and set (expected size of materials going in and expected size of materials coming out)
 
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="grinders", null=True, blank=True)
@@ -58,7 +57,7 @@ class Concentrator(models.Model):
 
 
 # Miscellaneous like ore, holding facilities etc...
-class Miscellaneous(models.Model):
+class Auxilliary(models.Model):
     MISC_TYPE = {
         "ORE": "ore", 
         "Facility": {
@@ -75,7 +74,7 @@ class Miscellaneous(models.Model):
     
 
     class Meta:
-        verbose_name_plural = "Miscellaneous"
+        verbose_name_plural = "Auxilliaries"
 
 
 
@@ -84,6 +83,7 @@ class Miscellaneous(models.Model):
 # This model would be extended overtime as more information arises
 
 class Project(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=64)
     description = models.TextField()
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")

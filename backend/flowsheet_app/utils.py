@@ -1,4 +1,4 @@
-from .models import Shape, Screener, Crusher, Grinder, Concentrator, Miscellaneous, Project
+from .models import Shape, Screener, Crusher, Grinder, Concentrator, Auxilliary, Project
 from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -6,7 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 
 
 # =================================
-# Defining a simple `get_queryset_util` function that would be used for filtering the get_queryset for each api view for Screener, Crusher,Grinder, Concentrator, Miscellaneous
+# Defining a simple `get_queryset_util` function that would be used for filtering the get_queryset for each api view for Screener, Crusher,Grinder, Concentrator, Auxilliary
 
 def get_queryset_util(self, obj_class):
     user = self.request.user
@@ -35,7 +35,7 @@ def object_formatter(obj):
             "recovery_rate": obj.recovery_rate,
             "dilution_gain": obj.dilution_gain
         })
-    elif isinstance(obj, Miscellaneous):
+    elif isinstance(obj, Auxilliary):
         default.update({
             "type": obj.type
         })
@@ -44,11 +44,11 @@ def object_formatter(obj):
 
 
 
-EXPECTED_OBJECT_NAMES = ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Miscellaneous")
+EXPECTED_OBJECT_NAMES = ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
 def perform_create_update_util(self, index, data):
     data = data[index] if index is not None else data
     object_info = eval(data.get("object_info"))
-    object_name = object_info.get("object_model_name") # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Miscellaneous")
+    object_name = object_info.get("object_model_name") # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
     object_model_id = object_info.get("object_id")
     if object_name not in EXPECTED_OBJECT_NAMES:
         raise serializers.ValidationError({"object_model_name": "Invalid object project name provided"})

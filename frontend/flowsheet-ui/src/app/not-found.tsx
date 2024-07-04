@@ -1,7 +1,7 @@
-import HomeHeader from '@/components/layout/HomeHeader'
+import HomeHeader from '@/components/HomeLayout/HomeHeader'
 import React from 'react'
 import { cookies } from 'next/headers'
-import DashboardHeader from '@/components/layout/DashboardHeader'
+import DashboardHeader from '@/components/DashboardLayout/DashboardHeader'
 
 const NotFoundPage = () => {
   const accessToken = cookies().get("access")?.value

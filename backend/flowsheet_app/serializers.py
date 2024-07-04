@@ -2,7 +2,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 # from rest_framework.exceptions import PermissionDenied
 
-from .models import Shape, Screener, Crusher, Grinder, Concentrator, Miscellaneous, Project, ProjectObject
+from .models import Shape, Screener, Crusher, Grinder, Concentrator, Auxilliary, Project, ProjectObject
 
 from .utils import object_formatter
 # Shapes Serializers
@@ -74,9 +74,9 @@ class ConcentratorSerializer(ModelSerializer):
         read_only_fields = ["id"]
 
 
-class MiscellaneousSerializer(ModelSerializer):
+class AuxilliarySerializer(ModelSerializer):
     class Meta:
-        model = Miscellaneous
+        model = Auxilliary
         fields = [
             "id",
             "name",
@@ -103,7 +103,7 @@ class ProjectSerializer(ModelSerializer):
             "creator",
             "description"
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "creator"]
 
 
 class ProjectObjectSerializer(ModelSerializer):

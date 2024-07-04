@@ -1,4 +1,4 @@
-import HomeHeader from '@/components/layout/HomeHeader'
+import HomeHeader from '@/components/HomeLayout/HomeHeader'
 import React from 'react'
 
 const AuthLayout = ({children}: {children: React.ReactNode}) => {

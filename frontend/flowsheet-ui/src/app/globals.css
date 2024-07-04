@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+
 body {
   background-color: #f0f8ff;
+  /* color: #99cbf7f7; */
 }
 .font-size-default {
   font-size: clamp(0.7vw, 1rem, 4vw);

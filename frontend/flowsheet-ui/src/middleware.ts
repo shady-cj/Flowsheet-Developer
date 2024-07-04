@@ -7,8 +7,8 @@ const unauthenticated_routes = ["/", "/login", "/register"]
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
-    const accessToken = request.cookies.get("access")?.value
-    const refreshToken = request.cookies.get("refresh")?.value
+    let accessToken: string = request.cookies.get("access")?.value as string
+    const refreshToken: string = request.cookies.get("refresh")?.value as string
     const serverResponse = NextResponse.next()
     if (!accessToken && refreshToken) {
         try {
@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
 
             const data = await response.json()
 
-            const accessToken = data.access
+            accessToken = data.access
   
 
             serverResponse.cookies.set("access", accessToken, {
@@ -38,7 +38,6 @@ export async function middleware(request: NextRequest) {
         }
         
     }
-   
     if (unauthenticated_routes.includes(path) && accessToken && refreshToken) {
         return NextResponse.redirect(new URL("/dashboard", request.url))
     }
@@ -52,5 +51,13 @@ export async function middleware(request: NextRequest) {
 
 
 export const config = {
-    matcher: ["/", "/login", "/register", "/dashboard"]
+    matcher: [
+        { 
+        source: '/((?!api|_next/static|_next/image|favicon.ico|.*jpg|.*jpeg).*)',
+        missing: [
+            // Exclude Server Actions
+            { type: 'header', key: 'next-action' },
+            ],
+        }],
+    
 }

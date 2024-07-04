@@ -5,7 +5,7 @@ type successType = {success: string}
 type stateType = {
     state: {error: string} | {detail: string} | {success: string}
 }
-const AuthStatusBox = ({ state }: stateType ) => {
+const StatusBox = ({ state }: stateType ) => {
   const error = (state as errorType).error
   const warning = (state as warningType).detail
   const success = (state as successType).success
@@ -18,4 +18,4 @@ const AuthStatusBox = ({ state }: stateType ) => {
   )
 }
 
-export default AuthStatusBox
+export default StatusBox

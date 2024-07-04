@@ -1,9 +1,9 @@
 "use client";
 import PasswordInput from '@/components/auth/PasswordInput'
 import { login } from '@/lib/actions/auth'
-import Button from '@/components/auth/AuthButton';
+import Button from '@/components/utils/Button';
 import { useFormState } from 'react-dom';
-import AuthStatusBox from '@/components/auth/AuthStatusBox';
+import AuthStatusBox from '@/components/utils/StatusBox';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 
