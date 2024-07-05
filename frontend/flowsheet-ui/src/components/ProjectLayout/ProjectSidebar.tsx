@@ -6,6 +6,7 @@ import Rectangle from "../Shapes/Rectangle";
 import Square from "../Shapes/Square";
 import Ellipse from "../Shapes/Ellipse";
 import Triangle from "../Shapes/Triangle";
+import Text from "../Shapes/Text";
 const ProjectSidebar = ({params}: {params: {id: string}}) => {
 
   
@@ -20,6 +21,7 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                     <Square/>
                     <Ellipse/>
                     <Triangle/>
+                    <Text/>
                 </div>
             </div>
             <div className="border-b px-4 py-2">

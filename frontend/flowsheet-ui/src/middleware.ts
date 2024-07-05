@@ -10,6 +10,7 @@ export async function middleware(request: NextRequest) {
     let accessToken: string = request.cookies.get("access")?.value as string
     const refreshToken: string = request.cookies.get("refresh")?.value as string
     const serverResponse = NextResponse.next()
+    // console.log(path)
     if (!accessToken && refreshToken) {
         try {
             const response = await fetch(`${BaseURL}/auth/token/refresh/`, {
