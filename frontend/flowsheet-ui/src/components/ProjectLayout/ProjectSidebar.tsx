@@ -7,6 +7,7 @@ import Square from "../Shapes/Square";
 import Ellipse from "../Shapes/Ellipse";
 import Triangle from "../Shapes/Triangle";
 import Text from "../Shapes/Text";
+import Line from "../Shapes/Line";
 const ProjectSidebar = ({params}: {params: {id: string}}) => {
 
   
@@ -15,13 +16,14 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
         <section className="w-full flex flex-col mt-4 gap-4">
             <div className="border-b px-4 py-2">
                 <h1 className="text-xl font-bold mb-2">Shapes</h1>
-                <div className="flex gap-x-4 items-center">
+                <div className="flex gap-4 items-center flex-wrap ">
                     <Circle />
                     <Rectangle />
                     <Square/>
                     <Ellipse/>
                     <Triangle/>
                     <Text/>
+                    <Line />
                 </div>
             </div>
             <div className="border-b px-4 py-2">

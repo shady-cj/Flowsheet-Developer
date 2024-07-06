@@ -14,22 +14,16 @@ const Project = ({params}: {params: {id: string}}) => {
     const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
     const objectData = useRef<{[key: string]: objectCoords}>({})
-    // const isDragging = useRef(false)
 
     const onMouseDown = useRef(false)
     // const {isDragging, setIsDragging} = useContext(ProjectContext)
-    // const handleMouseleave = (e: MouseEvent, obj: HTMLElement) => {
-    //   if (!obj.classList.contains("cursor-grab")) {
-    //     obj.classList.remove("cursor-grabbing")
-    //     obj.classList.add("cursor-grab")
-    //   }
-    // }
 
-    const handleDblClick = (e: MouseEvent) => {
-      const element = e.target as HTMLElement
-      console.log("double click")
+
+    const handleShapeDelete = (e: KeyboardEvent, element: HTMLElement) => {
+      if (e.keyCode === 8 || e.keyCode === 46) element.remove()
+    }
+    const handleDblClick = (e: MouseEvent, element: HTMLElement) => {
       element.setAttribute("contenteditable", "true")
-      element.focus()
       element.style.border = "1px solid black"
     }
     const handleMouseUpGeneral = (e: MouseEvent) => {
@@ -38,6 +32,8 @@ const Project = ({params}: {params: {id: string}}) => {
     
 
     const handleMouseDown = useCallback((e: MouseEvent, obj: HTMLElement) => {
+      // console.log("event target", e.target)
+      // console.log("obj", obj)
       currentObject.current = obj
       onMouseDown.current = true
       objectData.current[obj.id].startX = e.clientX
@@ -48,8 +44,7 @@ const Project = ({params}: {params: {id: string}}) => {
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
       if (onMouseDown.current) {
-        if (!obj) obj = currentObject.current
-        // const obj = (e.target as HTMLElement).closest("div");
+        obj = currentObject.current
   
         onMouseDown.current = false
         objectData.current[obj.id].lastX = obj?.offsetLeft as number
@@ -57,12 +52,14 @@ const Project = ({params}: {params: {id: string}}) => {
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
-      // console.log(e)
     }, [])
 
     const handleInput = (e: KeyboardEvent) => {
       const element = e.target as HTMLElement
-      console.log(element.textContent)
+      if (element.textContent!.length === 0 && e.keyCode === 8) element.remove()
+      if (element.textContent!.length > 0) element.classList.remove("placeholder-style")
+      else element.classList.add("placeholder-style")
+      
     }
   
     const handleDrop = (e: DragEvent) => {
@@ -72,21 +69,35 @@ const Project = ({params}: {params: {id: string}}) => {
       const newEl = element?.cloneNode(true) as HTMLElement
       const canvasX = canvasRef.current.getBoundingClientRect().x
       const canvasY = canvasRef.current.getBoundingClientRect().y
+      newEl.setAttribute("tabindex", "-1")
+      // 
+      // newEl.style.outline = "1px solid red"
       let x = e.clientX - canvasX - 30
       let y = e.clientY - canvasY - 30
       if (elementId === "shape-text") {
-        newEl.setAttribute("tabindex", "-1")
+        newEl.classList.remove('text-2xl')
+        newEl.style.display = "inline-block"
         newEl.setAttribute("data-placeholder", "Text")
-        newEl.style.minHeight = "3rem"
-        newEl.style.minWidth = "3.5rem"
+        newEl.style.minHeight = "1.5rem"
+        newEl.style.minWidth = "5rem"
+        newEl.style.maxWidth = "10rem"
+        newEl.style.fontSize = "0.8rem"
+        newEl.style.lineHeight = "1"
+        newEl.style.padding = "0.2rem 0.1rem"
+        newEl.style.outline = "none"
         newEl.classList.add("placeholder-style")
         newEl.textContent = ""
-        newEl.addEventListener("dblclick", handleDblClick)
+        newEl.addEventListener("dblclick", (e) => handleDblClick(e, newEl))
         newEl.addEventListener("focusout", ()=>{
           newEl.removeAttribute("contenteditable")
           newEl.style.color = "black"
+          newEl.style.border = "none"
         })
         newEl.addEventListener("keyup", handleInput)
+      } else {
+        newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
+        newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
+        newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
       }
         
       const uuid4 = crypto.randomUUID()
@@ -110,7 +121,7 @@ const Project = ({params}: {params: {id: string}}) => {
       newEl.style.left = `${x}px`
       newEl.style.transform = "scale(1.25)"
       newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
-      newEl.addEventListener("mouseup", (e) => handleMouseUp(e, newEl));
+      newEl.addEventListener("mouseup", handleMouseUp);
       canvasRef.current.appendChild(newEl)
     }
 
@@ -149,11 +160,15 @@ const Project = ({params}: {params: {id: string}}) => {
       return () => {
         objects.forEach(object=> {
           (object as HTMLElement).removeEventListener("mousedown", (e) => handleMouseDown(e, object as HTMLElement));
-          (object as HTMLElement).removeEventListener("mouseup", (e) => handleMouseUp(e, object as HTMLElement));
+          (object as HTMLElement).removeEventListener("mouseup", handleMouseUp);
+          (object as HTMLElement).addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06");
+          (object as HTMLElement).addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none");
+          (object as HTMLElement).addEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
           // object.removeEventListener("mousemove", handleMouseMove)
         })
         CanvasContainer.removeEventListener("mousemove", handleMouseMove);
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
+        
       }
     }, [handleMouseDown, handleMouseUp])
   return (

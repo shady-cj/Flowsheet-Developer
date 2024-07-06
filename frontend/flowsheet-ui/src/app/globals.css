@@ -20,6 +20,7 @@ body {
 
 }
 
-.placeholder-style:empty:not(:focus):before {
-  content: attr(data-placeholder)
+.placeholder-style:after {
+  content: attr(data-placeholder);
+  color: rgb(158, 155, 155);
 }
