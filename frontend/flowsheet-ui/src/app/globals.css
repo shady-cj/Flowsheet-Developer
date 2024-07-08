@@ -24,3 +24,28 @@ body {
   content: attr(data-placeholder);
   color: rgb(158, 155, 155);
 }
+
+.shape-text-base-styles {
+  min-width: 5rem;
+  max-width: 10rem;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0.2rem 0.1rem;
+  outline: none;
+  min-height: 1.5rem;
+  display: inline-block;
+}
+
+.point-indicators {
+  display: inline-block;
+  position: absolute;
+  height: 0.4rem;
+  width: 0.4rem;
+  border-radius: 50%;
+  background-color: red;
+  transform: translate(-50%, -50%);
+  transition: transform 0.4s ease-in;
+}
+.hide-indicator {
+  visibility: hidden;
+}

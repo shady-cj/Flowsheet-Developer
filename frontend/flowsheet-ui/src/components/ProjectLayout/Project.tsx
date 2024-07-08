@@ -4,65 +4,209 @@ import ProjectSidebar from "./ProjectSidebar"
 import { ProjectContext } from "../context/ProjectProvider";
 
 
+type lineCordsType = {
+  M: [number, number], 
+  L: [number, number][]
+}
 type objectCoords = {
   startX: number, 
   startY: number, 
   lastX: number, 
-  lastY: number
+  lastY: number,
+  lineCoordinates?: lineCordsType
 }
 const Project = ({params}: {params: {id: string}}) => {
     const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
     const objectData = useRef<{[key: string]: objectCoords}>({})
+    const pointStore = useRef<{[key: string]: ["M"] | ["L", number, number?]}>({})
+    const currentActivePoint = useRef<HTMLSpanElement | null>(null)
 
     const onMouseDown = useRef(false)
     // const {isDragging, setIsDragging} = useContext(ProjectContext)
+
+    const LineCoordinateToPathString = (lineCoordinates: lineCordsType): string => {
+      const mPath = "M".concat(lineCoordinates.M.join(" "))
+
+
+      let lPath = ""
+      lineCoordinates.L.forEach(c => {
+        lPath = lPath.concat("L".concat(c.join(" ")))
+        lPath += " "
+    
+      })
+      lPath = lPath.substring(0, lPath.length - 1)
+      return mPath + " " + lPath
+    }
+
+ 
+
+    const DrawPoint = useCallback((e: MouseEvent, point: HTMLElement) => {
+      // const 
+
+      const object = currentObject.current
+      const objectX = object.getBoundingClientRect().x
+      const objectY = object.getBoundingClientRect().y
+      const pointX = e.clientX - objectX 
+      const pointY = e.clientY - objectY
+      // console.log("objectX", objectX)
+      // console.log("objectY", objectY)
+      // console.log(e.clientX, "x")
+      // console.log(e.clientY, "y")
+      const pointDetails = pointStore.current[point.id] // point here is expected to be ["L", :any number]
+      const objectDetails = objectData.current[object.id]
+      objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
+      point.style.left = `${pointX}px`
+      point.style.top = `${pointY}px`
+      const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
+      const path = object.querySelector("svg path")
+      // console.log(path)
+      // console.log(coordString)
+      path?.setAttribute("d", coordString)
+
+
+      
+
+      // 
+    }, [])
+
 
 
     const handleShapeDelete = (e: KeyboardEvent, element: HTMLElement) => {
       if (e.keyCode === 8 || e.keyCode === 46) element.remove()
     }
+
+
+
     const handleDblClick = (e: MouseEvent, element: HTMLElement) => {
       element.setAttribute("contenteditable", "true")
       element.style.border = "1px solid black"
     }
     const handleMouseUpGeneral = (e: MouseEvent) => {
       onMouseDown.current = false
+      if (currentActivePoint.current) {
+        currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
+        currentActivePoint.current = null
+      } 
     }
     
 
     const handleMouseDown = useCallback((e: MouseEvent, obj: HTMLElement) => {
       // console.log("event target", e.target)
       // console.log("obj", obj)
-      currentObject.current = obj
+
+      if (obj.classList.contains("point-indicators")) {
+          currentActivePoint.current = obj
+          obj.style.transform = "scale(1.5) translate(-40%, -40%)"
+          // console.log(e.clientX, e.clientY)
+      } else {
+          currentObject.current = obj
+          objectData.current[obj.id].startX = e.clientX
+          objectData.current[obj.id].startY = e.clientY
+      }
       onMouseDown.current = true
-      objectData.current[obj.id].startX = e.clientX
-      objectData.current[obj.id].startY = e.clientY
       document.removeEventListener("mouseup", handleMouseUpGeneral)
       // console.log(e)
     }, [])
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
       if (onMouseDown.current) {
-        obj = currentObject.current
+        if (currentActivePoint.current) {
+          currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
+          currentActivePoint.current = null
+        } else {
+          obj = currentObject.current
   
+          objectData.current[obj.id].lastX = obj?.offsetLeft as number
+          objectData.current[obj.id].lastY = obj?.offsetTop as number
+        }
+       
+
         onMouseDown.current = false
-        objectData.current[obj.id].lastX = obj?.offsetLeft as number
-        objectData.current[obj.id].lastY = obj?.offsetTop as number
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
     }, [])
 
+
+    const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
+
+      const pointDetails = pointStore.current[point.id]
+
+      if (pointDetails.length < 3) {
+        const object = currentObject.current
+        const newPoint = document.createElement("span")
+        const newPointUid = "point-"+crypto.randomUUID()
+        newPoint.classList.add("point-indicators")
+        newPoint.setAttribute("id", newPointUid)
+        newPoint.addEventListener("mousedown", (e)=> handleMouseDown(e, newPoint)) 
+        newPoint.addEventListener("mouseup", handleMouseUp)
+        newPoint.addEventListener("dblclick", e => createMultiplePoint(e, newPoint))
+        newPoint.style.top = point.style.top
+        newPoint.style.left = point.style.left
+        
+        const lineWrapEl = object.querySelector(".line-wrap") as HTMLDivElement
+        lineWrapEl.appendChild(newPoint)
+        const path = object.querySelector("svg path")
+
+
+        // update the pointStore.current for point.id to show there is a third point
+
+        pointStore.current[point.id][2] = pointDetails[1]! + 1
+
+        // create a new pointStore.current for  newPoint
+        pointStore.current[newPointUid] = ["L", pointStore.current[point.id][2]!]
+
+        // update line coordinates
+        const newPointDetails = pointStore.current[newPointUid]
+        const objectDetails = objectData.current[object.id]
+        objectDetails.lineCoordinates![newPointDetails[0]][newPointDetails[1]!] = objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] as [number, number]
+        const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
+        path?.setAttribute("d", coordString)
+
+      }
+
+
+    }, [handleMouseDown, handleMouseUp])
+
+
+
+    const showPointVisibility = (e: FocusEvent | MouseEvent, element: HTMLElement) => {
+      const indicators = element.querySelectorAll(".point-indicators")
+      indicators.forEach(indicator => {
+        indicator.classList.remove("hide-indicator")
+      }) 
+    }
+
+    const hidePointVisibility = (e: FocusEvent, element: HTMLElement) => {
+      const indicators = element.querySelectorAll(".point-indicators")
+      indicators.forEach(indicator => {
+        indicator.classList.add("hide-indicator")
+      }) 
+    }
+
     const handleInput = (e: KeyboardEvent) => {
       const element = e.target as HTMLElement
-      if (element.textContent!.length === 0 && e.keyCode === 8) element.remove()
+
+      if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style"))
+        element.remove()
+      
       if (element.textContent!.length > 0) element.classList.remove("placeholder-style")
       else element.classList.add("placeholder-style")
+
+      
       
     }
   
     const handleDrop = (e: DragEvent) => {
+
+      let defaultCoords: objectCoords = {
+        startX: 0, 
+        startY: 0, 
+        lastX: 0, 
+        lastY: 0,
+        
+      }
       const elementId = e.dataTransfer?.getData("elementId");
       if (!elementId) return
       const element = document.getElementById(elementId as string)
@@ -70,22 +214,19 @@ const Project = ({params}: {params: {id: string}}) => {
       const canvasX = canvasRef.current.getBoundingClientRect().x
       const canvasY = canvasRef.current.getBoundingClientRect().y
       newEl.setAttribute("tabindex", "-1")
+     
       // 
       // newEl.style.outline = "1px solid red"
       let x = e.clientX - canvasX - 30
       let y = e.clientY - canvasY - 30
+
+
+      // Text
       if (elementId === "shape-text") {
         newEl.classList.remove('text-2xl')
-        newEl.style.display = "inline-block"
         newEl.setAttribute("data-placeholder", "Text")
-        newEl.style.minHeight = "1.5rem"
-        newEl.style.minWidth = "5rem"
-        newEl.style.maxWidth = "10rem"
-        newEl.style.fontSize = "0.8rem"
-        newEl.style.lineHeight = "1"
-        newEl.style.padding = "0.2rem 0.1rem"
-        newEl.style.outline = "none"
         newEl.classList.add("placeholder-style")
+        newEl.classList.add("shape-text-base-styles")
         newEl.textContent = ""
         newEl.addEventListener("dblclick", (e) => handleDblClick(e, newEl))
         newEl.addEventListener("focusout", ()=>{
@@ -94,7 +235,47 @@ const Project = ({params}: {params: {id: string}}) => {
           newEl.style.border = "none"
         })
         newEl.addEventListener("keyup", handleInput)
-      } else {
+      } else if (elementId === "shape-line") {
+        // Lines 
+        newEl.style.width = "30px"
+        newEl.style.height = "70px"
+        newEl.style.outline = "none"
+        newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
+        newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
+        newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
+        const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
+        const svg = newEl.querySelector("svg")
+        const path = svg!.querySelector("path")
+        path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
+        const point1Uid = "point-"+crypto.randomUUID()
+        const point2Uid = "point-"+crypto.randomUUID()
+
+        const point1 = document.createElement("span") // Starting point which doesn't change
+        const point2 = document.createElement("span")
+        point1.classList.add("point-indicators")
+        point2.classList.add("point-indicators")
+        point1.classList.add("hide-indicator")
+        point2.classList.add("hide-indicator")
+        point1.setAttribute("id", point1Uid)
+        point2.setAttribute("id", point2Uid)
+        point2.addEventListener("mousedown", (e)=> handleMouseDown(e, point2)) 
+        point2.addEventListener("mouseup", handleMouseUp)
+        point2.addEventListener("dblclick", e => createMultiplePoint(e, point2))
+        const startCoords: [number, number] = [15, 25]
+        point1.style.top = `${startCoords[1]}px`
+        point1.style.left = `${startCoords[0]}px`
+        point2.style.left = `${startCoords[0]}px`
+        point2.style.top = "100px"
+        lineWrapEl.appendChild(point1)
+        lineWrapEl.appendChild(point2)
+        const lineCoordinates: lineCordsType  = {"M": startCoords, "L": [[15, 100]]}
+        defaultCoords["lineCoordinates"] = lineCoordinates
+        const coordString = LineCoordinateToPathString(lineCoordinates)
+        path?.setAttribute("d", coordString)
+        pointStore.current[point1Uid] = ["M"]
+        pointStore.current[point2Uid] = ["L", 0]
+        
+      }else {
         newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
         newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
@@ -108,22 +289,21 @@ const Project = ({params}: {params: {id: string}}) => {
       newEl.classList.remove("cursor-grabbing")
       x = x < 6 ? 6 : x
       y = y < 6 ? 6 : y
-      const defaultCoords = {
-        startX: 0, 
-        startY: 0, 
-        lastX: 0, 
-        lastY: 0
-      }
+      
       objectData.current[uuid4] = defaultCoords
       objectData.current[uuid4].lastX = x
       objectData.current[uuid4].lastY = y
       newEl.style.top = `${y}px`
       newEl.style.left = `${x}px`
-      newEl.style.transform = "scale(1.25)"
+      if (elementId !== "shape-line") newEl.style.transform = "scale(1.25)"
       newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
       newEl.addEventListener("mouseup", handleMouseUp);
       canvasRef.current.appendChild(newEl)
     }
+
+
+
+
 
     useEffect(()=> {
       const CanvasContainer = canvasRef.current
@@ -134,17 +314,23 @@ const Project = ({params}: {params: {id: string}}) => {
       
       const handleMouseMove = (e: MouseEvent) => {
         if (onMouseDown.current) {
-          const obj = currentObject.current as HTMLElement
-          // console.log("objcoords", objCoords.current)
-          let nextX = e.clientX - objectData.current[obj.id].startX + objectData.current[obj.id].lastX
-          let nextY = e.clientY - objectData.current[obj.id].startY + objectData.current[obj.id].lastY
-          // console.log(nextX, nextY)
-          nextX = nextX < 6 ? 6 : nextX
-          nextY = nextY < 6 ? 6 : nextY
-          // console.log(nextX, nextY)
-          // obj.style.transform = `translate(${nextX}px, ${nextY}px)`
-          obj.style.top = `${nextY}px`
-          obj.style.left = `${nextX}px`
+          if (currentActivePoint.current !== null) {
+            DrawPoint(e, currentActivePoint.current)
+          } else {
+            const obj = currentObject.current as HTMLElement
+            // console.log("objcoords", objCoords.current)
+            // console.log("objectData.current", objectData.current)
+            let nextX = e.clientX - objectData.current[obj.id].startX + objectData.current[obj.id].lastX
+            let nextY = e.clientY - objectData.current[obj.id].startY + objectData.current[obj.id].lastY
+            // console.log(nextX, nextY)
+            nextX = nextX < 6 ? 6 : nextX
+            nextY = nextY < 6 ? 6 : nextY
+            // console.log(nextX, nextY)
+            // obj.style.transform = `translate(${nextX}px, ${nextY}px)`
+            obj.style.top = `${nextY}px`
+            obj.style.left = `${nextX}px`
+          }
+          
           document.addEventListener("mouseup", handleMouseUpGeneral)
         }
 
@@ -166,11 +352,16 @@ const Project = ({params}: {params: {id: string}}) => {
           (object as HTMLElement).addEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
           // object.removeEventListener("mousemove", handleMouseMove)
         })
+        document.querySelectorAll(".point-indicators").forEach(point => {
+          (point as HTMLElement).removeEventListener("mousedown", (e)=> handleMouseDown(e, point as HTMLElement));
+          (point as HTMLElement).removeEventListener("mouseup", handleMouseUp);
+          (point as HTMLElement).addEventListener("dblclick", e => createMultiplePoint(e, point as HTMLElement))
+        })
         CanvasContainer.removeEventListener("mousemove", handleMouseMove);
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown, handleMouseUp])
+    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint])
   return (
     <>
         <ProjectSidebar params={params} />
