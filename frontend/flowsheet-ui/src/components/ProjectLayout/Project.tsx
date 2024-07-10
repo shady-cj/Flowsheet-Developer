@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useContext, useRef, useCallback} from "react";
+import { useEffect, useContext, useRef, useCallback, DragEventHandler} from "react";
 import ProjectSidebar from "./ProjectSidebar"
 import { ProjectContext } from "../context/ProjectProvider";
 
@@ -25,6 +25,28 @@ const Project = ({params}: {params: {id: string}}) => {
     const onMouseDown = useRef(false)
     // const {isDragging, setIsDragging} = useContext(ProjectContext)
 
+
+    const checkLineBoundary = (e: MouseEvent, obj: HTMLElement) => {
+      const pointIndicators = obj.querySelectorAll(".point-indicators")
+      const {x: containerX, y: containerY} = canvasRef.current.getBoundingClientRect()
+      const coords: {offsetLeft: number, offsetTop: number} = {offsetLeft: 0, offsetTop: 0}
+      const pointIndicatorArray = Array.from(pointIndicators)
+      const objOffsetLeft = obj.offsetLeft
+      const objOffsetTop = obj.offsetTop
+      for (const point of pointIndicatorArray) {
+        const x = point.getBoundingClientRect().x
+        const y = point.getBoundingClientRect().y
+        if ((objOffsetLeft + (point as HTMLElement).offsetLeft) < 7 || (objOffsetTop + (point as HTMLElement).offsetTop) < 7) {
+          // 7 here is arbitrary for padding
+          if ((objOffsetLeft + (point as HTMLElement).offsetLeft) < 7)
+            coords.offsetLeft = Math.abs((point as HTMLElement).offsetLeft) + 6
+          if ((objOffsetTop + (point as HTMLElement).offsetTop) < 7)
+            coords.offsetTop = Math.abs((point as HTMLElement).offsetTop) + 6
+        }
+      }
+      return coords
+    }
+
     const LineCoordinateToPathString = (lineCoordinates: lineCordsType): string => {
       const mPath = "M".concat(lineCoordinates.M.join(" "))
 
@@ -43,16 +65,16 @@ const Project = ({params}: {params: {id: string}}) => {
 
     const DrawPoint = useCallback((e: MouseEvent, point: HTMLElement) => {
       // const 
-
+      const containerX = canvasRef.current.getBoundingClientRect().x
+      const containerY = canvasRef.current.getBoundingClientRect().y
+      if ((e.clientX - containerX) < 7 || (e.clientY - containerY) < 7) {
+        return
+      }
       const object = currentObject.current
       const objectX = object.getBoundingClientRect().x
       const objectY = object.getBoundingClientRect().y
       const pointX = e.clientX - objectX 
       const pointY = e.clientY - objectY
-      // console.log("objectX", objectX)
-      // console.log("objectY", objectY)
-      // console.log(e.clientX, "x")
-      // console.log(e.clientY, "y")
       const pointDetails = pointStore.current[point.id] // point here is expected to be ["L", :any number]
       const objectDetails = objectData.current[object.id]
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
@@ -60,13 +82,7 @@ const Project = ({params}: {params: {id: string}}) => {
       point.style.top = `${pointY}px`
       const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
       const path = object.querySelector("svg path")
-      // console.log(path)
-      // console.log(coordString)
       path?.setAttribute("d", coordString)
-
-
-      
-
       // 
     }, [])
 
@@ -116,7 +132,6 @@ const Project = ({params}: {params: {id: string}}) => {
           currentActivePoint.current = null
         } else {
           obj = currentObject.current
-  
           objectData.current[obj.id].lastX = obj?.offsetLeft as number
           objectData.current[obj.id].lastY = obj?.offsetTop as number
         }
@@ -237,9 +252,11 @@ const Project = ({params}: {params: {id: string}}) => {
         newEl.addEventListener("keyup", handleInput)
       } else if (elementId === "shape-line") {
         // Lines 
+        newEl.setAttribute("data-variant", "line")
         newEl.style.width = "30px"
         newEl.style.height = "70px"
         newEl.style.outline = "none"
+        newEl.style.border = "1px solid red"
         newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
         newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
@@ -318,17 +335,25 @@ const Project = ({params}: {params: {id: string}}) => {
             DrawPoint(e, currentActivePoint.current)
           } else {
             const obj = currentObject.current as HTMLElement
-            // console.log("objcoords", objCoords.current)
-            // console.log("objectData.current", objectData.current)
+            let offsetX = 6
+            let offsetY = 6
+            if (obj.getAttribute("data-variant") === "line") {
+              // To prevent Lines from going over the edge
+              const {offsetLeft, offsetTop} = checkLineBoundary(e, obj)
+            
+              offsetX = offsetLeft > offsetX ? offsetLeft : offsetX
+              offsetY = offsetTop > offsetY ? offsetTop : offsetY
+            }
+            
             let nextX = e.clientX - objectData.current[obj.id].startX + objectData.current[obj.id].lastX
             let nextY = e.clientY - objectData.current[obj.id].startY + objectData.current[obj.id].lastY
-            // console.log(nextX, nextY)
-            nextX = nextX < 6 ? 6 : nextX
-            nextY = nextY < 6 ? 6 : nextY
-            // console.log(nextX, nextY)
-            // obj.style.transform = `translate(${nextX}px, ${nextY}px)`
+
+            nextX = nextX < offsetX ? offsetX : nextX
+            nextY = nextY < offsetY ? offsetY : nextY
+  
             obj.style.top = `${nextY}px`
             obj.style.left = `${nextX}px`
+            
           }
           
           document.addEventListener("mouseup", handleMouseUpGeneral)
