@@ -28,14 +28,11 @@ const Project = ({params}: {params: {id: string}}) => {
 
     const checkLineBoundary = (e: MouseEvent, obj: HTMLElement) => {
       const pointIndicators = obj.querySelectorAll(".point-indicators")
-      const {x: containerX, y: containerY} = canvasRef.current.getBoundingClientRect()
       const coords: {offsetLeft: number, offsetTop: number} = {offsetLeft: 0, offsetTop: 0}
       const pointIndicatorArray = Array.from(pointIndicators)
       const objOffsetLeft = obj.offsetLeft
       const objOffsetTop = obj.offsetTop
       for (const point of pointIndicatorArray) {
-        const x = point.getBoundingClientRect().x
-        const y = point.getBoundingClientRect().y
         if ((objOffsetLeft + (point as HTMLElement).offsetLeft) < 7 || (objOffsetTop + (point as HTMLElement).offsetTop) < 7) {
           // 7 here is arbitrary for padding
           if ((objOffsetLeft + (point as HTMLElement).offsetLeft) < 7)
@@ -131,9 +128,129 @@ const Project = ({params}: {params: {id: string}}) => {
           currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
           currentActivePoint.current = null
         } else {
-          obj = currentObject.current
+          let obj = currentObject.current
           objectData.current[obj.id].lastX = obj?.offsetLeft as number
           objectData.current[obj.id].lastY = obj?.offsetTop as number
+
+          if (obj.getAttribute("data-variant") !== "line") {
+            // Get all the lines
+            const lines = document.querySelectorAll("[data-variant=line]")
+            lines.forEach(line => {
+              // For each line check if the currentObject been dragged/move is in contact with the any line or with 5px range
+              const objectOffsetX = obj.offsetLeft
+              const objectOffsetY = obj.offsetTop
+              const objectOffsetYBottom = obj.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
+              const objectOffsetXRight = obj.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
+
+              const offsetLineX = (line as HTMLElement).offsetLeft
+              const offsetLineY = (line as HTMLElement).offsetTop
+              const lineData = objectData.current[line.id]
+              const coordinates = lineData.lineCoordinates!
+              const M = coordinates.M
+              const L = coordinates.L[coordinates.L.length - 1]
+              const mXAxis = M[0] + offsetLineX
+              const mYAxis = M[1] + offsetLineY
+              const lXAxis = L[0] + offsetLineX
+              const lYAxis = L[1] + offsetLineY
+              // console.log(objectOffsetYBottom, mYAxis)
+              // console.log("Match", Math.abs(objectOffsetYBottom - mYAxis))
+              if (objectOffsetYBottom === mYAxis || Math.abs(objectOffsetYBottom - mYAxis) < 10) {
+                // Dragging the object in from the top (M coordinates)
+                if (mXAxis >= objectOffsetX && mXAxis <= objectOffsetXRight) {
+                  const objWidthMidpoint = obj.getBoundingClientRect().width / 2
+                  const objHeightMidpoint = obj.getBoundingClientRect().height
+                  const newObjectOffsetX = mXAxis - objWidthMidpoint + 6
+                  const newObjectOffsetY = mYAxis - objHeightMidpoint + 6
+                  // console.log(mYAxis, "myaxis")
+                  if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+                    return
+                  obj.style.top = `${newObjectOffsetY}px`;
+                  obj.style.left = `${newObjectOffsetX}px`;
+                  objectData.current[obj.id].lastX = newObjectOffsetX
+                  objectData.current[obj.id].lastY = newObjectOffsetY
+
+                }
+              }
+              if (objectOffsetY === lYAxis || Math.abs(objectOffsetY - lYAxis) < 10) {
+                // Dragging the object in from bottom (L coordinates)
+                if (lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) {
+                  const objWidthMidpoint = obj.getBoundingClientRect().width / 2
+                  const newObjectOffsetX = lXAxis - objWidthMidpoint + 6
+                  const newObjectOffsetY = lYAxis + 6
+                  // console.log(mYAxis, "myaxis")
+
+                  obj.style.top = `${newObjectOffsetY}px`;
+                  obj.style.left = `${newObjectOffsetX}px`;
+                  objectData.current[obj.id].lastX = newObjectOffsetX
+                  objectData.current[obj.id].lastY = newObjectOffsetY
+                }
+              }
+             
+              if (objectOffsetXRight === mXAxis || Math.abs(objectOffsetXRight - mXAxis) < 10) {
+                // Dragging the object in from the left (for M coordinates)
+                if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
+                  const objHeightMidpoint = obj.getBoundingClientRect().height / 2
+                  const objWidth = obj.getBoundingClientRect().width
+                  const newObjectOffsetX = mXAxis - objWidth + 6
+                  const newObjectOffsetY = mYAxis - objHeightMidpoint + 6
+                  if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+                    return
+                  obj.style.top = `${newObjectOffsetY}px`;
+                  obj.style.left = `${newObjectOffsetX}px`;
+                  objectData.current[obj.id].lastX = newObjectOffsetX
+                  objectData.current[obj.id].lastY = newObjectOffsetY
+
+                }
+              }
+              
+              if (objectOffsetX === mXAxis || Math.abs(objectOffsetX - mXAxis) < 10) {
+                // Dragging the object in from the right (for M coordinates)
+                if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
+                  const objHeightMidpoint = obj.getBoundingClientRect().height / 2
+                  const newObjectOffsetX = mXAxis + 6
+                  const newObjectOffsetY = mYAxis - objHeightMidpoint + 6
+                  obj.style.top = `${newObjectOffsetY}px`;
+                  obj.style.left = `${newObjectOffsetX}px`;
+                  objectData.current[obj.id].lastX = newObjectOffsetX
+                  objectData.current[obj.id].lastY = newObjectOffsetY
+
+                }
+              }
+
+              if (objectOffsetXRight === lXAxis || Math.abs(objectOffsetXRight - lXAxis) < 10) {
+                // Dragging the object in from the left (for L coordinates)
+                if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
+                  const objHeightMidpoint = obj.getBoundingClientRect().height / 2
+                  const objWidth = obj.getBoundingClientRect().width
+                  const newObjectOffsetX = lXAxis - objWidth + 6
+                  const newObjectOffsetY = lYAxis - objHeightMidpoint + 6
+                  if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+                    return
+                  obj.style.top = `${newObjectOffsetY}px`;
+                  obj.style.left = `${newObjectOffsetX}px`;
+                  objectData.current[obj.id].lastX = newObjectOffsetX
+                  objectData.current[obj.id].lastY = newObjectOffsetY
+
+                }
+              }
+              if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
+                // Dragging the object in from the right (for L coordinates)
+                if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
+                  const objHeightMidpoint = obj.getBoundingClientRect().height / 2
+                  const newObjectOffsetX = lXAxis + 6
+                  const newObjectOffsetY = lYAxis - objHeightMidpoint + 6
+                  obj.style.top = `${newObjectOffsetY}px`;
+                  obj.style.left = `${newObjectOffsetX}px`;
+                  objectData.current[obj.id].lastX = newObjectOffsetX
+                  objectData.current[obj.id].lastY = newObjectOffsetY
+
+                }
+              }
+          
+            })
+            
+          }
+
         }
        
 
@@ -254,9 +371,8 @@ const Project = ({params}: {params: {id: string}}) => {
         // Lines 
         newEl.setAttribute("data-variant", "line")
         newEl.style.width = "30px"
-        newEl.style.height = "70px"
+        newEl.style.height = "50px"
         newEl.style.outline = "none"
-        newEl.style.border = "1px solid red"
         newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
         newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
@@ -278,7 +394,7 @@ const Project = ({params}: {params: {id: string}}) => {
         point2.addEventListener("mousedown", (e)=> handleMouseDown(e, point2)) 
         point2.addEventListener("mouseup", handleMouseUp)
         point2.addEventListener("dblclick", e => createMultiplePoint(e, point2))
-        const startCoords: [number, number] = [15, 25]
+        const startCoords: [number, number] = [15, 5]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
         point2.style.left = `${startCoords[0]}px`
@@ -353,6 +469,8 @@ const Project = ({params}: {params: {id: string}}) => {
   
             obj.style.top = `${nextY}px`
             obj.style.left = `${nextX}px`
+
+            
             
           }
           
