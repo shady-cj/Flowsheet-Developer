@@ -10,7 +10,6 @@ export async function middleware(request: NextRequest) {
     let accessToken: string = request.cookies.get("access")?.value as string
     const refreshToken: string = request.cookies.get("refresh")?.value as string
     const serverResponse = NextResponse.next()
-    // console.log(path)
     if (!accessToken && refreshToken) {
         try {
             const response = await fetch(`${BaseURL}/auth/token/refresh/`, {
@@ -22,6 +21,7 @@ export async function middleware(request: NextRequest) {
             })
 
             const data = await response.json()
+            
 
             accessToken = data.access
   
@@ -33,9 +33,11 @@ export async function middleware(request: NextRequest) {
                 path: "/"
             })
         } catch (err) {
-            serverResponse.cookies.delete("access")
-            serverResponse.cookies.delete("refresh")
-            return NextResponse.redirect(new URL("/login", request.url))
+            // console.log("error")
+            const redirectLogin = NextResponse.redirect(new URL("/login", request.url))
+            redirectLogin.cookies.delete("access")
+            redirectLogin.cookies.delete("refresh")
+            return redirectLogin
         }
         
     }

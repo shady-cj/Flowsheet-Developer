@@ -25,7 +25,269 @@ const Project = ({params}: {params: {id: string}}) => {
     const onMouseDown = useRef(false)
     // const {isDragging, setIsDragging} = useContext(ProjectContext)
 
+    const LineToShape = (obj: HTMLElement) => {
+      for (const shapeId in objectData.current) {
+        if (obj.id === shapeId)
+          continue
+        const shape = document.getElementById(shapeId) as HTMLElement;
+        if (shape?.getAttribute("data-variant") === "text")
+          continue
+        const shapeOffsetX = shape.offsetLeft
+        const shapeOffsetY = shape.offsetTop
+        const shapeOffsetYBottom = shape.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
+        const shapeOffsetXRight = shape.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
+        const shapeWidth =  shape.getBoundingClientRect().width
+        const shapeHeight =  shape.getBoundingClientRect().height
 
+        const offsetLineX = obj.offsetLeft
+        const offsetLineY = obj.offsetTop
+        const lineData = objectData.current[obj.id]
+        const coordinates = lineData.lineCoordinates!
+        const M = coordinates.M
+        const L = coordinates.L[coordinates.L.length - 1]
+        const mXAxis = M[0] + offsetLineX
+        const mYAxis = M[1] + offsetLineY
+        const lXAxis = L[0] + offsetLineX
+        const lYAxis = L[1] + offsetLineY
+
+        // Getting the scale of the shape
+        const scale = +getComputedStyle(shape).transform.replace("matrix(", "").split(",")[0].trim()
+        const extrasX = shapeWidth - (shapeWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
+        const extrasY = shapeHeight - (shapeHeight / scale)
+
+        
+
+        if (shapeOffsetYBottom === mYAxis || Math.abs(shapeOffsetYBottom - mYAxis) < 10) {
+          // Dragging the line in from the bottom (M coordinates)
+          if (mXAxis >= shapeOffsetX && mXAxis <= shapeOffsetXRight) {
+            const shapeWidthMidpoint = shapeWidth / 2
+            const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - M[0] - (extrasX/2)
+            const newLineOffsetY = shapeOffsetYBottom - M[1]
+           
+            obj.style.top = `${newLineOffsetY}px`;
+            obj.style.left = `${newLineOffsetX}px`;
+            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].lastY = newLineOffsetY
+
+          }
+        }
+
+        if (shapeOffsetY === lYAxis || Math.abs(shapeOffsetY - lYAxis) < 10) {
+          // Dragging the line in from the top (L coordinates)
+          if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
+            const shapeWidthMidpoint = shapeWidth / 2
+            const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - L[0] - (extrasX/2)
+            const newLineOffsetY = shapeOffsetY - L[1] - M[1]
+            // console.log(mYAxis, "myaxis")
+            if (newLineOffsetX < 6 || newLineOffsetY < 6)
+              return
+            obj.style.top = `${newLineOffsetY}px`;
+            obj.style.left = `${newLineOffsetX}px`;
+            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].lastY = newLineOffsetY
+          }
+        }
+
+
+        if (shapeOffsetX === mXAxis || Math.abs(shapeOffsetX - mXAxis) < 10) {
+          // Dragging the line in from the left (for M coordinates)
+          if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
+            const shapeHeightMidpoint = shapeHeight / 2
+            const newLineOffsetX = shapeOffsetX - M[0] - (extrasX/2)
+            const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
+            if (newLineOffsetX < 6 || newLineOffsetY < 6)
+              return
+            obj.style.top = `${newLineOffsetY}px`;
+            obj.style.left = `${newLineOffsetX}px`;
+            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].lastY = newLineOffsetY
+
+          }
+        }
+
+        if (shapeOffsetXRight === mXAxis || Math.abs(shapeOffsetXRight - mXAxis) < 10) {
+          // Dragging the line in from the right (for M coordinates)
+          if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
+            const shapeHeightMidpoint = shapeHeight / 2
+            const newLineOffsetX = shapeOffsetXRight - M[0] 
+            const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
+            obj.style.top = `${newLineOffsetY}px`;
+            obj.style.left = `${newLineOffsetX}px`;
+            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].lastY = newLineOffsetY
+
+          }
+        }
+
+        if (shapeOffsetX === lXAxis || Math.abs(shapeOffsetX - lXAxis) < 10) {
+          // Dragging the line in from the left (for L coordinates)
+          if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+            const shapeHeightMidpoint = shapeHeight / 2
+            const newLineOffsetX = shapeOffsetX - L[0] - (extrasX/2)
+            const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
+            if (newLineOffsetX < 6 || newLineOffsetY < 6)
+              return
+            obj.style.top = `${newLineOffsetY}px`;
+            obj.style.left = `${newLineOffsetX}px`;
+            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].lastY = newLineOffsetY
+
+          }
+        }
+
+        if (shapeOffsetXRight === lXAxis || Math.abs(shapeOffsetXRight - lXAxis) < 10) {
+          // Dragging the line in from the right (for L coordinates)
+          if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+            const shapeHeightMidpoint = shapeHeight / 2
+            const newLineOffsetX = shapeOffsetXRight - L[0]
+            const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
+            obj.style.top = `${newLineOffsetY}px`;
+            obj.style.left = `${newLineOffsetX}px`;
+            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].lastY = newLineOffsetY
+
+          }
+        }
+
+      }
+    }
+
+
+
+    const ShapeToLine = (obj: HTMLElement) => {
+        // Get all the lines
+        const lines = document.querySelectorAll("[data-variant=line]")
+        lines.forEach(line => {
+          // For each line check if the currentObject been dragged/move is in contact with the any line or with 5px range
+          const objectOffsetX = obj.offsetLeft
+          const objectOffsetY = obj.offsetTop
+          const objectOffsetYBottom = obj.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
+          const objectOffsetXRight = obj.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
+          const objectHeight = obj.getBoundingClientRect().height
+          const objectWidth = obj.getBoundingClientRect().width
+
+
+          const offsetLineX = (line as HTMLElement).offsetLeft
+          const offsetLineY = (line as HTMLElement).offsetTop
+          const lineData = objectData.current[line.id]
+          const coordinates = lineData.lineCoordinates!
+          const M = coordinates.M
+          const L = coordinates.L[coordinates.L.length - 1]
+          const mXAxis = M[0] + offsetLineX
+          const mYAxis = M[1] + offsetLineY
+          const lXAxis = L[0] + offsetLineX
+          const lYAxis = L[1] + offsetLineY
+
+          // Getting the scale of the shape
+          const scale = +getComputedStyle(obj).transform.replace("matrix(", "").split(",")[0].trim() // Since scale x,y would be the same
+          const extrasX = objectWidth - (objectWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
+          const extrasY = objectHeight - (objectHeight / scale)
+         
+          if (objectOffsetYBottom === mYAxis || Math.abs(objectOffsetYBottom - mYAxis) < 10) {
+            // Dragging the object in from the top (M coordinates)
+            if (mXAxis >= objectOffsetX && mXAxis <= objectOffsetXRight) {
+              const objWidthMidpoint = objectWidth / 2
+              const newObjectOffsetX = mXAxis - objWidthMidpoint + (extrasX/2)
+              const newObjectOffsetY = mYAxis - objectHeight + (extrasY/2)
+              // console.log(mYAxis, "myaxis")
+              if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+                return
+              obj.style.top = `${newObjectOffsetY}px`;
+              obj.style.left = `${newObjectOffsetX}px`;
+              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].lastY = newObjectOffsetY
+
+            }
+          }
+          if (objectOffsetY === lYAxis || Math.abs(objectOffsetY - lYAxis) < 10) {
+            // Dragging the object in from bottom (L coordinates)
+            if (lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) {
+              const objWidthMidpoint = objectWidth / 2
+              const newObjectOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
+              const newObjectOffsetY = lYAxis + (extrasY/2)
+              // console.log(mYAxis, "myaxis")
+
+              obj.style.top = `${newObjectOffsetY}px`;
+              obj.style.left = `${newObjectOffsetX}px`;
+              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].lastY = newObjectOffsetY
+            }
+          }
+         
+          if (objectOffsetXRight === mXAxis || Math.abs(objectOffsetXRight - mXAxis) < 10) {
+            // Dragging the object in from the left (for M coordinates)
+            if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
+              const objHeightMidpoint = objectHeight / 2
+              const newObjectOffsetX = mXAxis - objectWidth + (extrasX/2)
+              const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
+              if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+                return
+              obj.style.top = `${newObjectOffsetY}px`;
+              obj.style.left = `${newObjectOffsetX}px`;
+              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].lastY = newObjectOffsetY
+
+            }
+          }
+          
+          if (objectOffsetX === mXAxis || Math.abs(objectOffsetX - mXAxis) < 10) {
+            // Dragging the object in from the right (for M coordinates)
+            if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
+              const objHeightMidpoint = objectHeight / 2
+              const newObjectOffsetX = mXAxis + (extrasX/2)
+              const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
+              obj.style.top = `${newObjectOffsetY}px`;
+              obj.style.left = `${newObjectOffsetX}px`;
+              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].lastY = newObjectOffsetY
+
+            }
+          }
+
+          if (objectOffsetXRight === lXAxis || Math.abs(objectOffsetXRight - lXAxis) < 10) {
+            // Dragging the object in from the left (for L coordinates)
+            if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
+              const objHeightMidpoint = objectHeight / 2
+              const newObjectOffsetX = lXAxis - objectWidth + (extrasX/2)
+              const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
+              if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+                return
+              obj.style.top = `${newObjectOffsetY}px`;
+              obj.style.left = `${newObjectOffsetX}px`;
+              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].lastY = newObjectOffsetY
+
+            }
+          }
+          if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
+            // Dragging the object in from the right (for L coordinates)
+            if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
+              const objHeightMidpoint = objectHeight / 2
+              const newObjectOffsetX = lXAxis + (extrasX/2)
+              const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
+              obj.style.top = `${newObjectOffsetY}px`;
+              obj.style.left = `${newObjectOffsetX}px`;
+              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].lastY = newObjectOffsetY
+
+            }
+          }
+      
+        })
+    }
+
+
+
+    const LineConnector = (obj: HTMLElement) => {
+      if (obj.getAttribute("data-variant") !== "line" && obj.getAttribute("data-variant") !== "text") {
+        // Connect shape to lines
+        ShapeToLine(obj)
+      } else if (obj.getAttribute("data-variant") === "line") {
+        // Connect line to shapes
+        LineToShape(obj)
+      }
+      
+    }
     const checkLineBoundary = (e: MouseEvent, obj: HTMLElement) => {
       const pointIndicators = obj.querySelectorAll(".point-indicators")
       const coords: {offsetLeft: number, offsetTop: number} = {offsetLeft: 0, offsetTop: 0}
@@ -131,125 +393,7 @@ const Project = ({params}: {params: {id: string}}) => {
           let obj = currentObject.current
           objectData.current[obj.id].lastX = obj?.offsetLeft as number
           objectData.current[obj.id].lastY = obj?.offsetTop as number
-
-          if (obj.getAttribute("data-variant") !== "line") {
-            // Get all the lines
-            const lines = document.querySelectorAll("[data-variant=line]")
-            lines.forEach(line => {
-              // For each line check if the currentObject been dragged/move is in contact with the any line or with 5px range
-              const objectOffsetX = obj.offsetLeft
-              const objectOffsetY = obj.offsetTop
-              const objectOffsetYBottom = obj.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
-              const objectOffsetXRight = obj.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
-
-              const offsetLineX = (line as HTMLElement).offsetLeft
-              const offsetLineY = (line as HTMLElement).offsetTop
-              const lineData = objectData.current[line.id]
-              const coordinates = lineData.lineCoordinates!
-              const M = coordinates.M
-              const L = coordinates.L[coordinates.L.length - 1]
-              const mXAxis = M[0] + offsetLineX
-              const mYAxis = M[1] + offsetLineY
-              const lXAxis = L[0] + offsetLineX
-              const lYAxis = L[1] + offsetLineY
-              // console.log(objectOffsetYBottom, mYAxis)
-              // console.log("Match", Math.abs(objectOffsetYBottom - mYAxis))
-              if (objectOffsetYBottom === mYAxis || Math.abs(objectOffsetYBottom - mYAxis) < 10) {
-                // Dragging the object in from the top (M coordinates)
-                if (mXAxis >= objectOffsetX && mXAxis <= objectOffsetXRight) {
-                  const objWidthMidpoint = obj.getBoundingClientRect().width / 2
-                  const objHeightMidpoint = obj.getBoundingClientRect().height
-                  const newObjectOffsetX = mXAxis - objWidthMidpoint + 6
-                  const newObjectOffsetY = mYAxis - objHeightMidpoint + 6
-                  // console.log(mYAxis, "myaxis")
-                  if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
-                    return
-                  obj.style.top = `${newObjectOffsetY}px`;
-                  obj.style.left = `${newObjectOffsetX}px`;
-                  objectData.current[obj.id].lastX = newObjectOffsetX
-                  objectData.current[obj.id].lastY = newObjectOffsetY
-
-                }
-              }
-              if (objectOffsetY === lYAxis || Math.abs(objectOffsetY - lYAxis) < 10) {
-                // Dragging the object in from bottom (L coordinates)
-                if (lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) {
-                  const objWidthMidpoint = obj.getBoundingClientRect().width / 2
-                  const newObjectOffsetX = lXAxis - objWidthMidpoint + 6
-                  const newObjectOffsetY = lYAxis + 6
-                  // console.log(mYAxis, "myaxis")
-
-                  obj.style.top = `${newObjectOffsetY}px`;
-                  obj.style.left = `${newObjectOffsetX}px`;
-                  objectData.current[obj.id].lastX = newObjectOffsetX
-                  objectData.current[obj.id].lastY = newObjectOffsetY
-                }
-              }
-             
-              if (objectOffsetXRight === mXAxis || Math.abs(objectOffsetXRight - mXAxis) < 10) {
-                // Dragging the object in from the left (for M coordinates)
-                if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
-                  const objHeightMidpoint = obj.getBoundingClientRect().height / 2
-                  const objWidth = obj.getBoundingClientRect().width
-                  const newObjectOffsetX = mXAxis - objWidth + 6
-                  const newObjectOffsetY = mYAxis - objHeightMidpoint + 6
-                  if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
-                    return
-                  obj.style.top = `${newObjectOffsetY}px`;
-                  obj.style.left = `${newObjectOffsetX}px`;
-                  objectData.current[obj.id].lastX = newObjectOffsetX
-                  objectData.current[obj.id].lastY = newObjectOffsetY
-
-                }
-              }
-              
-              if (objectOffsetX === mXAxis || Math.abs(objectOffsetX - mXAxis) < 10) {
-                // Dragging the object in from the right (for M coordinates)
-                if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
-                  const objHeightMidpoint = obj.getBoundingClientRect().height / 2
-                  const newObjectOffsetX = mXAxis + 6
-                  const newObjectOffsetY = mYAxis - objHeightMidpoint + 6
-                  obj.style.top = `${newObjectOffsetY}px`;
-                  obj.style.left = `${newObjectOffsetX}px`;
-                  objectData.current[obj.id].lastX = newObjectOffsetX
-                  objectData.current[obj.id].lastY = newObjectOffsetY
-
-                }
-              }
-
-              if (objectOffsetXRight === lXAxis || Math.abs(objectOffsetXRight - lXAxis) < 10) {
-                // Dragging the object in from the left (for L coordinates)
-                if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
-                  const objHeightMidpoint = obj.getBoundingClientRect().height / 2
-                  const objWidth = obj.getBoundingClientRect().width
-                  const newObjectOffsetX = lXAxis - objWidth + 6
-                  const newObjectOffsetY = lYAxis - objHeightMidpoint + 6
-                  if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
-                    return
-                  obj.style.top = `${newObjectOffsetY}px`;
-                  obj.style.left = `${newObjectOffsetX}px`;
-                  objectData.current[obj.id].lastX = newObjectOffsetX
-                  objectData.current[obj.id].lastY = newObjectOffsetY
-
-                }
-              }
-              if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
-                // Dragging the object in from the right (for L coordinates)
-                if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
-                  const objHeightMidpoint = obj.getBoundingClientRect().height / 2
-                  const newObjectOffsetX = lXAxis + 6
-                  const newObjectOffsetY = lYAxis - objHeightMidpoint + 6
-                  obj.style.top = `${newObjectOffsetY}px`;
-                  obj.style.left = `${newObjectOffsetX}px`;
-                  objectData.current[obj.id].lastX = newObjectOffsetX
-                  objectData.current[obj.id].lastY = newObjectOffsetY
-
-                }
-              }
-          
-            })
-            
-          }
+          LineConnector(obj)
 
         }
        
@@ -356,6 +500,7 @@ const Project = ({params}: {params: {id: string}}) => {
       // Text
       if (elementId === "shape-text") {
         newEl.classList.remove('text-2xl')
+        newEl.setAttribute("data-variant", "text")
         newEl.setAttribute("data-placeholder", "Text")
         newEl.classList.add("placeholder-style")
         newEl.classList.add("shape-text-base-styles")

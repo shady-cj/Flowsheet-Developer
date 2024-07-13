@@ -12,11 +12,13 @@ const LoginPage = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const nextURL = searchParams.get("nextURL")
-  console.log(nextURL)
   if (state?.success) {
     setTimeout(()=> {
-        if (nextURL) router.replace(nextURL)
-        router.replace('/dashboard')
+
+        if (nextURL)
+          return router.replace(nextURL)
+        else
+          return router.replace('/dashboard')
     }, 1000)
   }
   return (
