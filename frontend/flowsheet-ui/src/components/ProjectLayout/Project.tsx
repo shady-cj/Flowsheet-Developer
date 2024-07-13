@@ -30,7 +30,8 @@ const Project = ({params}: {params: {id: string}}) => {
         if (obj.id === shapeId)
           continue
         const shape = document.getElementById(shapeId) as HTMLElement;
-        if (shape?.getAttribute("data-variant") === "text")
+        if (!shape) continue
+        if (shape.getAttribute("data-variant") === "text" || shape.getAttribute("data-variant") === "line")
           continue
         const shapeOffsetX = shape.offsetLeft
         const shapeOffsetY = shape.offsetTop
@@ -358,6 +359,11 @@ const Project = ({params}: {params: {id: string}}) => {
       element.style.border = "1px solid black"
     }
     const handleMouseUpGeneral = (e: MouseEvent) => {
+      if (onMouseDown.current) {
+          const obj = currentObject.current
+          objectData.current[obj.id].lastX = obj?.offsetLeft as number
+          objectData.current[obj.id].lastY = obj?.offsetTop as number
+      }
       onMouseDown.current = false
       if (currentActivePoint.current) {
         currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
@@ -385,6 +391,7 @@ const Project = ({params}: {params: {id: string}}) => {
     }, [])
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
+
       if (onMouseDown.current) {
         if (currentActivePoint.current) {
           currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
@@ -395,9 +402,8 @@ const Project = ({params}: {params: {id: string}}) => {
           objectData.current[obj.id].lastY = obj?.offsetTop as number
           LineConnector(obj)
 
-        }
-       
 
+        }
         onMouseDown.current = false
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
@@ -574,6 +580,7 @@ const Project = ({params}: {params: {id: string}}) => {
       newEl.style.top = `${y}px`
       newEl.style.left = `${x}px`
       if (elementId !== "shape-line") newEl.style.transform = "scale(1.25)"
+      LineConnector(newEl)
       newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
       newEl.addEventListener("mouseup", handleMouseUp);
       canvasRef.current.appendChild(newEl)
