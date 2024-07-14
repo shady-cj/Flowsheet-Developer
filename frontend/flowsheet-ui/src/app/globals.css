@@ -39,8 +39,8 @@ body {
 .point-indicators {
   display: inline-block;
   position: absolute;
-  height: 0.4rem;
-  width: 0.4rem;
+  height: 0.6rem;
+  width: 0.6rem;
   border-radius: 50%;
   background-color: red;
   transform: translate(-50%, -50%);

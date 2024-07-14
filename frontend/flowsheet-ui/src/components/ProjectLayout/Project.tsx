@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useContext, useRef, useCallback, DragEventHandler} from "react";
+import { useEffect, useContext, useRef, useCallback, DragEvent} from "react";
 import ProjectSidebar from "./ProjectSidebar"
 import { ProjectContext } from "../context/ProjectProvider";
 
@@ -24,6 +24,105 @@ const Project = ({params}: {params: {id: string}}) => {
 
     const onMouseDown = useRef(false)
     // const {isDragging, setIsDragging} = useContext(ProjectContext)
+
+
+    const DrawLineToShape = useCallback((obj: HTMLElement, point: HTMLSpanElement) => {
+      for (const shapeId in objectData.current) {
+        if (obj.id === shapeId) 
+          continue
+        const shape = document.getElementById(shapeId) as HTMLElement;
+        if (!shape) continue
+        if (shape.getAttribute("data-variant") === "text")
+          continue
+
+        const pointMetadata = pointStore.current[point.id]
+        if (pointMetadata[0] === "M") continue // Not likely possible but we still check
+        if (pointMetadata.length > 2) continue // Must be the last point
+
+        const shapeOffsetX = shape.offsetLeft
+        const shapeOffsetY = shape.offsetTop
+        const shapeOffsetYBottom = shape.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
+        const shapeOffsetXRight = shape.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
+        const shapeWidth =  shape.getBoundingClientRect().width
+        const shapeHeight =  shape.getBoundingClientRect().height
+
+        const offsetLineX = obj.offsetLeft
+        const offsetLineY = obj.offsetTop
+        const lineData = objectData.current[obj.id]
+        const coordinates = lineData.lineCoordinates!
+        const L = coordinates.L[coordinates.L.length - 1]
+        const lXAxis = L[0] + offsetLineX
+        const lYAxis = L[1] + offsetLineY
+        // We need to account for the following scenarios
+        // drawing the line to connect from the top
+        // drawing the line to connect from the bottom
+        // drawing the line to connect from the right
+        // drawing the line to connect fromt the left
+
+
+
+        // Getting the scale of the shape
+        const scale = +getComputedStyle(shape).transform.replace("matrix(", "").split(",")[0].trim()
+        const extrasX = shapeWidth - (shapeWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
+        const extrasY = shapeHeight - (shapeHeight / scale)
+
+
+        // scenario 1: Drawing from the top:
+        if (lYAxis === shapeOffsetY || Math.abs(lYAxis - shapeOffsetY) <= 10) {
+
+          if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
+            // Ensure the point is within the box range on x axis
+            const pointGap = shapeOffsetY - lYAxis           
+            coordinates.L[coordinates.L.length - 1][1] = L[1] + pointGap - (extrasY/2)
+            const pathDString = LineCoordinateToPathString(coordinates)
+            const path = obj.querySelector("svg path")
+            point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
+            path?.setAttribute("d", pathDString)
+          }
+        }
+
+        // scenario 2: Drawing from the bottom
+        if (lYAxis === shapeOffsetYBottom || Math.abs(lYAxis - shapeOffsetYBottom) <= 10) {
+          if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
+            // Ensure the point is within the box range on x axis
+            const pointGap = shapeOffsetYBottom - lYAxis
+            coordinates.L[coordinates.L.length - 1][1] = L[1] + pointGap
+            const pathDString = LineCoordinateToPathString(coordinates)
+            const path = obj.querySelector("svg path")
+            point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
+            path?.setAttribute("d", pathDString)
+          }
+        }
+
+        // scenario 3: Drawing from the right
+
+        if (lXAxis === shapeOffsetXRight || Math.abs(lXAxis - shapeOffsetXRight) <= 10) {
+          if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+            // Ensure the point is within the box range on y axis
+            const pointGap = shapeOffsetXRight - lXAxis
+            coordinates.L[coordinates.L.length - 1][0] = L[0] + pointGap
+            const pathDString = LineCoordinateToPathString(coordinates)
+            const path = obj.querySelector("svg path")
+            point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
+            path?.setAttribute("d", pathDString)
+          }
+        }
+
+        // scenario 4: Drawing from the left
+
+        if (lXAxis === shapeOffsetX || Math.abs(lXAxis - shapeOffsetX) <= 10) {
+          if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+            // Ensure the point is within the box range on y axis
+            const pointGap = shapeOffsetX - lXAxis
+            coordinates.L[coordinates.L.length - 1][0] = L[0] + pointGap - (extrasX / 2)
+            const pathDString = LineCoordinateToPathString(coordinates)
+            const path = obj.querySelector("svg path")
+            point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
+            path?.setAttribute("d", pathDString)
+          }
+        }
+      }
+    }, [])
 
     const LineToShape = (obj: HTMLElement) => {
       for (const shapeId in objectData.current) {
@@ -61,13 +160,13 @@ const Project = ({params}: {params: {id: string}}) => {
         if (shapeOffsetYBottom === mYAxis || Math.abs(shapeOffsetYBottom - mYAxis) < 10) {
           // Dragging the line in from the bottom (M coordinates)
           if (mXAxis >= shapeOffsetX && mXAxis <= shapeOffsetXRight) {
-            const shapeWidthMidpoint = shapeWidth / 2
-            const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - M[0] - (extrasX/2)
+            // const shapeWidthMidpoint = shapeWidth / 2
+            // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - M[0] - (extrasX/2)
             const newLineOffsetY = shapeOffsetYBottom - M[1]
            
             obj.style.top = `${newLineOffsetY}px`;
-            obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].lastX = newLineOffsetX
+            // obj.style.left = `${newLineOffsetX}px`;
+            // objectData.current[obj.id].lastX = newLineOffsetX
             objectData.current[obj.id].lastY = newLineOffsetY
 
           }
@@ -76,15 +175,15 @@ const Project = ({params}: {params: {id: string}}) => {
         if (shapeOffsetY === lYAxis || Math.abs(shapeOffsetY - lYAxis) < 10) {
           // Dragging the line in from the top (L coordinates)
           if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
-            const shapeWidthMidpoint = shapeWidth / 2
-            const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - L[0] - (extrasX/2)
+            // const shapeWidthMidpoint = shapeWidth / 2
+            // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - L[0] - (extrasX/2)
             const newLineOffsetY = shapeOffsetY - L[1] - M[1]
             // console.log(mYAxis, "myaxis")
-            if (newLineOffsetX < 6 || newLineOffsetY < 6)
+            if (newLineOffsetY < 6)
               return
             obj.style.top = `${newLineOffsetY}px`;
-            obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].lastX = newLineOffsetX
+            // obj.style.left = `${newLineOffsetX}px`;
+            // objectData.current[obj.id].lastX = newLineOffsetX
             objectData.current[obj.id].lastY = newLineOffsetY
           }
         }
@@ -93,15 +192,15 @@ const Project = ({params}: {params: {id: string}}) => {
         if (shapeOffsetX === mXAxis || Math.abs(shapeOffsetX - mXAxis) < 10) {
           // Dragging the line in from the left (for M coordinates)
           if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
-            const shapeHeightMidpoint = shapeHeight / 2
+            // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = shapeOffsetX - M[0] - (extrasX/2)
-            const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
-            if (newLineOffsetX < 6 || newLineOffsetY < 6)
+            // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
+            if (newLineOffsetX < 6)
               return
-            obj.style.top = `${newLineOffsetY}px`;
+            // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
             objectData.current[obj.id].lastX = newLineOffsetX
-            objectData.current[obj.id].lastY = newLineOffsetY
+            // objectData.current[obj.id].lastY = newLineOffsetY
 
           }
         }
@@ -109,13 +208,13 @@ const Project = ({params}: {params: {id: string}}) => {
         if (shapeOffsetXRight === mXAxis || Math.abs(shapeOffsetXRight - mXAxis) < 10) {
           // Dragging the line in from the right (for M coordinates)
           if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
-            const shapeHeightMidpoint = shapeHeight / 2
+            // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = shapeOffsetXRight - M[0] 
-            const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
-            obj.style.top = `${newLineOffsetY}px`;
+            // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
+            // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
             objectData.current[obj.id].lastX = newLineOffsetX
-            objectData.current[obj.id].lastY = newLineOffsetY
+            // objectData.current[obj.id].lastY = newLineOffsetY
 
           }
         }
@@ -123,15 +222,15 @@ const Project = ({params}: {params: {id: string}}) => {
         if (shapeOffsetX === lXAxis || Math.abs(shapeOffsetX - lXAxis) < 10) {
           // Dragging the line in from the left (for L coordinates)
           if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
-            const shapeHeightMidpoint = shapeHeight / 2
+            // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = shapeOffsetX - L[0] - (extrasX/2)
-            const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
-            if (newLineOffsetX < 6 || newLineOffsetY < 6)
+            // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
+            if (newLineOffsetX < 6)
               return
-            obj.style.top = `${newLineOffsetY}px`;
+            // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
             objectData.current[obj.id].lastX = newLineOffsetX
-            objectData.current[obj.id].lastY = newLineOffsetY
+            // objectData.current[obj.id].lastY = newLineOffsetY
 
           }
         }
@@ -139,20 +238,19 @@ const Project = ({params}: {params: {id: string}}) => {
         if (shapeOffsetXRight === lXAxis || Math.abs(shapeOffsetXRight - lXAxis) < 10) {
           // Dragging the line in from the right (for L coordinates)
           if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
-            const shapeHeightMidpoint = shapeHeight / 2
+            // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = shapeOffsetXRight - L[0]
-            const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
-            obj.style.top = `${newLineOffsetY}px`;
+            // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
+            // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
             objectData.current[obj.id].lastX = newLineOffsetX
-            objectData.current[obj.id].lastY = newLineOffsetY
+            // objectData.current[obj.id].lastY = newLineOffsetY
 
           }
         }
 
       }
     }
-
 
 
     const ShapeToLine = (obj: HTMLElement) => {
@@ -187,15 +285,15 @@ const Project = ({params}: {params: {id: string}}) => {
           if (objectOffsetYBottom === mYAxis || Math.abs(objectOffsetYBottom - mYAxis) < 10) {
             // Dragging the object in from the top (M coordinates)
             if (mXAxis >= objectOffsetX && mXAxis <= objectOffsetXRight) {
-              const objWidthMidpoint = objectWidth / 2
-              const newObjectOffsetX = mXAxis - objWidthMidpoint + (extrasX/2)
+              // const objWidthMidpoint = objectWidth / 2
+              // const newObjectOffsetX = mXAxis - objWidthMidpoint + (extrasX/2)
               const newObjectOffsetY = mYAxis - objectHeight + (extrasY/2)
               // console.log(mYAxis, "myaxis")
-              if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+              if (newObjectOffsetY < 6)
                 return
               obj.style.top = `${newObjectOffsetY}px`;
-              obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].lastX = newObjectOffsetX
+              // obj.style.left = `${newObjectOffsetX}px`;
+              // objectData.current[obj.id].lastX = newObjectOffsetX
               objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
@@ -203,14 +301,14 @@ const Project = ({params}: {params: {id: string}}) => {
           if (objectOffsetY === lYAxis || Math.abs(objectOffsetY - lYAxis) < 10) {
             // Dragging the object in from bottom (L coordinates)
             if (lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) {
-              const objWidthMidpoint = objectWidth / 2
-              const newObjectOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
+              // const objWidthMidpoint = objectWidth / 2
+              // const newObjectOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
               const newObjectOffsetY = lYAxis + (extrasY/2)
               // console.log(mYAxis, "myaxis")
 
               obj.style.top = `${newObjectOffsetY}px`;
-              obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].lastX = newObjectOffsetX
+              // obj.style.left = `${newObjectOffsetX}px`;
+              // objectData.current[obj.id].lastX = newObjectOffsetX
               objectData.current[obj.id].lastY = newObjectOffsetY
             }
           }
@@ -218,15 +316,15 @@ const Project = ({params}: {params: {id: string}}) => {
           if (objectOffsetXRight === mXAxis || Math.abs(objectOffsetXRight - mXAxis) < 10) {
             // Dragging the object in from the left (for M coordinates)
             if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
-              const objHeightMidpoint = objectHeight / 2
+              // const objHeightMidpoint = objectHeight / 2
               const newObjectOffsetX = mXAxis - objectWidth + (extrasX/2)
-              const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
-              if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+              // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
+              if (newObjectOffsetX < 6)
                 return
-              obj.style.top = `${newObjectOffsetY}px`;
+              // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
               objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].lastY = newObjectOffsetY
+              // objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
           }
@@ -234,13 +332,13 @@ const Project = ({params}: {params: {id: string}}) => {
           if (objectOffsetX === mXAxis || Math.abs(objectOffsetX - mXAxis) < 10) {
             // Dragging the object in from the right (for M coordinates)
             if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
-              const objHeightMidpoint = objectHeight / 2
+              // const objHeightMidpoint = objectHeight / 2
               const newObjectOffsetX = mXAxis + (extrasX/2)
-              const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
-              obj.style.top = `${newObjectOffsetY}px`;
+              // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
+              // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
               objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].lastY = newObjectOffsetY
+              // objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
           }
@@ -248,28 +346,28 @@ const Project = ({params}: {params: {id: string}}) => {
           if (objectOffsetXRight === lXAxis || Math.abs(objectOffsetXRight - lXAxis) < 10) {
             // Dragging the object in from the left (for L coordinates)
             if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
-              const objHeightMidpoint = objectHeight / 2
+              // const objHeightMidpoint = objectHeight / 2
               const newObjectOffsetX = lXAxis - objectWidth + (extrasX/2)
-              const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
-              if (newObjectOffsetX < 6 || newObjectOffsetY < 6)
+              // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
+              if (newObjectOffsetX < 6)
                 return
-              obj.style.top = `${newObjectOffsetY}px`;
+              // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
               objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].lastY = newObjectOffsetY
+              // objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
           }
           if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
             // Dragging the object in from the right (for L coordinates)
             if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
-              const objHeightMidpoint = objectHeight / 2
+              // const objHeightMidpoint = objectHeight / 2
               const newObjectOffsetX = lXAxis + (extrasX/2)
-              const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
-              obj.style.top = `${newObjectOffsetY}px`;
+              // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
+              // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
               objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].lastY = newObjectOffsetY
+              // objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
           }
@@ -278,17 +376,28 @@ const Project = ({params}: {params: {id: string}}) => {
     }
 
 
-
-    const LineConnector = (obj: HTMLElement) => {
-      if (obj.getAttribute("data-variant") !== "line" && obj.getAttribute("data-variant") !== "text") {
-        // Connect shape to lines
-        ShapeToLine(obj)
-      } else if (obj.getAttribute("data-variant") === "line") {
-        // Connect line to shapes
-        LineToShape(obj)
+    const LineConnector = useCallback((obj: HTMLElement, point?: HTMLSpanElement) => {
+      if (point) {
+        // Catch the event of drawing a line to shape/object from its pivot (only the L coordinates is adjusted)
+        // If it's a point here are some facts
+        // We'll be working with the L coordinates of the path element
+        // obj is definitely a line
+        DrawLineToShape(obj, point)
+      } else {
+        if (obj.getAttribute("data-variant") !== "line" && obj.getAttribute("data-variant") !== "text") {
+          // Catch the event of dragging a shape or object to a line
+          // Connect shape to lines
+          ShapeToLine(obj)
+        } else if (obj.getAttribute("data-variant") === "line") {
+          // Catch the event of dragging a line to a shape or object
+          // Connect line to shapes
+          LineToShape(obj)
+        }
       }
       
-    }
+      
+    }, [DrawLineToShape])
+
     const checkLineBoundary = (e: MouseEvent, obj: HTMLElement) => {
       const pointIndicators = obj.querySelectorAll(".point-indicators")
       const coords: {offsetLeft: number, offsetTop: number} = {offsetLeft: 0, offsetTop: 0}
@@ -349,7 +458,10 @@ const Project = ({params}: {params: {id: string}}) => {
 
 
     const handleShapeDelete = (e: KeyboardEvent, element: HTMLElement) => {
-      if (e.keyCode === 8 || e.keyCode === 46) element.remove()
+      if (e.keyCode === 8 || e.keyCode === 46) {
+        element.remove()
+        delete objectData.current[element.id]
+      } 
     }
 
 
@@ -358,6 +470,7 @@ const Project = ({params}: {params: {id: string}}) => {
       element.setAttribute("contenteditable", "true")
       element.style.border = "1px solid black"
     }
+
     const handleMouseUpGeneral = (e: MouseEvent) => {
       if (onMouseDown.current) {
           const obj = currentObject.current
@@ -393,11 +506,13 @@ const Project = ({params}: {params: {id: string}}) => {
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
 
       if (onMouseDown.current) {
+        let obj = currentObject.current
+
         if (currentActivePoint.current) {
           currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
+          LineConnector(obj, currentActivePoint.current)
           currentActivePoint.current = null
         } else {
-          let obj = currentObject.current
           objectData.current[obj.id].lastX = obj?.offsetLeft as number
           objectData.current[obj.id].lastY = obj?.offsetTop as number
           LineConnector(obj)
@@ -408,11 +523,11 @@ const Project = ({params}: {params: {id: string}}) => {
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
-    }, [])
+    }, [LineConnector])
 
 
     const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
-
+      // Ability of a line to have multiple breakpoints instead of just the regular straight line (That's why we are using the svg path element)
       const pointDetails = pointStore.current[point.id]
 
       if (pointDetails.length < 3) {
@@ -454,6 +569,7 @@ const Project = ({params}: {params: {id: string}}) => {
 
 
     const showPointVisibility = (e: FocusEvent | MouseEvent, element: HTMLElement) => {
+      // on focus reveal each line breakpoints
       const indicators = element.querySelectorAll(".point-indicators")
       indicators.forEach(indicator => {
         indicator.classList.remove("hide-indicator")
@@ -461,6 +577,7 @@ const Project = ({params}: {params: {id: string}}) => {
     }
 
     const hidePointVisibility = (e: FocusEvent, element: HTMLElement) => {
+      // on focus out hide line breakpoints
       const indicators = element.querySelectorAll(".point-indicators")
       indicators.forEach(indicator => {
         indicator.classList.add("hide-indicator")
@@ -470,8 +587,10 @@ const Project = ({params}: {params: {id: string}}) => {
     const handleInput = (e: KeyboardEvent) => {
       const element = e.target as HTMLElement
 
-      if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style"))
+      if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
         element.remove()
+        delete objectData.current[element.id]
+      }
       
       if (element.textContent!.length > 0) element.classList.remove("placeholder-style")
       else element.classList.add("placeholder-style")
@@ -480,7 +599,7 @@ const Project = ({params}: {params: {id: string}}) => {
       
     }
   
-    const handleDrop = (e: DragEvent) => {
+    const handleDrop = (e: DragEvent<HTMLDivElement>) => {
 
       let defaultCoords: objectCoords = {
         startX: 0, 
@@ -589,7 +708,6 @@ const Project = ({params}: {params: {id: string}}) => {
 
 
 
-
     useEffect(()=> {
       const CanvasContainer = canvasRef.current
       const objects = document.querySelectorAll(".objects")
@@ -657,15 +775,13 @@ const Project = ({params}: {params: {id: string}}) => {
         
       }
     }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint])
+
+
+    
   return (
     <>
         <ProjectSidebar params={params} />
         <div onDragOver={(e)=> e.preventDefault()} className="relative flex-auto bg-white cursor-move border-l" ref={canvasRef} onDrop={handleDrop}>
-            {/* <div id="shape-circle" className="objects bg-transparent absolute">
-                <svg height="50" width="50" xmlns="http://www.w3.org/2000/svg"  className="bg-transparent">
-                    <circle r="24" cx="25" cy="25" fill='transparent' stroke="black" strokeWidth="1" />
-                </svg>
-            </div> */}
         </div>
 
     </>
