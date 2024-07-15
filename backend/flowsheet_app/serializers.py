@@ -115,6 +115,7 @@ class ProjectObjectSerializer(ModelSerializer):
             "id",
             "oid",
             "object",
+            "label",
             "x_coordinate",
             "y_coordinate",
             "scale",

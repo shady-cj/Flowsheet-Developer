@@ -27,7 +27,7 @@ def object_formatter(obj):
         default.update({
             "type": obj.type,
             "gape": obj.gape,
-            "set": obj.set
+            # "set": obj.set
         })
     
     elif isinstance(obj, Concentrator):
