@@ -15,10 +15,58 @@ type objectCoords = {
   lastY: number,
   lineCoordinates?: lineCordsType
 }
+
+
+type objectDataType = {
+  [key: string]: {
+    oid: string,
+    label: string,
+    x_coordinate: number,
+    y_coordinate: number,
+    scale: number,
+    font_size: number,
+    description: string,
+    properties: {
+      nextObject: number | null,
+      prevObject: number | null,
+      coordinates: objectCoords
+    }
+  }
+}
+/*
+Typical objectData sample
+{
+  [object_id]: {
+    oid: [object_id],
+    label: string,
+    x_coordinate: number(same as lastX from above),
+    y_coordinate: number(same as lastY from above),
+    scale: number(1.25),
+    font_size: 16(px),
+    description: string,
+    properties: {
+      nextObject: null,
+      prevObject: null,
+      coordinates: {
+        startX: number,
+        startY: number,
+        lastX: number,
+        lastY:number,
+        lineCoordinates: 
+      },
+
+    }
+  }
+}
+
+*/
+
+
+
 const Project = ({params}: {params: {id: string}}) => {
     const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
-    const objectData = useRef<{[key: string]: objectCoords}>({})
+    const objectData = useRef<objectDataType>({})
     const pointStore = useRef<{[key: string]: ["M"] | ["L", number, number?]}>({})
     const currentActivePoint = useRef<HTMLSpanElement | null>(null)
 
@@ -48,7 +96,7 @@ const Project = ({params}: {params: {id: string}}) => {
 
         const offsetLineX = obj.offsetLeft
         const offsetLineY = obj.offsetTop
-        const lineData = objectData.current[obj.id]
+        const lineData = objectData.current[obj.id].properties.coordinates
         const coordinates = lineData.lineCoordinates!
         const L = coordinates.L[coordinates.L.length - 1]
         const lXAxis = L[0] + offsetLineX
@@ -141,7 +189,7 @@ const Project = ({params}: {params: {id: string}}) => {
 
         const offsetLineX = obj.offsetLeft
         const offsetLineY = obj.offsetTop
-        const lineData = objectData.current[obj.id]
+        const lineData = objectData.current[obj.id].properties.coordinates
         const coordinates = lineData.lineCoordinates!
         const M = coordinates.M
         const L = coordinates.L[coordinates.L.length - 1]
@@ -167,7 +215,7 @@ const Project = ({params}: {params: {id: string}}) => {
             obj.style.top = `${newLineOffsetY}px`;
             // obj.style.left = `${newLineOffsetX}px`;
             // objectData.current[obj.id].lastX = newLineOffsetX
-            objectData.current[obj.id].lastY = newLineOffsetY
+            objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
 
           }
         }
@@ -184,7 +232,7 @@ const Project = ({params}: {params: {id: string}}) => {
             obj.style.top = `${newLineOffsetY}px`;
             // obj.style.left = `${newLineOffsetX}px`;
             // objectData.current[obj.id].lastX = newLineOffsetX
-            objectData.current[obj.id].lastY = newLineOffsetY
+            objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
           }
         }
 
@@ -199,7 +247,7 @@ const Project = ({params}: {params: {id: string}}) => {
               return
             // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
 
           }
@@ -213,7 +261,7 @@ const Project = ({params}: {params: {id: string}}) => {
             // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
             // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
 
           }
@@ -229,7 +277,7 @@ const Project = ({params}: {params: {id: string}}) => {
               return
             // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
 
           }
@@ -243,7 +291,7 @@ const Project = ({params}: {params: {id: string}}) => {
             // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
             // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].lastX = newLineOffsetX
+            objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
 
           }
@@ -269,7 +317,7 @@ const Project = ({params}: {params: {id: string}}) => {
           const offsetLineX = (line as HTMLElement).offsetLeft
           const offsetLineY = (line as HTMLElement).offsetTop
           const lineData = objectData.current[line.id]
-          const coordinates = lineData.lineCoordinates!
+          const coordinates = objectData.current[obj.id].properties.coordinates.lineCoordinates!
           const M = coordinates.M
           const L = coordinates.L[coordinates.L.length - 1]
           const mXAxis = M[0] + offsetLineX
@@ -294,7 +342,7 @@ const Project = ({params}: {params: {id: string}}) => {
               obj.style.top = `${newObjectOffsetY}px`;
               // obj.style.left = `${newObjectOffsetX}px`;
               // objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].lastY = newObjectOffsetY
+              objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
 
             }
           }
@@ -309,7 +357,7 @@ const Project = ({params}: {params: {id: string}}) => {
               obj.style.top = `${newObjectOffsetY}px`;
               // obj.style.left = `${newObjectOffsetX}px`;
               // objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].lastY = newObjectOffsetY
+              objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
             }
           }
          
@@ -323,7 +371,7 @@ const Project = ({params}: {params: {id: string}}) => {
                 return
               // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
               // objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
@@ -337,7 +385,7 @@ const Project = ({params}: {params: {id: string}}) => {
               // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
               // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
               // objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
@@ -353,7 +401,7 @@ const Project = ({params}: {params: {id: string}}) => {
                 return
               // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
               // objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
@@ -366,7 +414,7 @@ const Project = ({params}: {params: {id: string}}) => {
               // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
               // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].lastX = newObjectOffsetX
+              objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
               // objectData.current[obj.id].lastY = newObjectOffsetY
 
             }
@@ -445,7 +493,7 @@ const Project = ({params}: {params: {id: string}}) => {
       const pointX = e.clientX - objectX 
       const pointY = e.clientY - objectY
       const pointDetails = pointStore.current[point.id] // point here is expected to be ["L", :any number]
-      const objectDetails = objectData.current[object.id]
+      const objectDetails = objectData.current[object.id].properties.coordinates
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
       point.style.left = `${pointX}px`
       point.style.top = `${pointY}px`
@@ -460,8 +508,9 @@ const Project = ({params}: {params: {id: string}}) => {
     const handleShapeDelete = (e: KeyboardEvent, element: HTMLElement) => {
       if (e.keyCode === 8 || e.keyCode === 46) {
         element.remove()
+        // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
         delete objectData.current[element.id]
-      } 
+      }
     }
 
 
@@ -471,18 +520,32 @@ const Project = ({params}: {params: {id: string}}) => {
       element.style.border = "1px solid black"
     }
 
-    const handleMouseUpGeneral = (e: MouseEvent) => {
+
+
+    const handleMouseUpUtil = useCallback(() => {
       if (onMouseDown.current) {
-          const obj = currentObject.current
-          objectData.current[obj.id].lastX = obj?.offsetLeft as number
-          objectData.current[obj.id].lastY = obj?.offsetTop as number
+        const obj = currentObject.current
+
+          if (currentActivePoint.current) {
+            currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
+            LineConnector(obj, currentActivePoint.current)
+            currentActivePoint.current = null
+
+          } else {
+            objectData.current[obj.id].properties.coordinates.lastX = obj?.offsetLeft as number
+            objectData.current[obj.id].properties.coordinates.lastY = obj?.offsetTop as number
+            objectData.current[obj.id].x_coordinate = obj?.offsetLeft as number
+            objectData.current[obj.id].y_coordinate = obj?.offsetTop as number
+            LineConnector(obj)
+          }
+          
       }
       onMouseDown.current = false
-      if (currentActivePoint.current) {
-        currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
-        currentActivePoint.current = null
-      } 
-    }
+    }, [LineConnector])
+
+    const handleMouseUpGeneral = useCallback((e: MouseEvent) => {
+      handleMouseUpUtil()
+    },[handleMouseUpUtil])
     
 
     const handleMouseDown = useCallback((e: MouseEvent, obj: HTMLElement) => {
@@ -495,35 +558,22 @@ const Project = ({params}: {params: {id: string}}) => {
           // console.log(e.clientX, e.clientY)
       } else {
           currentObject.current = obj
-          objectData.current[obj.id].startX = e.clientX
-          objectData.current[obj.id].startY = e.clientY
+          objectData.current[obj.id].properties.coordinates.startX = e.clientX
+          objectData.current[obj.id].properties.coordinates.startY = e.clientY
       }
       onMouseDown.current = true
       document.removeEventListener("mouseup", handleMouseUpGeneral)
       // console.log(e)
-    }, [])
+    }, [handleMouseUpGeneral])
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
 
       if (onMouseDown.current) {
-        let obj = currentObject.current
-
-        if (currentActivePoint.current) {
-          currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
-          LineConnector(obj, currentActivePoint.current)
-          currentActivePoint.current = null
-        } else {
-          objectData.current[obj.id].lastX = obj?.offsetLeft as number
-          objectData.current[obj.id].lastY = obj?.offsetTop as number
-          LineConnector(obj)
-
-
-        }
-        onMouseDown.current = false
+        handleMouseUpUtil()
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
-    }, [LineConnector])
+    }, [handleMouseUpGeneral, handleMouseUpUtil])
 
 
     const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
@@ -556,7 +606,7 @@ const Project = ({params}: {params: {id: string}}) => {
 
         // update line coordinates
         const newPointDetails = pointStore.current[newPointUid]
-        const objectDetails = objectData.current[object.id]
+        const objectDetails = objectData.current[object.id].properties.coordinates
         objectDetails.lineCoordinates![newPointDetails[0]][newPointDetails[1]!] = objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] as [number, number]
         const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
         path?.setAttribute("d", coordString)
@@ -589,6 +639,7 @@ const Project = ({params}: {params: {id: string}}) => {
 
       if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
         element.remove()
+        // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
         delete objectData.current[element.id]
       }
       
@@ -683,8 +734,21 @@ const Project = ({params}: {params: {id: string}}) => {
         newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
       }
-        
       const uuid4 = crypto.randomUUID()
+      const defaultObjectData = {
+          oid: uuid4,
+          label: "",
+          x_coordinate: 0,
+          y_coordinate: 0,
+          scale: 1.25,
+          font_size: 14.4,
+          description: "",
+          properties: {
+            nextObject: null,
+            prevObject: null,
+            coordinates: defaultCoords
+          }
+      }
       newEl.setAttribute("id", uuid4)
       newEl.removeAttribute("draggable")
       newEl.classList.add("absolute")
@@ -693,9 +757,11 @@ const Project = ({params}: {params: {id: string}}) => {
       x = x < 6 ? 6 : x
       y = y < 6 ? 6 : y
       
-      objectData.current[uuid4] = defaultCoords
-      objectData.current[uuid4].lastX = x
-      objectData.current[uuid4].lastY = y
+      objectData.current[uuid4] = defaultObjectData
+      objectData.current[uuid4].properties.coordinates.lastX = x
+      objectData.current[uuid4].properties.coordinates.lastY = y
+      objectData.current[uuid4].x_coordinate = x
+      objectData.current[uuid4].y_coordinate = y
       newEl.style.top = `${y}px`
       newEl.style.left = `${x}px`
       if (elementId !== "shape-line") newEl.style.transform = "scale(1.25)"
@@ -730,9 +796,9 @@ const Project = ({params}: {params: {id: string}}) => {
               offsetX = offsetLeft > offsetX ? offsetLeft : offsetX
               offsetY = offsetTop > offsetY ? offsetTop : offsetY
             }
-            
-            let nextX = e.clientX - objectData.current[obj.id].startX + objectData.current[obj.id].lastX
-            let nextY = e.clientY - objectData.current[obj.id].startY + objectData.current[obj.id].lastY
+            const objectCoordinate = objectData.current[obj.id].properties.coordinates
+            let nextX = e.clientX - objectCoordinate.startX + objectCoordinate.lastX
+            let nextY = e.clientY - objectCoordinate.startY + objectCoordinate.lastY
 
             nextX = nextX < offsetX ? offsetX : nextX
             nextY = nextY < offsetY ? offsetY : nextY
@@ -774,7 +840,7 @@ const Project = ({params}: {params: {id: string}}) => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint])
+    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral])
 
 
     

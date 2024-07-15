@@ -7,8 +7,8 @@ const Line = () => {
 
        <svg height="50" width="60" xmlns="http://www.w3.org/2000/svg" className="min-w-[60px] min-h-[50px] overflow-visible">
             <path d="M50 0 L20 50" fill="none" stroke="black" strokeWidth="1"/>
-            <path d="M50 0 L35 10" fill="none" stroke="black" strokeWidth="1" />
-            <path d="M50 0 L50 17" fill="none" stroke="black" strokeWidth="1" />
+            {/* <path d="M50 0 L35 10" fill="none" stroke="black" strokeWidth="1" />
+            <path d="M50 0 L50 17" fill="none" stroke="black" strokeWidth="1" /> */}
         </svg>
       </div>
 
