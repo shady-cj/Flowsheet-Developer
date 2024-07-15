@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useContext, useRef, useCallback, DragEvent} from "react";
 import ProjectSidebar from "./ProjectSidebar"
+import ObjectForm from "./ObjectForm";
 import { ProjectContext } from "../context/ProjectProvider";
 
 
@@ -848,6 +849,8 @@ const Project = ({params}: {params: {id: string}}) => {
     <>
         <ProjectSidebar params={params} />
         <div onDragOver={(e)=> e.preventDefault()} className="relative flex-auto bg-white cursor-move border-l" ref={canvasRef} onDrop={handleDrop}>
+          <ObjectForm />
+
         </div>
 
     </>
