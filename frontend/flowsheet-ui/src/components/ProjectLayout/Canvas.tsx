@@ -203,7 +203,11 @@ const Canvas = () => {
 
 
             objectData.current[obj.id].properties.nextObject = shapeId
-            objectData.current[shapeId].properties.prevObject = objectData.current[obj.id].properties.prevObject
+
+            const prevObject = objectData.current[obj.id].properties.prevObject
+            objectData.current[shapeId].properties.prevObject = prevObject
+            
+            if (prevObject) objectData.current[prevObject].properties.nextObject = shapeId
           }
         }
 
@@ -220,7 +224,11 @@ const Canvas = () => {
 
 
             objectData.current[obj.id].properties.nextObject = shapeId
-            objectData.current[shapeId].properties.prevObject = objectData.current[obj.id].properties.prevObject
+
+            const prevObject = objectData.current[obj.id].properties.prevObject
+            objectData.current[shapeId].properties.prevObject = prevObject
+            
+            if (prevObject) objectData.current[prevObject].properties.nextObject = shapeId
           }
         }
 
@@ -238,7 +246,11 @@ const Canvas = () => {
 
 
             objectData.current[obj.id].properties.nextObject = shapeId
-            objectData.current[shapeId].properties.prevObject = objectData.current[obj.id].properties.prevObject
+
+            const prevObject = objectData.current[obj.id].properties.prevObject
+            objectData.current[shapeId].properties.prevObject = prevObject
+            
+            if (prevObject) objectData.current[prevObject].properties.nextObject = shapeId
           }
         }
 
@@ -256,13 +268,17 @@ const Canvas = () => {
 
 
             objectData.current[obj.id].properties.nextObject = shapeId
-            objectData.current[shapeId].properties.prevObject = objectData.current[obj.id].properties.prevObject
+
+            const prevObject = objectData.current[obj.id].properties.prevObject
+            objectData.current[shapeId].properties.prevObject = prevObject
+            
+            if (prevObject) objectData.current[prevObject].properties.nextObject = shapeId
           }
         }
       }
     }, [])
 
-    
+
 
     const LineToShape = (obj: HTMLElement) => {
       for (const shapeId in objectData.current) {
@@ -313,8 +329,12 @@ const Canvas = () => {
             // Setting the line previous attribute
             objectData.current[obj.id].properties.prevObject = shapeId
 
+            const nextObject = objectData.current[obj.id].properties.nextObject
             // setting the current shape next object to the line next object
-            objectData.current[shapeId].properties.nextObject = objectData.current[obj.id].properties.nextObject
+            objectData.current[shapeId].properties.nextObject = nextObject
+
+            if (nextObject)
+              objectData.current[nextObject].properties.prevObject = shapeId
           }
         }
 
@@ -338,9 +358,13 @@ const Canvas = () => {
             // setting the line/object next object to the current shape id(could be any object)
             objectData.current[obj.id].properties.nextObject = shapeId
 
+
+            const prevObject = objectData.current[obj.id].properties.prevObject
             // setting the shape previous attribute to the line previous object
 
-            objectData.current[shapeId].properties.prevObject =  objectData.current[obj.id].properties.prevObject
+            objectData.current[shapeId].properties.prevObject =  prevObject
+
+            if(prevObject) objectData.current[prevObject].properties.nextObject = shapeId
             
           }
         }
@@ -364,9 +388,14 @@ const Canvas = () => {
             // Setting the line previous attribute
             objectData.current[obj.id].properties.prevObject = shapeId
 
+            const nextObject = objectData.current[obj.id].properties.nextObject
             // setting the current shape next object to the line next object
-            objectData.current[shapeId].properties.nextObject = objectData.current[obj.id].properties.nextObject
+            objectData.current[shapeId].properties.nextObject = nextObject
 
+            if (nextObject)
+              objectData.current[nextObject].properties.prevObject = shapeId
+
+            
           }
         }
 
@@ -386,8 +415,12 @@ const Canvas = () => {
             // Setting the line previous attribute
             objectData.current[obj.id].properties.prevObject = shapeId
 
+            const nextObject = objectData.current[obj.id].properties.nextObject
             // setting the current shape next object to the line next object
-            objectData.current[shapeId].properties.nextObject = objectData.current[obj.id].properties.nextObject
+            objectData.current[shapeId].properties.nextObject = nextObject
+
+            if (nextObject)
+              objectData.current[nextObject].properties.prevObject = shapeId
           }
         }
 
@@ -409,9 +442,12 @@ const Canvas = () => {
             // setting the line/object next object to the current shape id(could be any object)
             objectData.current[obj.id].properties.nextObject = shapeId
 
+            const prevObject = objectData.current[obj.id].properties.prevObject
             // setting the shape previous attribute to the line previous object
 
-            objectData.current[shapeId].properties.prevObject =  objectData.current[obj.id].properties.prevObject
+            objectData.current[shapeId].properties.prevObject =  prevObject
+
+            if(prevObject) objectData.current[prevObject].properties.nextObject = shapeId
           }
         }
 
@@ -427,12 +463,18 @@ const Canvas = () => {
             // objectData.current[obj.id].lastY = newLineOffsetY
             
 
+
             // setting the line/object next object to the current shape id(could be any object)
             objectData.current[obj.id].properties.nextObject = shapeId
 
+
+
+            const prevObject = objectData.current[obj.id].properties.prevObject
             // setting the shape previous attribute to the line previous object
 
-            objectData.current[shapeId].properties.prevObject =  objectData.current[obj.id].properties.prevObject
+            objectData.current[shapeId].properties.prevObject =  prevObject
+
+            if(prevObject) objectData.current[prevObject].properties.nextObject = shapeId
           }
         }
 
@@ -483,11 +525,17 @@ const Canvas = () => {
               // objectData.current[obj.id].lastX = newObjectOffsetX
               objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
 
+
+
               // setting the line previous object attribute
               objectData.current[line.id].properties.prevObject = obj.id
+              const nextObjectId = objectData.current[line.id].properties.nextObject
 
               // setting the current object to the line next object attribute
-              objectData.current[obj.id].properties.nextObject = objectData.current[line.id].properties.nextObject
+              objectData.current[obj.id].properties.nextObject = nextObjectId
+
+              if (nextObjectId !== null)
+                objectData.current[nextObjectId as string].properties.prevObject = obj.id
 
             }
           }
@@ -507,9 +555,13 @@ const Canvas = () => {
 
               // setting the line next object attribute
               objectData.current[line.id].properties.nextObject = obj.id
-
+              
+              const prevObjectId = objectData.current[line.id].properties.prevObject
               // setting the current object previous object to the line  previous object attribute
-              objectData.current[obj.id].properties.prevObject = objectData.current[line.id].properties.prevObject
+              objectData.current[obj.id].properties.prevObject = prevObjectId
+
+              if (prevObjectId)
+                objectData.current[prevObjectId].properties.nextObject = obj.id
             }
           }
          
@@ -527,12 +579,15 @@ const Canvas = () => {
               // objectData.current[obj.id].lastY = newObjectOffsetY
 
 
-              
               // setting the line previous object attribute
               objectData.current[line.id].properties.prevObject = obj.id
+              const nextObjectId = objectData.current[line.id].properties.nextObject
 
               // setting the current object to the line next object attribute
-              objectData.current[obj.id].properties.nextObject = objectData.current[line.id].properties.nextObject
+              objectData.current[obj.id].properties.nextObject = nextObjectId
+
+              if (nextObjectId !== null)
+                objectData.current[nextObjectId as string].properties.prevObject = obj.id
 
             }
           }
@@ -550,11 +605,15 @@ const Canvas = () => {
 
 
                
-              // setting the line previous object attribute
-              objectData.current[line.id].properties.prevObject = obj.id
+             // setting the line previous object attribute
+             objectData.current[line.id].properties.prevObject = obj.id
+             const nextObjectId = objectData.current[line.id].properties.nextObject
 
-              // setting the current object to the line next object attribute
-              objectData.current[obj.id].properties.nextObject = objectData.current[line.id].properties.nextObject
+             // setting the current object to the line next object attribute
+             objectData.current[obj.id].properties.nextObject = nextObjectId
+
+             if (nextObjectId !== null)
+               objectData.current[nextObjectId as string].properties.prevObject = obj.id
 
             }
           }
@@ -573,11 +632,15 @@ const Canvas = () => {
               // objectData.current[obj.id].lastY = newObjectOffsetY
 
 
-               // setting the line next object attribute
-               objectData.current[line.id].properties.nextObject = obj.id
+              // setting the line next object attribute
+              objectData.current[line.id].properties.nextObject = obj.id
+              
+              const prevObjectId = objectData.current[line.id].properties.prevObject
+              // setting the current object previous object to the line  previous object attribute
+              objectData.current[obj.id].properties.prevObject = prevObjectId
 
-               // setting the current object previous object to the line  previous object attribute
-               objectData.current[obj.id].properties.prevObject = objectData.current[line.id].properties.prevObject
+              if (prevObjectId)
+                objectData.current[prevObjectId].properties.nextObject = obj.id
 
             }
           }
@@ -594,12 +657,15 @@ const Canvas = () => {
 
 
 
-               // setting the line next object attribute
-               objectData.current[line.id].properties.nextObject = obj.id
+              // setting the line next object attribute
+              objectData.current[line.id].properties.nextObject = obj.id
+              
+              const prevObjectId = objectData.current[line.id].properties.prevObject
+              // setting the current object previous object to the line  previous object attribute
+              objectData.current[obj.id].properties.prevObject = prevObjectId
 
-               // setting the current object previous object to the line  previous object attribute
-               objectData.current[obj.id].properties.prevObject = objectData.current[line.id].properties.prevObject
-
+              if (prevObjectId)
+                objectData.current[prevObjectId].properties.nextObject = obj.id
             }
           }
       
