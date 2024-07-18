@@ -9,12 +9,13 @@ import uuid
 
 # For shapes like triangle, square, circle
 class Shape(models.Model):
-    name = models.CharField(max_length=20)
-    image = models.ImageField(null=True, blank=True)
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=20, unique=True)
 
 
 # Screeners
 class Screener(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=20)
     image = models.ImageField(null=True, blank=True)
     # mesh_size = models.DecimalField()
@@ -27,6 +28,7 @@ class Crusher(models.Model):
         ("TERTIARY", "Tertiary")
 
     )
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=20)
     image = models.ImageField(null=True, blank=True)
     type = models.CharField(max_length=30, choices=CRUSHER_TYPES, default="PRIMARY")
@@ -36,6 +38,7 @@ class Crusher(models.Model):
 
 # Grinding machines variations
 class Grinder(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=20)
     image = models.ImageField(null=True, blank=True)
     gape = models.DecimalField(max_digits=10,decimal_places=2, default=20.00) # size of the feed opening, basically size of ore expected must be 0.80 times this value, this value is expected to be fixed since most times we can't adjust the gape
@@ -48,6 +51,7 @@ class Grinder(models.Model):
 
 # Concentration Techniques
 class Concentrator(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=64)
     image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -65,7 +69,7 @@ class Auxilliary(models.Model):
             "BINS": "bins"
         }
     }
-    
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=64)
     image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)

@@ -49,3 +49,6 @@ body {
 .hide-indicator {
   visibility: hidden;
 }
+.object-form {
+  font-size: attr(data-position-top)
+}

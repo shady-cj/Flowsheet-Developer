@@ -25,13 +25,20 @@ type objectDataType = {
     scale: number,
     font_size: number,
     description: string,
+    object_info: {
+      object_model_name: string,
+      object_id: string
+    }
+  
     properties: {
-      nextObject: number | null,
-      prevObject: number | null,
+      nextObject: string | null,
+      prevObject: string | null,
       coordinates: objectCoords
     }
   }
 }
+
+
 /*
 Typical objectData sample
 {
@@ -43,6 +50,11 @@ Typical objectData sample
     scale: number(1.25),
     font_size: 16(px),
     description: string,
+    object_info: {
+      "object_model_name": Crusher, Grinder, etc...
+      "object_id": id
+    }
+
     properties: {
       nextObject: null,
       prevObject: null,
@@ -187,6 +199,11 @@ const Canvas = () => {
             const path = obj.querySelector("svg path")
             point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
             path?.setAttribute("d", pathDString)
+
+
+
+            objectData.current[obj.id].properties.nextObject = shapeId
+            objectData.current[shapeId].properties.prevObject = objectData.current[obj.id].properties.prevObject
           }
         }
 
@@ -200,6 +217,10 @@ const Canvas = () => {
             const path = obj.querySelector("svg path")
             point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
             path?.setAttribute("d", pathDString)
+
+
+            objectData.current[obj.id].properties.nextObject = shapeId
+            objectData.current[shapeId].properties.prevObject = objectData.current[obj.id].properties.prevObject
           }
         }
 
@@ -214,6 +235,10 @@ const Canvas = () => {
             const path = obj.querySelector("svg path")
             point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
             path?.setAttribute("d", pathDString)
+
+
+            objectData.current[obj.id].properties.nextObject = shapeId
+            objectData.current[shapeId].properties.prevObject = objectData.current[obj.id].properties.prevObject
           }
         }
 
@@ -228,10 +253,16 @@ const Canvas = () => {
             const path = obj.querySelector("svg path")
             point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
             path?.setAttribute("d", pathDString)
+
+
+            objectData.current[obj.id].properties.nextObject = shapeId
+            objectData.current[shapeId].properties.prevObject = objectData.current[obj.id].properties.prevObject
           }
         }
       }
     }, [])
+
+    
 
     const LineToShape = (obj: HTMLElement) => {
       for (const shapeId in objectData.current) {
@@ -278,6 +309,12 @@ const Canvas = () => {
             // objectData.current[obj.id].lastX = newLineOffsetX
             objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
 
+
+            // Setting the line previous attribute
+            objectData.current[obj.id].properties.prevObject = shapeId
+
+            // setting the current shape next object to the line next object
+            objectData.current[shapeId].properties.nextObject = objectData.current[obj.id].properties.nextObject
           }
         }
 
@@ -294,6 +331,17 @@ const Canvas = () => {
             // obj.style.left = `${newLineOffsetX}px`;
             // objectData.current[obj.id].lastX = newLineOffsetX
             objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
+
+
+
+
+            // setting the line/object next object to the current shape id(could be any object)
+            objectData.current[obj.id].properties.nextObject = shapeId
+
+            // setting the shape previous attribute to the line previous object
+
+            objectData.current[shapeId].properties.prevObject =  objectData.current[obj.id].properties.prevObject
+            
           }
         }
 
@@ -311,6 +359,14 @@ const Canvas = () => {
             objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
 
+
+            
+            // Setting the line previous attribute
+            objectData.current[obj.id].properties.prevObject = shapeId
+
+            // setting the current shape next object to the line next object
+            objectData.current[shapeId].properties.nextObject = objectData.current[obj.id].properties.nextObject
+
           }
         }
 
@@ -325,6 +381,13 @@ const Canvas = () => {
             objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
 
+
+            
+            // Setting the line previous attribute
+            objectData.current[obj.id].properties.prevObject = shapeId
+
+            // setting the current shape next object to the line next object
+            objectData.current[shapeId].properties.nextObject = objectData.current[obj.id].properties.nextObject
           }
         }
 
@@ -341,6 +404,14 @@ const Canvas = () => {
             objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
 
+
+
+            // setting the line/object next object to the current shape id(could be any object)
+            objectData.current[obj.id].properties.nextObject = shapeId
+
+            // setting the shape previous attribute to the line previous object
+
+            objectData.current[shapeId].properties.prevObject =  objectData.current[obj.id].properties.prevObject
           }
         }
 
@@ -354,7 +425,14 @@ const Canvas = () => {
             obj.style.left = `${newLineOffsetX}px`;
             objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
+            
 
+            // setting the line/object next object to the current shape id(could be any object)
+            objectData.current[obj.id].properties.nextObject = shapeId
+
+            // setting the shape previous attribute to the line previous object
+
+            objectData.current[shapeId].properties.prevObject =  objectData.current[obj.id].properties.prevObject
           }
         }
 
@@ -405,8 +483,15 @@ const Canvas = () => {
               // objectData.current[obj.id].lastX = newObjectOffsetX
               objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
 
+              // setting the line previous object attribute
+              objectData.current[line.id].properties.prevObject = obj.id
+
+              // setting the current object to the line next object attribute
+              objectData.current[obj.id].properties.nextObject = objectData.current[line.id].properties.nextObject
+
             }
           }
+
           if (objectOffsetY === lYAxis || Math.abs(objectOffsetY - lYAxis) < 10) {
             // Dragging the object in from bottom (L coordinates)
             if (lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) {
@@ -419,6 +504,12 @@ const Canvas = () => {
               // obj.style.left = `${newObjectOffsetX}px`;
               // objectData.current[obj.id].lastX = newObjectOffsetX
               objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+
+              // setting the line next object attribute
+              objectData.current[line.id].properties.nextObject = obj.id
+
+              // setting the current object previous object to the line  previous object attribute
+              objectData.current[obj.id].properties.prevObject = objectData.current[line.id].properties.prevObject
             }
           }
          
@@ -435,6 +526,14 @@ const Canvas = () => {
               objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
               // objectData.current[obj.id].lastY = newObjectOffsetY
 
+
+              
+              // setting the line previous object attribute
+              objectData.current[line.id].properties.prevObject = obj.id
+
+              // setting the current object to the line next object attribute
+              objectData.current[obj.id].properties.nextObject = objectData.current[line.id].properties.nextObject
+
             }
           }
           
@@ -448,6 +547,14 @@ const Canvas = () => {
               obj.style.left = `${newObjectOffsetX}px`;
               objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
               // objectData.current[obj.id].lastY = newObjectOffsetY
+
+
+               
+              // setting the line previous object attribute
+              objectData.current[line.id].properties.prevObject = obj.id
+
+              // setting the current object to the line next object attribute
+              objectData.current[obj.id].properties.nextObject = objectData.current[line.id].properties.nextObject
 
             }
           }
@@ -465,6 +572,13 @@ const Canvas = () => {
               objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
               // objectData.current[obj.id].lastY = newObjectOffsetY
 
+
+               // setting the line next object attribute
+               objectData.current[line.id].properties.nextObject = obj.id
+
+               // setting the current object previous object to the line  previous object attribute
+               objectData.current[obj.id].properties.prevObject = objectData.current[line.id].properties.prevObject
+
             }
           }
           if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
@@ -477,6 +591,14 @@ const Canvas = () => {
               obj.style.left = `${newObjectOffsetX}px`;
               objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
               // objectData.current[obj.id].lastY = newObjectOffsetY
+
+
+
+               // setting the line next object attribute
+               objectData.current[line.id].properties.nextObject = obj.id
+
+               // setting the current object previous object to the line  previous object attribute
+               objectData.current[obj.id].properties.prevObject = objectData.current[line.id].properties.prevObject
 
             }
           }
@@ -630,6 +752,7 @@ const Canvas = () => {
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
       if (onMouseDown.current) {
         handleMouseUpUtil()
+        console.log(objectData.current)
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
@@ -722,11 +845,15 @@ const Canvas = () => {
       const elementId = e.dataTransfer?.getData("elementId");
       if (!elementId) return
       const element = document.getElementById(elementId as string)
-      const newEl = element?.cloneNode(true) as HTMLElement
+      if (!element) return
+      const elementObjectType = element.getAttribute("data-object-type")! // Shape, Grinder, Crusher
+      const elementObjectName = element.getAttribute("data-object-name") || null //circle, text etc...
+      const newEl = element.cloneNode(true) as HTMLElement
       const canvasX = canvasRef.current.getBoundingClientRect().x
       const canvasY = canvasRef.current.getBoundingClientRect().y
       newEl.setAttribute("tabindex", "-1")
-     
+      element.removeAttribute("data-object-type")
+      element.removeAttribute("data-object-name")
       // 
       // newEl.style.outline = "1px solid red"
       let x = e.clientX - canvasX - 30
@@ -735,7 +862,7 @@ const Canvas = () => {
 
 
       // Text
-      if (elementId === "shape-text") {
+      if (elementObjectType === "Shape" && elementObjectName === "text") {
         newEl.classList.remove('text-2xl')
         newEl.setAttribute("data-variant", "text")
         newEl.setAttribute("data-placeholder", "Text")
@@ -749,7 +876,7 @@ const Canvas = () => {
           newEl.style.border = "none"
         })
         newEl.addEventListener("keyup", handleInput)
-      } else if (elementId === "shape-line") {
+      } else if (elementObjectType === "Shape" && elementObjectName === "line") {
         // Lines 
         newEl.setAttribute("data-variant", "line")
         newEl.style.width = "30px"
@@ -804,12 +931,17 @@ const Canvas = () => {
           scale: 1.25,
           font_size: 14.4,
           description: "",
+          object_info: {
+            object_model_name: elementObjectType,
+            object_id: elementId
+          },
           properties: {
             nextObject: null,
             prevObject: null,
             coordinates: defaultCoords
           }
       }
+      console.log('object data', defaultObjectData)
       newEl.setAttribute("id", uuid4)
       newEl.removeAttribute("draggable")
       newEl.classList.add("absolute")
@@ -825,14 +957,14 @@ const Canvas = () => {
       objectData.current[uuid4].y_coordinate = y
       newEl.style.top = `${y}px`
       newEl.style.left = `${x}px`
-      if (elementId !== "shape-line") newEl.style.transform = "scale(1.25)"
+      if (elementObjectName !== "line") newEl.style.transform = "scale(1.25)"
       LineConnector(newEl)
       newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
       newEl.addEventListener("mouseup", handleMouseUp);
       canvasRef.current.appendChild(newEl)
 
       currentObject.current = newEl
-      if (elementId !== "shape-text") showObjectForm(x, y)
+      if (elementObjectName !== "text") showObjectForm(x, y)
 
     }
 

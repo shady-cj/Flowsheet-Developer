@@ -13,7 +13,6 @@ class ShapeSerializer(ModelSerializer):
         fields = [
             "id",
             "name",
-            "image"
         ]
         read_only_fields = ["id"]
 

@@ -1,8 +1,8 @@
 import React from 'react'
 
-const Text = () => {
+const Text = ({objectType, objectId}: {objectType: string, objectId: string}) => {
   return (
-    <div id="shape-text" className="objects bg-transparent cursor-grab text-2xl" draggable={true} onDragStart={(e)=>{e.dataTransfer.setData("elementId", (e.target as HTMLDivElement).id)}} >
+    <div id={objectId} data-object-name="text" data-object-type={objectType} className="objects bg-transparent cursor-grab text-2xl" draggable={true} onDragStart={(e)=>{e.dataTransfer.setData("elementId", (e.target as HTMLDivElement).id)}} >
         Text
     </div>
   )

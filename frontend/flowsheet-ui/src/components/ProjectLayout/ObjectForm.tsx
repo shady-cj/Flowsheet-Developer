@@ -4,7 +4,7 @@ const ObjectForm = ({formFields, position, handleFormState, saveForm, formState}
     return (
     <div className="absolute w-full h-full bg-[#00000080] z-10 ">
         <div className="relative w-full h-full">
-            <form action="" className={`absolute bg-white top-[${Math.round(position.y) + 20}px] left-[${Math.round(position.x)}px] p-6 flex flex-col gap-y-4`} onSubmit={saveForm}>
+            <form action="" className={`object-form absolute bg-white p-6 flex flex-col gap-y-4`} style={{top: `${position.y}px`, left: `${position.x + 80}px`}} onSubmit={saveForm}>
                 {
                     formFields.map((field)=> {
 

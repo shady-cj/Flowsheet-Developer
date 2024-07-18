@@ -43,17 +43,16 @@ def object_formatter(obj):
 
 
 
-
 EXPECTED_OBJECT_NAMES = ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
 def perform_create_update_util(self, index, data):
     data = data[index] if index is not None else data
     object_info = eval(data.get("object_info"))
     object_name = object_info.get("object_model_name") # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
-    object_model_id = object_info.get("object_id")
+    object_model_id = object_info.get("object_id") # The id of the object being referenced (Shape, Crusher, Screener, Grinder, Concentrator Auxilliary)
     if object_name not in EXPECTED_OBJECT_NAMES:
         raise serializers.ValidationError({"object_model_name": "Invalid object project name provided"})
     object_model = eval(object_name)
-    object_instance = object_model.objects.get(id=int(object_model_id))
+    object_instance = object_model.objects.get(id=object_model_id)
     if not object_instance:
         raise serializers.ValidationError({"object_id": "Given id is not associated to any object in the database"})
     # quick check if the current user has access to the object
