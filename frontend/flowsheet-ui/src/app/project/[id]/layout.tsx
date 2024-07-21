@@ -4,7 +4,7 @@ const Layout = ({children, params}: {children: React.ReactNode, params: {id: str
   return (
     <div className="select-none flex flex-col h-screen">
         <ProjectHeader />
-        <section className="flex-auto flex">
+        <section className="grow-0 shrink-0 basis-auto h-[80vh] flex">
             {children}
         </section>
     </div>

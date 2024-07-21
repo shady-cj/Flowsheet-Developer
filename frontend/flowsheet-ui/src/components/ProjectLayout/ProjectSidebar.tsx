@@ -26,7 +26,7 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
 
     }, [])
   return (
-    <div className="w-[30%] bg-white">
+    <div className="w-[30%] bg-white overflow-y-auto">
         <section className="w-full flex flex-col mt-4 gap-4">
             <div className="border-b px-4 py-2">
                 <h1 className="text-xl font-bold mb-2">Shapes</h1>

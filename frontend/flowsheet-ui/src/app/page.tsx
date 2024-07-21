@@ -1,4 +1,4 @@
-import HomeHeader from "@/components/layout/HomeHeader";
+import HomeHeader from "@/components/HomeLayout/HomeHeader";
 import Image from "next/image";
 
 export default function Home() {

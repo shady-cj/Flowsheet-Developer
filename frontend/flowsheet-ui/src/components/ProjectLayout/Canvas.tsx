@@ -1062,7 +1062,7 @@ const Canvas = () => {
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
       if (onMouseDown.current) {
         handleMouseUpUtil()
-        console.log(objectData.current)
+        // console.log(objectData.current)
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
@@ -1213,7 +1213,7 @@ const Canvas = () => {
         point2.addEventListener("mousedown", (e)=> handleMouseDown(e, point2)) 
         point2.addEventListener("mouseup", handleMouseUp)
         point2.addEventListener("dblclick", e => createMultiplePoint(e, point2))
-        const startCoords: [number, number] = [15, 5]
+        const startCoords: [number, number] = [15, 25]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
         point2.style.left = `${startCoords[0]}px`
@@ -1273,7 +1273,7 @@ const Canvas = () => {
       canvasRef.current.appendChild(newEl)
 
       currentObject.current = newEl
-      if (elementObjectName !== "text") showObjectForm(x, y)
+      // if (elementObjectName !== "text") showObjectForm(x, y)
 
     }
 
@@ -1295,6 +1295,9 @@ const Canvas = () => {
             const obj = currentObject.current as HTMLElement
             let offsetX = 10
             let offsetY = 10
+            // console.log(e.clientX, "client x")
+            // CanvasContainer.scrollLeft += 50
+            // console.log(CanvasContainer.scrollLeft, "scroll left")
             if (obj.getAttribute("data-variant") === "line") {
               // To prevent Lines from going over the edge
               const {offsetLeft, offsetTop} = checkLineBoundary(e, obj)
@@ -1351,7 +1354,7 @@ const Canvas = () => {
 
     
   return (
-    <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative flex-auto bg-white cursor-move border-l" ref={canvasRef} onDrop={handleDrop}>
+    <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="h-full w-full relative bg-white cursor-move border-l overflow-auto h-[4000px] w-[4000px] p-10" ref={canvasRef} onDrop={handleDrop}>
           { 
             isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as { [key: string]: string; }}/>
           }
