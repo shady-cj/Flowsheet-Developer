@@ -120,7 +120,7 @@ class ProjectObjectSerializer(ModelSerializer):
             "scale",
             "font_size",
             "description",
-            "project",
+            # "project",
             "properties"
         ]
         read_only_fields = ["id"]

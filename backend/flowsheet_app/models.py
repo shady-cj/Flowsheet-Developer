@@ -96,12 +96,13 @@ class Project(models.Model):
 
 class ProjectObject(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
-    object_id = models.PositiveIntegerField(null=True, blank=True)
+    object_id = models.UUIDField(null=True, blank=True)
+    # object_id = models.PositiveIntegerField(null=True, blank=True)
     oid = models.UUIDField(default=uuid.uuid4, unique=True)
     label = models.CharField(max_length=64)
     object = GenericForeignKey('content_type', 'object_id') # foreign key To shapes, grinders, concentrators etc
-    x_coordinate = models.DecimalField(max_digits=20, decimal_places=2) # how far is it from the container x-axis
-    y_coordinate = models.DecimalField(max_digits=20, decimal_places=2) # how far is it from the container y-axis
+    x_coordinate = models.DecimalField(max_digits=10, decimal_places=4) # how far is it from the container x-axis
+    y_coordinate = models.DecimalField(max_digits=10, decimal_places=4) # how far is it from the container y-axis
     scale = models.DecimalField(max_digits=5, decimal_places=2) # the scale of the object? how big or how small
     font_size = models.DecimalField(max_digits=10, decimal_places=2) # the font size in pixels
     description = models.TextField(blank=True, null=True) # The description of the object Mapper

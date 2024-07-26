@@ -1,13 +1,14 @@
 "use client";
-import { useEffect, useState, useRef, useCallback, DragEvent, ChangeEvent, FormEvent} from "react";
+import { useEffect, useState, useRef, useCallback, DragEvent, ChangeEvent, FormEvent } from "react";
+import { uploadObject, loadObjects } from "@/lib/actions/projectcanvas";
 import ObjectForm from "./ObjectForm";
 
 
-type lineCordsType = {
+export type lineCordsType = {
   M: [number, number], 
   L: [number, number][]
 }
-type objectCoords = {
+export type objectCoords = {
   startX: number, 
   startY: number, 
   lastX: number, 
@@ -16,8 +17,9 @@ type objectCoords = {
 }
 
 
-type objectDataType = {
+export type objectDataType = {
   [key: string]: {
+    id?: number,
     oid: string,
     label: string,
     x_coordinate: number,
@@ -25,10 +27,11 @@ type objectDataType = {
     scale: number,
     font_size: number,
     description: string,
+    object?: {},
     object_info: {
       object_model_name: string,
       object_id: string
-    }
+    },
   
     properties: {
       nextObject: string[],
@@ -74,7 +77,7 @@ Typical objectData sample
 
 
 
-const Canvas = () => {
+const Canvas = ({params}: {params: {id: string}}) => {
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
@@ -99,8 +102,6 @@ const Canvas = () => {
       }
     ])
     const [formState, setFormState] = useState<{[key: string]: string} | null>(null)
-
-
 
     const updateObjectData = () => {
       const object = currentObject.current
@@ -1051,8 +1052,8 @@ const Canvas = () => {
           // console.log(e.clientX, e.clientY)
       } else {
           currentObject.current = obj
-          objectData.current[obj.id].properties.coordinates.startX = e.clientX
-          objectData.current[obj.id].properties.coordinates.startY = e.clientY
+          objectData.current[obj.id].properties.coordinates.startX = parseFloat(e.clientX.toFixed(4))
+          objectData.current[obj.id].properties.coordinates.startY = parseFloat(e.clientY.toFixed(4))
       }
       onMouseDown.current = true
       document.removeEventListener("mouseup", handleMouseUpGeneral)
@@ -1062,7 +1063,7 @@ const Canvas = () => {
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
       if (onMouseDown.current) {
         handleMouseUpUtil()
-        // console.log(objectData.current)
+        console.log(objectData.current)
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
@@ -1070,7 +1071,7 @@ const Canvas = () => {
 
 
     const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
-      // Ability of a line to have multiple breakpoints instead of just the regular straight line (That's why we are using the svg path element)
+      // Ability of a line to have multiple breakpoints on a line instead of just the regular straight line (That's why we are using the svg path element)
       const pointDetails = pointStore.current[point.id]
 
       if (pointDetails.length < 3) {
@@ -1143,6 +1144,125 @@ const Canvas = () => {
       
     }
   
+
+    
+    const loadObjectToCanvas = useCallback(() => {
+      for (const dataId in objectData.current) {
+        const data = objectData.current[dataId]
+        const elementId = data.object_info.object_id
+        const element = document.getElementById(elementId as string)
+        // console.log("element", element)
+
+        if (!element) continue
+        const elementObjectType = element.getAttribute("data-object-type")! // Shape, Grinder, Crusher
+        const elementObjectName = element.getAttribute("data-object-name") || null 
+        const newEl = element.cloneNode(true) as HTMLElement
+        newEl.setAttribute("tabindex", "-1")
+        newEl.removeAttribute("data-object-type")
+        newEl.removeAttribute("data-object-name")
+
+        if (elementObjectType === "Shape" && elementObjectName === "text") {
+          newEl.classList.remove('text-2xl')
+          newEl.setAttribute("data-variant", "text")
+          newEl.setAttribute("data-placeholder", "Text")
+          // newEl.classList.add("placeholder-style")
+          newEl.classList.add("shape-text-base-styles")
+          newEl.textContent = objectData.current[dataId].description
+          if (newEl.textContent!.length === 0)
+            newEl.classList.add("placeholder-style")
+          newEl.addEventListener("dblclick", (e) => handleDblClick(e, newEl))
+          newEl.addEventListener("focusout", ()=>{
+            newEl.removeAttribute("contenteditable")
+            newEl.style.color = "black"
+            newEl.style.border = "none"
+            if (newEl.textContent!.length > 0)
+              objectData.current[newEl.id].description = newEl.textContent!
+          })
+          newEl.addEventListener("keyup", handleInput)
+        } else if (elementObjectType === "Shape" && elementObjectName === "line") {
+          // Lines 
+          newEl.setAttribute("data-variant", "line")
+          newEl.style.width = "30px"
+          newEl.style.height = "50px"
+          newEl.style.outline = "none"
+          newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
+          newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
+          newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
+          const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
+          const svg = newEl.querySelector("svg")
+          const path = svg!.querySelector("path")
+          path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
+          // path!.addEventListener("mouseover", (e)=> console.log("hover"))
+          const pointAnchorUid = "point-"+crypto.randomUUID()
+          // const point2Uid = 
+
+
+          // M: [number, number], 
+          // L: [number, number][]
+          const pointAnchor = document.createElement("span") // For the M coordinate point
+          pointAnchor.classList.add("point-indicators")
+          pointAnchor.classList.add("hide-indicator")
+          pointAnchor.setAttribute("id", pointAnchorUid)
+          pointStore.current[pointAnchorUid] = ["M"]
+          pointAnchor.style.top = `${data.properties.coordinates.lineCoordinates!.M[1]}px`
+          pointAnchor.style.left = `${data.properties.coordinates.lineCoordinates!.M[0]}px`
+          lineWrapEl.appendChild(pointAnchor)
+
+          const movablePoints = data.properties.coordinates.lineCoordinates!.L
+          for (let pointIndex = 0; pointIndex < movablePoints.length; pointIndex++) {
+            const newPoint = document.createElement("span")
+            const newPointUid = "point-"+crypto.randomUUID()
+            newPoint.classList.add("point-indicators")
+            newPoint.classList.add("hide-indicator")
+            newPoint.setAttribute("id", newPointUid)
+            newPoint.addEventListener("mousedown", (e)=> handleMouseDown(e, newPoint)) 
+            newPoint.addEventListener("mouseup", handleMouseUp)
+            newPoint.addEventListener("dblclick", e => createMultiplePoint(e, newPoint))
+            if (pointIndex === movablePoints.length - 1)
+              pointStore.current[newPointUid] = ["L", pointIndex]
+            else
+              pointStore.current[newPointUid] = ["L", pointIndex, pointIndex + 1]
+            newPoint.style.left = `${movablePoints[pointIndex][0]}px`
+            newPoint.style.top = `${movablePoints[pointIndex][1]}px`
+            
+            lineWrapEl.appendChild(newPoint)
+
+          }
+          const coordString = LineCoordinateToPathString(data.properties.coordinates.lineCoordinates!)
+          path?.setAttribute("d", coordString)
+          
+          
+        }else {
+          newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
+          newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
+          newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
+        }
+
+
+
+        newEl.setAttribute("id", dataId)
+        newEl.removeAttribute("draggable")
+        newEl.classList.add("absolute")
+        newEl.classList.add("cursor-move")
+        newEl.classList.remove("cursor-grabbing")
+
+        const x = data.properties.coordinates.lastX
+        const y = data.properties.coordinates.lastY
+        newEl.style.top = `${y}px`
+        newEl.style.left = `${x}px`
+       
+
+        if (elementObjectName !== "line") newEl.style.transform = `scale(${data.scale})`
+        newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
+        newEl.addEventListener("mouseup", handleMouseUp);
+        canvasRef.current.appendChild(newEl)
+        // currentObject.current = newEl
+
+      }
+    }, [createMultiplePoint, handleMouseDown, handleMouseUp])
+
+
+
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
 
       let defaultCoords: objectCoords = {
@@ -1152,6 +1272,7 @@ const Canvas = () => {
         lastY: 0,
         
       }
+      let defaultElementLabel = ""
       const elementId = e.dataTransfer?.getData("elementId");
       if (!elementId) return
       const element = document.getElementById(elementId as string)
@@ -1173,6 +1294,7 @@ const Canvas = () => {
 
       // Text
       if (elementObjectType === "Shape" && elementObjectName === "text") {
+        defaultElementLabel = "Text"
         newEl.classList.remove('text-2xl')
         newEl.setAttribute("data-variant", "text")
         newEl.setAttribute("data-placeholder", "Text")
@@ -1184,6 +1306,8 @@ const Canvas = () => {
           newEl.removeAttribute("contenteditable")
           newEl.style.color = "black"
           newEl.style.border = "none"
+          if (newEl.textContent!.length > 0)
+            objectData.current[newEl.id].description = newEl.textContent!
         })
         newEl.addEventListener("keyup", handleInput)
       } else if (elementObjectType === "Shape" && elementObjectName === "line") {
@@ -1199,6 +1323,7 @@ const Canvas = () => {
         const svg = newEl.querySelector("svg")
         const path = svg!.querySelector("path")
         path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
+        // path!.addEventListener("mouseover", (e)=> console.log("hover"))
         const point1Uid = "point-"+crypto.randomUUID()
         const point2Uid = "point-"+crypto.randomUUID()
 
@@ -1233,9 +1358,11 @@ const Canvas = () => {
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
       }
       const uuid4 = crypto.randomUUID()
+      newEl.style.border = "1px solid red"
+
       const defaultObjectData = {
           oid: uuid4,
-          label: "",
+          label: defaultElementLabel,
           x_coordinate: 0,
           y_coordinate: 0,
           scale: 1.25,
@@ -1256,8 +1383,8 @@ const Canvas = () => {
       newEl.classList.add("absolute")
       newEl.classList.add("cursor-move")
       newEl.classList.remove("cursor-grabbing")
-      x = x < 6 ? 6 : x
-      y = y < 6 ? 6 : y
+      x = x < 6 ? 6 : parseFloat(x.toFixed(4))
+      y = y < 6 ? 6 : parseFloat(y.toFixed(4))
       
       objectData.current[uuid4] = defaultObjectData
       objectData.current[uuid4].properties.coordinates.lastX = x
@@ -1273,7 +1400,7 @@ const Canvas = () => {
       canvasRef.current.appendChild(newEl)
 
       currentObject.current = newEl
-      // if (elementObjectName !== "text") showObjectForm(x, y)
+      if (elementObjectName !== "text") showObjectForm(x, y)
 
     }
 
@@ -1282,10 +1409,19 @@ const Canvas = () => {
 
     useEffect(()=> {
       const CanvasContainer = canvasRef.current
+      const CanvasParentContainer = document.getElementById("canvas-parent-container")!
       const objects = document.querySelectorAll(".objects")
       // console.log(objects)
+      const invokeLoadObjects = async () => {
+        const loadedObj = await loadObjects(params.id)
+        if (Object.keys(loadedObj!).length > 0) {
+          objectData.current = loadedObj!
+          loadObjectToCanvas()
+        }
+        
+      }
+      invokeLoadObjects()
     
-  
       
       const handleMouseMove = (e: MouseEvent) => {
         if (onMouseDown.current) {
@@ -1297,7 +1433,7 @@ const Canvas = () => {
             let offsetY = 10
             // console.log(e.clientX, "client x")
             // CanvasContainer.scrollLeft += 50
-            // console.log(CanvasContainer.scrollLeft, "scroll left")
+            
             if (obj.getAttribute("data-variant") === "line") {
               // To prevent Lines from going over the edge
               const {offsetLeft, offsetTop} = checkLineBoundary(e, obj)
@@ -1309,15 +1445,56 @@ const Canvas = () => {
             let nextX = e.clientX - objectCoordinate.startX + objectCoordinate.lastX
             let nextY = e.clientY - objectCoordinate.startY + objectCoordinate.lastY
 
-            nextX = nextX < offsetX ? offsetX : nextX
-            nextY = nextY < offsetY ? offsetY : nextY
+            nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(4)) : parseFloat(nextX.toFixed(4))
+            nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(4)) : parseFloat(nextY.toFixed(4))
+            // console.log(nextX, "nextX")
+
   
+            
+            // const containerBounds = CanvasParentContainer.getBoundingClientRect()
+            // const currentElementBounds = obj.getBoundingClientRect()
+            // const containerCenter = containerBounds.left + (containerBounds.width / 2)
+            // const currentElementCenter = currentElementBounds.left + (currentElementBounds.width / 2)
+
+            // if (currentElementBounds.right > containerBounds.right || currentElementBounds.left < containerBounds.left) {
+            //   CanvasParentContainer.scrollLeft += (currentElementCenter + containerCenter)
+            // }
+
+            // Enable scrolling while dragging of the window to the right and bottom
+
+            const parentContainerRight = CanvasParentContainer.getBoundingClientRect().right - CanvasParentContainer.getBoundingClientRect().x
+            const parentContainerBottom = CanvasParentContainer.getBoundingClientRect().bottom - CanvasParentContainer.getBoundingClientRect().y
+            const scrollNextX = nextX - CanvasParentContainer.scrollLeft
+            const scrollNextY = nextY - CanvasParentContainer.scrollTop
+            if (parentContainerRight - scrollNextX < 70) {
+              // const difference = parentContainerRight - scrollNextX
+              CanvasParentContainer.scrollLeft += 50
+            }
+            if (parentContainerBottom - scrollNextY < 70) {
+              CanvasParentContainer.scrollTop += 50
+            }
+            // Enable scrolling while dragging back
+            let scrollTop = CanvasParentContainer.scrollTop
+            let scrollLeft = CanvasParentContainer.scrollLeft
+          
+
+            if (scrollLeft > 0 && nextX - scrollLeft < 30) {
+              scrollLeft -= 20
+              if (scrollLeft < 0) scrollLeft = 0
+              CanvasParentContainer.scrollLeft = scrollLeft
+            }
+            if (scrollTop > 0 && nextY - scrollTop < 30) {
+              scrollTop -= 20
+              if (scrollTop < 0) scrollTop = 0
+              CanvasParentContainer.scrollTop = scrollTop
+            }
+
+            // update the obj top and left css styles
             obj.style.top = `${nextY}px`
             obj.style.left = `${nextX}px`
-
-            
             
           }
+          
           
           document.addEventListener("mouseup", handleMouseUpGeneral)
         }
@@ -1349,16 +1526,18 @@ const Canvas = () => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral])
+    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral, params, loadObjectToCanvas])
 
 
     
   return (
-    <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="h-full w-full relative bg-white cursor-move border-l overflow-auto h-[4000px] w-[4000px] p-10" ref={canvasRef} onDrop={handleDrop}>
+    <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative bg-white cursor-move border-l overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
           { 
             isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as { [key: string]: string; }}/>
           }
-
+      <button onClick={()=> uploadObject(objectData.current, params.id)}>
+        Submit
+      </button>
     </div>
   )
 }

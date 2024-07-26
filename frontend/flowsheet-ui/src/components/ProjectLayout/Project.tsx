@@ -6,9 +6,9 @@ const Project = ({params}: {params: {id: string}}) => {
   return (
     <>
       <ProjectSidebar params={params} />
-      <div className="w-[70%] canvas-wrapper">
-        <div className="w-full h-full overflow-scroll">
-          <Canvas />
+      <div className="w-[70%]" id="canvas-wrapper">
+        <div className="w-full h-full overflow-auto scroll-smooth" id="canvas-parent-container">
+          <Canvas params={params}/>
         </div>
 
       </div>

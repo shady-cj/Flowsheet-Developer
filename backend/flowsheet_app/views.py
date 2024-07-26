@@ -176,6 +176,7 @@ class ListCreateProjectObject(ListCreateAPIView):
         project_instance = Project.objects.get(id=project_id)
 
         data = self.request.data
+
         if isinstance(serializer.validated_data, list):
             length_of_data = len(data) if len(data) == len(serializer.validated_data) else None
             if length_of_data is None:
@@ -183,7 +184,8 @@ class ListCreateProjectObject(ListCreateAPIView):
             for index in range(length_of_data):
                 object_instance = perform_create_update_util(self, index, data)
                 serializer.validated_data[index]['project'] = project_instance
-                serializer.validated_data[index]['object'] = object_instance
+                serializer.validated_data[index]['object'] = object_instance  
+   
             return serializer.save()
         object_instance = perform_create_update_util(self, None, data)
         return serializer.save(project=project_instance, object=object_instance)

@@ -21,7 +21,8 @@ def object_formatter(obj):
     default = {
         "id": obj.id,
         "name": obj.name,
-        "image": obj.image or None
+        "image": getattr(obj, "image", None), 
+        "model_name": obj.__class__.__name__
     }
     if isinstance(obj, Crusher) or isinstance(obj, Grinder):
         default.update({
@@ -39,6 +40,8 @@ def object_formatter(obj):
         default.update({
             "type": obj.type
         })
+    elif isinstance(obj, Shape):
+        default.pop("image")
     return default
 
 
