@@ -43,7 +43,7 @@ Typical objectData sample
 
 
 const Canvas = ({params}: {params: {id: string}}) => {
-    const {canvasLoading, setCanvasLoading, objectData} = useContext(ProjectContext)
+    const {canvasLoading, setCanvasLoading, objectData, hasInstance} = useContext(ProjectContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
@@ -1381,6 +1381,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const loadedObj = await loadObjects(params.id)
         if (Object.keys(loadedObj!).length > 0) {
           objectData.current = loadedObj!
+          hasInstance.current = true
           loadObjectToCanvas()
         }
         setCanvasLoading(false)
@@ -1491,7 +1492,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral, params, loadObjectToCanvas, objectData, handleShapeDelete, setCanvasLoading])
+    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral, params, loadObjectToCanvas, objectData, handleShapeDelete, setCanvasLoading, hasInstance])
 
 
     

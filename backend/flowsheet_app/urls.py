@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ListCreateShapes, ListCreateScreener, RetrieveUpdateDestroyScreener, ListCreateCrusher, RetrieveUpdateDestroyCrusher, ListCreateGrinder, RetrieveUpdateDestroyGrinder, ListCreateConcentrator, RetrieveUpdateDestroyConcentrator, ListCreateAuxilliary, RetrieveUpdateDestroyAuxilliary, ListCreateProject, RetrieveUpdateDestroyProject, ListCreateProjectObject, RetrieveUpdateDestroyProjectObject
+from .views import ListCreateShapes, ListCreateScreener, RetrieveUpdateDestroyScreener, ListCreateCrusher, RetrieveUpdateDestroyCrusher, ListCreateGrinder, RetrieveUpdateDestroyGrinder, ListCreateConcentrator, RetrieveUpdateDestroyConcentrator, ListCreateAuxilliary, RetrieveUpdateDestroyAuxilliary, ListCreateProject, RetrieveUpdateDestroyProject, ListCreateProjectObject, UpdateDestroyProjectObject
 
 urlpatterns = [
         path("shapes/", ListCreateShapes.as_view()),
@@ -16,6 +16,6 @@ urlpatterns = [
         path("projects/", ListCreateProject.as_view()), 
         path("projects/<int:id>", RetrieveUpdateDestroyProject.as_view()),
         path("project_objects/<str:project_id>", ListCreateProjectObject.as_view()),
-        path("project_object/<str:project_id>/<int:id>", RetrieveUpdateDestroyProjectObject.as_view())
+        path("project_objects/<str:project_id>/update", UpdateDestroyProjectObject.as_view())
     ]
 

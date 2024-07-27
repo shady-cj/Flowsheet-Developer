@@ -47,6 +47,7 @@ export type objectDataType = {
 type contextType = {
   canvasLoading: boolean,
   objectData: MutableRefObject<objectDataType>,
+  hasInstance: MutableRefObject<boolean>,
   setCanvasLoading: Dispatch<SetStateAction<boolean>>,
   saveObjectData: (paramsId: string)=>void
 }
@@ -57,12 +58,16 @@ export const ProjectContext = createContext<contextType>(null!)
 const ProjectProvider = ({children}: {children: React.ReactNode}) => {
   const objectData = useRef<objectDataType>({})
   const [canvasLoading, setCanvasLoading] = useState(true)
-  const saveObjectData = (paramsId: string) => {
-    uploadObject(objectData.current, paramsId)
+  const hasInstance = useRef(false) // To check if the objectData has initially been created so it'll be updated instead of be recreated
+
+  const saveObjectData = async (paramsId: string) => {
+    objectData.current = await uploadObject(objectData.current, paramsId, hasInstance.current)
+    hasInstance.current = true
   }
- 
+  
+
   return (
-    <ProjectContext.Provider value={{canvasLoading, setCanvasLoading, saveObjectData, objectData}}>
+    <ProjectContext.Provider value={{canvasLoading, setCanvasLoading, saveObjectData, objectData, hasInstance}}>
       {children}
     </ProjectContext.Provider>
   )

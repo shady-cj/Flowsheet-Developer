@@ -35,7 +35,8 @@ const BASE_URL = "http://localhost:8000"
 
 
 
-export async function uploadObject(object: objectDataType, projectId: string) {
+export async function uploadObject(object: objectDataType, projectId: string, update: boolean) {
+        console.log("object", object)
         const listObjects = []
         const accessToken = cookies().get("access")?.value
         const refreshToken = cookies().get("refresh")?.value
@@ -50,30 +51,51 @@ export async function uploadObject(object: objectDataType, projectId: string) {
                 listObjects.push(newObject[key])
             }
             if (listObjects.length === 0)
-                return
-            // console.log("list objects", listObjects)
+                return {}
+            let response
+            if (update) {
+                response = await fetch(`${BASE_URL}/project_objects/${projectId}/update`, {
+                    method: "PUT",
+                    body: JSON.stringify(listObjects),
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${accessToken}`
+                    }
+                })
+            } else {
+                response = await fetch(`${BASE_URL}/project_objects/${projectId}`, {
+                    method: "POST",
+                    body: JSON.stringify(listObjects),
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${accessToken}`
+                    }
+                })
+            }
 
-            const response = await fetch(`${BASE_URL}/project_objects/${projectId}`, {
-                method: "POST",
-                body: JSON.stringify(listObjects),
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`
-                }
-
-
-            })
+            
             const result = await response.json()
-            console.log(result)
 
             if (response.status  === 201) {
-                return {status: "success"}
+                const objects: objectDataType = {}
+                for (const entry of result) {
+                    const object_info = {
+                        object_model_name: entry.object.model_name,
+                        object_id: entry.object.id
+                    }
+                    entry["object_info"] = object_info
+                    entry.properties = JSON.parse(entry.properties)
+                    objects[entry.oid] = entry
+                    
+                }
+                console.log("objects", objects)
+                return objects
             } else {
-                return {status: "error"}
+                return {}
             }
         } catch (err) {
             console.log(err)
-            return {status: "error"}
+            return {}
         }
 
 }
