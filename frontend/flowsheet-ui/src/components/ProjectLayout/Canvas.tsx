@@ -1,45 +1,10 @@
 "use client";
-import { useEffect, useState, useRef, useCallback, DragEvent, ChangeEvent, FormEvent } from "react";
+import { useEffect, useState, useRef, useCallback, DragEvent, ChangeEvent, FormEvent, useContext } from "react";
 import { uploadObject, loadObjects } from "@/lib/actions/projectcanvas";
 import ObjectForm from "./ObjectForm";
+import { ProjectContext } from "../context/ProjectProvider";
+import { objectDataType, lineCordsType,  objectCoords} from "../context/ProjectProvider";
 
-
-export type lineCordsType = {
-  M: [number, number], 
-  L: [number, number][]
-}
-export type objectCoords = {
-  startX: number, 
-  startY: number, 
-  lastX: number, 
-  lastY: number,
-  lineCoordinates?: lineCordsType
-}
-
-
-export type objectDataType = {
-  [key: string]: {
-    id?: number,
-    oid: string,
-    label: string,
-    x_coordinate: number,
-    y_coordinate: number,
-    scale: number,
-    font_size: number,
-    description: string,
-    object?: {},
-    object_info: {
-      object_model_name: string,
-      object_id: string
-    },
-  
-    properties: {
-      nextObject: string[],
-      prevObject: string[],
-      coordinates: objectCoords
-    }
-  }
-}
 
 
 /*
@@ -78,10 +43,10 @@ Typical objectData sample
 
 
 const Canvas = ({params}: {params: {id: string}}) => {
+    const {canvasLoading, setCanvasLoading, objectData} = useContext(ProjectContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
-    const objectData = useRef<objectDataType>({})
     const pointStore = useRef<{[key: string]: ["M"] | ["L", number, number?]}>({})
     const currentActivePoint = useRef<HTMLSpanElement | null>(null)
     const onMouseDown = useRef(false)
@@ -324,11 +289,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         }
       }
-    }, [])
+    }, [objectData])
 
 
 
-    const LineToShape = (obj: HTMLElement) => {
+    const LineToShape = useCallback((obj: HTMLElement) => {
       for (const shapeId in objectData.current) {
         if (obj.id === shapeId)
           continue
@@ -623,10 +588,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
           
         }
       }
-    }
+    }, [objectData])
 
 
-    const ShapeToLine = (obj: HTMLElement) => {
+    const ShapeToLine = useCallback((obj: HTMLElement) => {
         // Get all the lines
         const lines = document.querySelectorAll("[data-variant=line]")
         lines.forEach(line => {
@@ -915,7 +880,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           }
       
         })
-    }
+    }, [objectData])
 
 
     const LineConnector = useCallback((obj: HTMLElement, point?: HTMLSpanElement) => {
@@ -938,7 +903,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       }
       
       
-    }, [DrawLineToShape])
+    }, [DrawLineToShape, LineToShape, ShapeToLine])
 
     const checkLineBoundary = (e: MouseEvent, obj: HTMLElement) => {
       const pointIndicators = obj.querySelectorAll(".point-indicators")
@@ -995,17 +960,17 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const path = object.querySelector("svg path")
       path?.setAttribute("d", coordString)
       // 
-    }, [])
+    }, [objectData])
 
 
 
-    const handleShapeDelete = (e: KeyboardEvent, element: HTMLElement) => {
+    const handleShapeDelete = useCallback((e: KeyboardEvent, element: HTMLElement) => {
       if (e.keyCode === 8 || e.keyCode === 46) {
         element.remove()
         // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
         delete objectData.current[element.id]
       }
-    }
+    }, [objectData])
 
 
 
@@ -1035,7 +1000,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           
       }
       onMouseDown.current = false
-    }, [LineConnector])
+    }, [LineConnector, objectData])
 
     const handleMouseUpGeneral = useCallback((e: MouseEvent) => {
       handleMouseUpUtil()
@@ -1058,7 +1023,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       onMouseDown.current = true
       document.removeEventListener("mouseup", handleMouseUpGeneral)
       // console.log(e)
-    }, [handleMouseUpGeneral])
+    }, [handleMouseUpGeneral, objectData])
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
       if (onMouseDown.current) {
@@ -1067,7 +1032,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
-    }, [handleMouseUpGeneral, handleMouseUpUtil])
+    }, [handleMouseUpGeneral, handleMouseUpUtil, objectData])
 
 
     const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
@@ -1108,7 +1073,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       }
 
 
-    }, [handleMouseDown, handleMouseUp])
+    }, [handleMouseDown, handleMouseUp, objectData])
 
 
 
@@ -1128,7 +1093,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       }) 
     }
 
-    const handleInput = (e: KeyboardEvent) => {
+    const handleInput = useCallback((e: KeyboardEvent) => {
       const element = e.target as HTMLElement
 
       if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
@@ -1142,7 +1107,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
       
       
-    }
+    }, [objectData])
   
 
     
@@ -1259,7 +1224,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         // currentObject.current = newEl
 
       }
-    }, [createMultiplePoint, handleMouseDown, handleMouseUp])
+    }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData])
 
 
 
@@ -1418,7 +1383,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           objectData.current = loadedObj!
           loadObjectToCanvas()
         }
-        
+        setCanvasLoading(false)
       }
       invokeLoadObjects()
     
@@ -1526,20 +1491,23 @@ const Canvas = ({params}: {params: {id: string}}) => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral, params, loadObjectToCanvas])
+    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral, params, loadObjectToCanvas, objectData, handleShapeDelete, setCanvasLoading])
 
 
     
   return (
-    <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative bg-white cursor-move border-l overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
-          { 
-            isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as { [key: string]: string; }}/>
-          }
-      <button onClick={()=> uploadObject(objectData.current, params.id)}>
-        Submit
-      </button>
-    </div>
+    <>
+      {
+        canvasLoading && (<div className="relative w-full h-full bg-[#00000080] z-20 flex justify-center items-center"> Loading... </div>) 
+      }
+      
+      <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative bg-white cursor-move border-l overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
+        { 
+          isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as { [key: string]: string; }}/>
+        }
+      </div>
+    
+    </>
   )
 }
-
 export default Canvas
