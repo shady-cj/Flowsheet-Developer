@@ -163,7 +163,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             isConnected = true
             // Ensure the point is within the box range on x axis
             const pointGap = shapeOffsetY - lYAxis           
-            coordinates.L[coordinates.L.length - 1][1] = L[1] + pointGap - (extrasY/2)
+            coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap - (extrasY/2)).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
             const path = obj.querySelector("svg path")
             point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
@@ -191,7 +191,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             isConnected = true
             // Ensure the point is within the box range on x axis
             const pointGap = shapeOffsetYBottom - lYAxis
-            coordinates.L[coordinates.L.length - 1][1] = L[1] + pointGap
+            coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
             const path = obj.querySelector("svg path")
             point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
@@ -219,7 +219,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             isConnected = true
             // Ensure the point is within the box range on y axis
             const pointGap = shapeOffsetXRight - lXAxis
-            coordinates.L[coordinates.L.length - 1][0] = L[0] + pointGap
+            coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
             const path = obj.querySelector("svg path")
             point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
@@ -247,7 +247,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             isConnected = true
             // Ensure the point is within the box range on y axis
             const pointGap = shapeOffsetX - lXAxis
-            coordinates.L[coordinates.L.length - 1][0] = L[0] + pointGap - (extrasX / 2)
+            coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap - (extrasX / 2)).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
             const path = obj.querySelector("svg path")
             point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
@@ -334,7 +334,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
             // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - M[0] - (extrasX/2)
-            const newLineOffsetY = shapeOffsetYBottom - M[1]
+       
+            const newLineOffsetY = parseFloat((shapeOffsetYBottom - M[1]).toFixed(6))
            
             obj.style.top = `${newLineOffsetY}px`;
             // obj.style.left = `${newLineOffsetX}px`;
@@ -361,7 +362,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
             // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - L[0] - (extrasX/2)
-            const newLineOffsetY = shapeOffsetY - L[1] - M[1]
+            const newLineOffsetY = parseFloat((shapeOffsetY - L[1] - M[1]).toFixed(6))
             // console.log(mYAxis, "myaxis")
             if (newLineOffsetY < 6)
               return
@@ -395,7 +396,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
-            const newLineOffsetX = shapeOffsetX - M[0] - (extrasX/2)
+            const newLineOffsetX = parseFloat((shapeOffsetX - M[0] - (extrasX/2)).toFixed(6))
             // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
             if (newLineOffsetX < 6)
               return
@@ -426,7 +427,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
-            const newLineOffsetX = shapeOffsetXRight - M[0] 
+            const newLineOffsetX = parseFloat((shapeOffsetXRight - M[0]).toFixed(6))
             // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
             // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
@@ -453,7 +454,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
-            const newLineOffsetX = shapeOffsetX - L[0] - (extrasX/2)
+            const newLineOffsetX = parseFloat((shapeOffsetX - L[0] - (extrasX/2)).toFixed(6))
             // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
             if (newLineOffsetX < 6)
               return
@@ -484,7 +485,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
-            const newLineOffsetX = shapeOffsetXRight - L[0]
+            const newLineOffsetX = parseFloat((shapeOffsetXRight - L[0]).toFixed(6))
             // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
             // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
@@ -627,7 +628,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
               isConnected = true
               // const objWidthMidpoint = objectWidth / 2
               // const newObjectOffsetX = mXAxis - objWidthMidpoint + (extrasX/2)
-              const newObjectOffsetY = mYAxis - objectHeight + (extrasY/2)
+              const newObjectOffsetY = parseFloat((mYAxis - objectHeight + (extrasY/2)).toFixed(6))
               // console.log(mYAxis, "myaxis")
               if (newObjectOffsetY < 6)
                 return
@@ -658,7 +659,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
               isConnected = true
               // const objWidthMidpoint = objectWidth / 2
               // const newObjectOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
-              const newObjectOffsetY = lYAxis + (extrasY/2)
+              const newObjectOffsetY = parseFloat((lYAxis + (extrasY/2)).toFixed(6))
               // console.log(mYAxis, "myaxis")
 
               obj.style.top = `${newObjectOffsetY}px`;
@@ -688,7 +689,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
               isConnected = true
 
               // const objHeightMidpoint = objectHeight / 2
-              const newObjectOffsetX = mXAxis - objectWidth + (extrasX/2)
+              const newObjectOffsetX = parseFloat((mXAxis - objectWidth + (extrasX/2)).toFixed(6))
               // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
               if (newObjectOffsetX < 6)
                 return
@@ -718,7 +719,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
               isConnected = true
               // const objHeightMidpoint = objectHeight / 2
-              const newObjectOffsetX = mXAxis + (extrasX/2)
+              const newObjectOffsetX = parseFloat((mXAxis + (extrasX/2)).toFixed(6))
               // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
               // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
@@ -746,7 +747,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
               isConnected = true
               // const objHeightMidpoint = objectHeight / 2
-              const newObjectOffsetX = lXAxis - objectWidth + (extrasX/2)
+              const newObjectOffsetX = parseFloat((lXAxis - objectWidth + (extrasX/2)).toFixed(6))
               // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
               if (newObjectOffsetX < 6)
                 return
@@ -774,7 +775,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
               isConnected = true
               // const objHeightMidpoint = objectHeight / 2
-              const newObjectOffsetX = lXAxis + (extrasX/2)
+              const newObjectOffsetX = parseFloat((lXAxis + (extrasX/2)).toFixed(6))
               // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
               // obj.style.top = `${newObjectOffsetY}px`;
               obj.style.left = `${newObjectOffsetX}px`;
@@ -949,8 +950,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const object = currentObject.current
       const objectX = object.getBoundingClientRect().x
       const objectY = object.getBoundingClientRect().y
-      const pointX = e.clientX - objectX 
-      const pointY = e.clientY - objectY
+      const pointX = parseFloat((e.clientX - objectX).toFixed(6))
+      const pointY = parseFloat((e.clientY - objectY).toFixed(6))
       const pointDetails = pointStore.current[point.id] // point here is expected to be ["L", :any number]
       const objectDetails = objectData.current[object.id].properties.coordinates
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
@@ -991,10 +992,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
             currentActivePoint.current = null
 
           } else {
-            objectData.current[obj.id].properties.coordinates.lastX = obj?.offsetLeft as number
-            objectData.current[obj.id].properties.coordinates.lastY = obj?.offsetTop as number
-            objectData.current[obj.id].x_coordinate = obj?.offsetLeft as number
-            objectData.current[obj.id].y_coordinate = obj?.offsetTop as number
+            objectData.current[obj.id].properties.coordinates.lastX = parseFloat((obj?.offsetLeft as number).toFixed(6))
+            objectData.current[obj.id].properties.coordinates.lastY = parseFloat((obj?.offsetTop as number).toFixed(6))
+            objectData.current[obj.id].x_coordinate = parseFloat((obj?.offsetLeft as number).toFixed(6))
+            objectData.current[obj.id].y_coordinate = parseFloat((obj?.offsetTop as number).toFixed(6))
             LineConnector(obj)
           }
           
@@ -1017,8 +1018,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
           // console.log(e.clientX, e.clientY)
       } else {
           currentObject.current = obj
-          objectData.current[obj.id].properties.coordinates.startX = parseFloat(e.clientX.toFixed(4))
-          objectData.current[obj.id].properties.coordinates.startY = parseFloat(e.clientY.toFixed(4))
+          objectData.current[obj.id].properties.coordinates.startX = parseFloat(e.clientX.toFixed(6))
+          objectData.current[obj.id].properties.coordinates.startY = parseFloat(e.clientY.toFixed(6))
       }
       onMouseDown.current = true
       document.removeEventListener("mouseup", handleMouseUpGeneral)
@@ -1348,9 +1349,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
       newEl.classList.add("absolute")
       newEl.classList.add("cursor-move")
       newEl.classList.remove("cursor-grabbing")
-      x = x < 6 ? 6 : parseFloat(x.toFixed(4))
-      y = y < 6 ? 6 : parseFloat(y.toFixed(4))
-      
+
+      x = x < 6 ? 6 : parseFloat(x.toFixed(6))
+      y = y < 6 ? 6 : parseFloat(y.toFixed(6))
+     
       objectData.current[uuid4] = defaultObjectData
       objectData.current[uuid4].properties.coordinates.lastX = x
       objectData.current[uuid4].properties.coordinates.lastY = y
@@ -1379,7 +1381,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       // console.log(objects)
       const invokeLoadObjects = async () => {
         const loadedObj = await loadObjects(params.id)
-        if (Object.keys(loadedObj!).length > 0) {
+        if (Object.keys(loadedObj).length > 0) {
           objectData.current = loadedObj!
           hasInstance.current = true
           loadObjectToCanvas()
@@ -1410,9 +1412,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
             const objectCoordinate = objectData.current[obj.id].properties.coordinates
             let nextX = e.clientX - objectCoordinate.startX + objectCoordinate.lastX
             let nextY = e.clientY - objectCoordinate.startY + objectCoordinate.lastY
+            
+            
+            nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(6)) : parseFloat(nextX.toFixed(6))
+            nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(6)) : parseFloat(nextY.toFixed(6))
 
-            nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(4)) : parseFloat(nextX.toFixed(4))
-            nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(4)) : parseFloat(nextY.toFixed(4))
             // console.log(nextX, "nextX")
 
   

@@ -36,7 +36,6 @@ const BASE_URL = "http://localhost:8000"
 
 
 export async function uploadObject(object: objectDataType, projectId: string, update: boolean) {
-        console.log("object", object)
         const listObjects = []
         const accessToken = cookies().get("access")?.value
         const refreshToken = cookies().get("refresh")?.value
@@ -75,8 +74,7 @@ export async function uploadObject(object: objectDataType, projectId: string, up
 
             
             const result = await response.json()
-
-            if (response.status  === 201) {
+            if (response.status  === 201 || response.status === 200) {
                 const objects: objectDataType = {}
                 for (const entry of result) {
                     const object_info = {
@@ -85,10 +83,13 @@ export async function uploadObject(object: objectDataType, projectId: string, up
                     }
                     entry["object_info"] = object_info
                     entry.properties = JSON.parse(entry.properties)
+                    entry.x_coordinate = parseFloat(entry.x_coordinate)
+                    entry.y_coordinate = parseFloat(entry.y_coordinate)
+                    entry.scale = parseFloat(entry.scale)
+                    entry.font_size = parseFloat(entry.font_size)
                     objects[entry.oid] = entry
-                    
                 }
-                console.log("objects", objects)
+                // console.log("objects", objects)
                 return objects
             } else {
                 return {}
@@ -124,16 +125,23 @@ export async function loadObjects(projectId: string) {
                 }
                 entry["object_info"] = object_info
                 entry.properties = JSON.parse(entry.properties)
+                entry.x_coordinate = parseFloat(entry.x_coordinate)
+                entry.y_coordinate = parseFloat(entry.y_coordinate)
+                entry.scale = parseFloat(entry.scale)
+                entry.font_size = parseFloat(entry.font_size)
                 objects[entry.oid] = entry
                 
             }
-            console.log("objects", objects)
+            // console.log("objects", objects)
             return objects
         } else {
             console.log(result)
+            return {}
+
         }
 
     } catch(err) {
         console.log(err)
+        return {}
     }
 }

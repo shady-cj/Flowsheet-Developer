@@ -61,8 +61,11 @@ const ProjectProvider = ({children}: {children: React.ReactNode}) => {
   const hasInstance = useRef(false) // To check if the objectData has initially been created so it'll be updated instead of be recreated
 
   const saveObjectData = async (paramsId: string) => {
-    objectData.current = await uploadObject(objectData.current, paramsId, hasInstance.current)
-    hasInstance.current = true
+    const objects = await uploadObject(objectData.current, paramsId, hasInstance.current)
+    if (Object.keys(objects).length > 0) {
+      objectData.current = objects
+      hasInstance.current = true
+    }
   }
   
 
