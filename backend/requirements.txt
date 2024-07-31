@@ -4,3 +4,4 @@ djangorestframework-simplejwt
 pillow
 python-dotenv
 psycopg2-binary
+cloudinary

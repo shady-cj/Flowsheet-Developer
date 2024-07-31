@@ -1,5 +1,7 @@
 
-# Add these at the top of your settings.py
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 from os import getenv
 from dotenv import load_dotenv
 load_dotenv()
@@ -158,6 +160,22 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+
+
+
+
+#############################################
+# Setting up cloudinary storage util
+
+cloudinary.config( 
+  	cloud_name = getenv("CLOUDINARY_CLOUD_NAME"),
+  	api_key = getenv("CLOUDINARY_API_KEY"),
+  	api_secret = getenv("CLOUDINARY_API_SECRET")
+    # secure = True
+)
+
+#####################################
 
 
 # Static files (CSS, JavaScript, Images)

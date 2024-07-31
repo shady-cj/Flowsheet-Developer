@@ -25,21 +25,21 @@ def object_formatter(obj):
         "image": getattr(obj, "image", None), 
         "model_name": obj.__class__.__name__
     }
-    if isinstance(obj, Crusher) or isinstance(obj, Grinder):
-        default.update({
-            "type": obj.type,
-            "gape": obj.gape,
-            # "set": obj.set
-        })
+    # if isinstance(obj, Crusher) or isinstance(obj, Grinder):
+    #     default.update({
+    #         "type": obj.type,
+    #         "gape": obj.gape,
+    #         # "set": obj.set
+    #     })
     
-    elif isinstance(obj, Concentrator):
+    if isinstance(obj, Concentrator):
         default.update({
-            "recovery_rate": obj.recovery_rate,
-            "dilution_gain": obj.dilution_gain
+            "description": obj.description,
         })
     elif isinstance(obj, Auxilliary):
         default.update({
-            "type": obj.type
+            "type": obj.type,
+            "description": obj.description
         })
     elif isinstance(obj, Shape):
         default.pop("image")
@@ -74,6 +74,7 @@ def update_object_util(self, index, data):
     # check if the current entry is already created
     if "id" in data:
         # if it has an id then it's already created in the database
+        # we might not need to make this additional query.
         id = data.get("id")
         return ProjectObject.objects.get(id=id).object
 

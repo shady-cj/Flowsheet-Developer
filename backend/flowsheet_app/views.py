@@ -240,7 +240,7 @@ class UpdateDestroyProjectObject(GenericAPIView):
 
         data_oids = set([]) # using "set" data structure to reduce the compare operation to average time complexity of O(n)
         for entry in serializers:
-                data_oids.add(entry.validated_data["oid"])
+            data_oids.add(entry.validated_data["oid"])
             
         existing_project_objects = project_instance.project_objects.all()
         for project_object in existing_project_objects:
@@ -249,7 +249,7 @@ class UpdateDestroyProjectObject(GenericAPIView):
                 project_object.delete()
         for index in range(length_of_data):
             object_instance = update_object_util(self, index, data)
-            serializers[index].save(project=project_instance, object=object_instance)
+            serializers[index].save(project=project_instance, object=object_instance) # Adding object=object_instance here is not needed for those objects that just needs update but it's important for the objects that were being created, hence why it's being added here, it would be improved later to prevent unnecessary query to the database.
         return None
 
 
