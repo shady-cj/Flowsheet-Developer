@@ -12,13 +12,20 @@ type genericImageObjectType = {
     image: string,
     image_url: string,
     name: string
-}[]
+}
+
+interface AuxilliaryImageObjectType extends genericImageObjectType {
+    description: string,
+    type: string
+
+}
 
 const ProjectSidebar = ({params}: {params: {id: string}}) => {
     const [shapes, setShapes] = useState<{name: string, id: string}[]>([])
-    const [crushers, setCrushers] = useState<genericImageObjectType>([])
-    const [screeners, setScreeners] = useState<genericImageObjectType>([])
-    const [grinders, setGrinders] = useState<genericImageObjectType>([])
+    const [crushers, setCrushers] = useState<genericImageObjectType[]>([])
+    const [screeners, setScreeners] = useState<genericImageObjectType[]>([])
+    const [grinders, setGrinders] = useState<genericImageObjectType[]>([])
+    const [auxilliaries, setAuxilliaries] = useState<AuxilliaryImageObjectType[]>([])
 
     useEffect(()=> {
         // fetching for Shapes, Grinder, Crusher, Concentrators, Auxilliary.
@@ -36,7 +43,7 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
             setCrushers(await fetchObjects('crushers'))
             setGrinders(await fetchObjects("grinders"))
             setScreeners(await fetchObjects("screeners"))
-            
+            setAuxilliaries(await fetchObjects("auxilliary"))
         }
         fetchObj()
 
@@ -69,8 +76,8 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                     {
                         crushers.length > 0 ? crushers.map(crusher=>{
                             return (<div className="flex flex-col justify-between items-center gap-2" key={crusher.id}>
-                                <div className="relative">
-                                    <Image width={50} height={50} src={crusher.image_url} alt="" className="w-[50px] h-auto"/>
+                                <div id={crusher.id} data-object-name={crusher.name} data-object-type={"crusher"} className="objects bg-transparent cursor-grab" draggable={true} onDragStart={(e)=>{e.dataTransfer.setData("elementId", (e.target as HTMLDivElement).id)}}>
+                                    <Image width={50} height={50} src={crusher.image_url} alt="" className="w-[50px] h-auto" draggable={false}/>
                                 </div>
                                 <p className="text-sm font-bold">{crusher.name}</p>
                             </div>)
@@ -84,8 +91,8 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                     {
                         grinders.length > 0 ? grinders.map(grinder=>{
                             return (<div className="flex flex-col justify-between items-center gap-2" key={grinder.id}>
-                                <div className="relative">
-                                    <Image width={50} height={50} src={grinder.image_url} alt="" className="w-[50px] h-auto"/>
+                                <div id={grinder.id} data-object-name={grinder.name} data-object-type={"grinder"} className="objects bg-transparent cursor-grab" draggable={true} onDragStart={(e)=>{e.dataTransfer.setData("elementId", (e.target as HTMLDivElement).id)}}>
+                                    <Image width={50} height={50} src={grinder.image_url} alt="" className="w-[50px] h-auto" draggable={false}/>
                                 </div>
                                 <p className="text-sm font-bold">{grinder.name}</p>
                             </div>)
@@ -99,8 +106,8 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                     {
                         screeners.length > 0 ? screeners.map(screener=>{
                             return (<div className="flex flex-col justify-between items-center gap-2" key={screener.id}>
-                                <div className="relative">
-                                    <Image width={50} height={50} src={screener.image_url} alt="" className="w-[50px] h-auto"/>
+                                <div id={screener.id} data-object-name={screener.name} data-object-type={"screener"} className="objects bg-transparent cursor-grab" draggable={true} onDragStart={(e)=>{e.dataTransfer.setData("elementId", (e.target as HTMLDivElement).id)}}>
+                                    <Image width={50} height={50} src={screener.image_url} alt="" className="w-[50px] h-auto" draggable={false}/>
                                 </div>
                                 <p className="text-sm font-bold">{screener.name}</p>
                             </div>
@@ -113,7 +120,21 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                 <h1 className="text-xl font-bold">Concentration Technniques</h1>
             </div>
             <div className="border-b px-4 py-2">
-                <h1 className="text-xl font-bold">Auxilliary Facilities and Materials</h1>
+                <h1 className="text-xl font-bold mb-2">Auxilliary Facilities and Materials</h1>
+                <div className="flex gap-x-6 gap-y-2 flex-wrap mb-2">
+                    {
+                       
+                        auxilliaries.length > 0 ? auxilliaries.map(auxilliary=>{
+                            return (<div className="flex flex-col justify-between items-center gap-2" key={auxilliary.id}>
+                                <div id={auxilliary.id} data-object-name={auxilliary.name} data-object-type={"auxilliary"} data-object-type-variant={auxilliary.type} className="objects bg-transparent cursor-grab" draggable={true} onDragStart={(e)=>{e.dataTransfer.setData("elementId", (e.target as HTMLDivElement).id)}}>
+                                    <Image width={50} height={50} src={auxilliary.image_url} alt="" className="w-[50px] h-auto" draggable={false}/>
+                                </div>
+                                <p className="text-sm font-bold">{auxilliary.name}</p>
+                            </div>
+                            )
+                        }): "Loading"
+                    }
+                </div>
             </div>
             <div>
                 <h1 className="text-xl font-bold px-4 py-2">Personalized Objects</h1>

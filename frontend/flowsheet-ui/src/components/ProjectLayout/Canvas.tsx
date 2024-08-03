@@ -5,42 +5,30 @@ import ObjectForm from "./ObjectForm";
 import { ProjectContext } from "../context/ProjectProvider";
 import { objectDataType, lineCordsType,  objectCoords} from "../context/ProjectProvider";
 
-
-
-/*
-Typical objectData sample
-{
-  [object_id]: {
-    oid: [object_id],
-    label: string,
-    x_coordinate: number(same as lastX from above),
-    y_coordinate: number(same as lastY from above),
-    scale: number(1.25),
-    font_size: 16(px),
-    description: string,
-    object_info: {
-      "object_model_name": Crusher, Grinder, etc...
-      "object_id": id
-    }
-
-    properties: {
-      nextObject: null,
-      prevObject: null,
-      coordinates: {
-        startX: number,
-        startY: number,
-        lastX: number,
-        lastY:number,
-        lineCoordinates: 
-      },
-
-    }
+type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
+// export type formStateObjectType = {
+//   label: string
+//   description: string
+//   gape?: number
+//   set?: number
+//   apertureSize?: number
+const defaultFormField = [
+  {
+    type: "text",
+    name: "label",
+    verboseName: "Label", 
+    htmlType: "input"
+  },
+  {
+    type: "text",
+    name: "description",
+    verboseName: "Description",
+    htmlType: "textarea"
   }
-}
+]
 
-*/
-
-
+// }
+export type formStateObjectType = {[index: string]: string}
 
 const Canvas = ({params}: {params: {id: string}}) => {
     const {canvasLoading, setCanvasLoading, objectData, hasInstance} = useContext(ProjectContext)
@@ -52,33 +40,31 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const onMouseDown = useRef(false)
     const [objectFormPosition, setObjectFormPosition] = useState<{x: number, y: number}>({x: 20, y: 20})
     const objectLabels = useRef(new Set<string>())
-    const [formFields, setFormFields] = useState<{type:string, name: string, verboseName: string, htmlType: string}[]>([
-      {
-        type: "text",
-        name: "label",
-        verboseName: "Label", 
-        htmlType: "input"
-      },
-      {
-        type: "text",
-        name: "description",
-        verboseName: "Description",
-        htmlType: "textarea"
-      }
-    ])
-    const [formState, setFormState] = useState<{[key: string]: string} | null>(null)
+    const [formFields, setFormFields] = useState<{type:string, name: string, verboseName: string, htmlType: string}[]>(defaultFormField)
+    const [formState, setFormState] = useState<formStateObjectType | null>(null)
+
+
+
 
     const updateObjectData = () => {
       const object = currentObject.current
       objectData.current[object.id].label = formState!.label.trim().toLowerCase()
       objectLabels.current.add(formState!.label.trim().toLowerCase())
       objectData.current[object.id].description = formState!.description
+
+      if (formState!.gape)
+        objectData.current[object.id].properties.gape = formState!.gape
+      if (formState!.set)
+        objectData.current[object.id].properties.set = formState!.set
+      if (formState!.aperture)
+        objectData.current[object.id].properties.aperture = formState!.aperture
     }
 
     const handleFormState = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-     setFormState(prevState => {
-      return {...prevState, [e.target.name]: e.target.value}
-     })
+      if (formState !== null)
+        setFormState((prevState) => {
+          return {...prevState, [e.target.name]: e.target.value}
+        })
     }
 
     const handleFormSave = (e: FormEvent) => {
@@ -96,19 +82,69 @@ const Canvas = ({params}: {params: {id: string}}) => {
         alert(`Label "${formState!.label.trim()}" already exists, labels must be unique to the project`)
         return;
       }
+      if (formState!.gape?.length === 0) {
+        alert("Please provide the gape value of the Crusher/Grinder")
+        return;
+      }
+      if (formState!.set?.length === 0) {
+        alert("Please provide the set value of the Crusher/Grinder")
+        return;
+      }
+      if (formState!.aperture?.length === 0) {
+        alert("Please provide the aperture size of the screener to be used")
+        return;
+      }
       updateObjectData()
       setFormState(null)
+      setFormFields(defaultFormField)
       setIsOpened(false)
     }
 
 
-    const showObjectForm = (x: number, y: number) => {
+    const showObjectForm = (x: number, y: number, type: objectType) => {
       setIsOpened(true)
       setObjectFormPosition({x, y})
-      setFormState({
+     
+      let formStateObject: formStateObjectType = {
         label: "",
         description: ""
-      })
+      }
+      
+
+      switch (type) {
+        case "Crusher":
+        case "Grinder":
+          formStateObject["gape"] = ""
+          formStateObject["set"] = ""
+          setFormFields((prevFormField) => {
+            return [...prevFormField, {
+              type: "number",
+              name: "gape",
+              verboseName: "Gape", 
+              htmlType: "input"
+            }, {
+              type: "number",
+              name: "set",
+              verboseName: "Set", 
+              htmlType: "input"
+            }]
+          })
+          break
+        case "Screener":
+          formStateObject["aperture"] = ""
+          formStateObject["set"] = ""
+          setFormFields((prevFormField) => {
+            return [...prevFormField, {
+              type: "text",
+              name: "aperture",
+              verboseName: "Aperture Size", 
+              htmlType: "input"
+            }]
+          })
+          break
+      }
+
+      setFormState(formStateObject)
     }
 
 
@@ -1243,7 +1279,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if (!elementId) return
       const element = document.getElementById(elementId as string)
       if (!element) return
-      const elementObjectType = element.getAttribute("data-object-type")! // Shape, Grinder, Crusher
+      const elementObjectType = element.getAttribute("data-object-type")! as objectType // Shape, Grinder, Crusher
       const elementObjectName = element.getAttribute("data-object-name") || null //circle, text etc...
       const newEl = element.cloneNode(true) as HTMLElement
       const canvasX = canvasRef.current.getBoundingClientRect().x
@@ -1251,6 +1287,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
       newEl.setAttribute("tabindex", "-1")
       newEl.removeAttribute("data-object-type")
       newEl.removeAttribute("data-object-name")
+
+      // console.log(newEl, "new el")
       // 
       // newEl.style.outline = "1px solid red"
       let x = e.clientX - canvasX - 30
@@ -1367,7 +1405,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       canvasRef.current.appendChild(newEl)
 
       currentObject.current = newEl
-      if (elementObjectName !== "text") showObjectForm(x, y)
+      // if (elementObjectName !== "text") showObjectForm(x, y, elementObjectType)
 
     }
 
@@ -1508,7 +1546,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       
       <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative bg-white cursor-move border-l overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
         { 
-          isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as { [key: string]: string; }}/>
+          isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType}/>
         }
       </div>
     

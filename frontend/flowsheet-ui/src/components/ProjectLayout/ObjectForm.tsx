@@ -1,5 +1,8 @@
 import {ChangeEvent, Dispatch, FormEvent, SetStateAction} from 'react'
-const ObjectForm = ({formFields, position, handleFormState, saveForm, formState}: {formFields: {type:string, htmlType: string, name: string, verboseName: string}[], position: {x: number, y: number}, handleFormState: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void, saveForm: (e: FormEvent) => void, formState: {[key: string]: string}}) => {
+import { formStateObjectType } from './Canvas'
+
+
+const ObjectForm = ({formFields, position, handleFormState, saveForm, formState}: {formFields: {type:string, htmlType: string, name: string, verboseName: string}[], position: {x: number, y: number}, handleFormState: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void, saveForm: (e: FormEvent) => void, formState: formStateObjectType}) => {
   
     return (
     <div className="absolute w-full h-full bg-[#00000080] z-10 ">

@@ -16,6 +16,41 @@ export type objectCoords = {
 }
 
 
+
+/*
+Typical objectData sample
+{
+  [object_id]: {
+    oid: [object_id],
+    label: string,
+    x_coordinate: number(same as lastX from above),
+    y_coordinate: number(same as lastY from above),
+    scale: number(1.25),
+    font_size: 16(px),
+    description: string,
+    object_info: {
+      "object_model_name": Crusher, Grinder, etc...
+      "object_id": id
+    }
+
+    properties: {
+      nextObject: null,
+      prevObject: null,
+      coordinates: {
+        startX: number,
+        startY: number,
+        lastX: number,
+        lastY:number,
+        lineCoordinates: 
+      },
+
+    }
+  }
+}
+
+*/
+
+
 export type objectDataType = {
   [key: string]: {
     id?: number,
@@ -35,6 +70,9 @@ export type objectDataType = {
     properties: {
       nextObject: string[],
       prevObject: string[],
+      gape?: string,
+      set?: string,
+      aperture?: string,
       coordinates: objectCoords
     }
   }
