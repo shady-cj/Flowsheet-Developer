@@ -61,7 +61,14 @@ export type objectDataType = {
     scale: number,
     font_size: number,
     description: string,
-    object?: {},
+    object?: {
+      id: string,
+      name: string,
+      model_name: string,
+      image_url?: string,
+      description?: string,
+      type?: string
+    },
     object_info: {
       object_model_name: string,
       object_id: string
@@ -73,6 +80,7 @@ export type objectDataType = {
       gape?: string,
       set?: string,
       aperture?: string,
+      crusherType?: "primary" | "secondary" | "tertiary",
       coordinates: objectCoords
     }
   }

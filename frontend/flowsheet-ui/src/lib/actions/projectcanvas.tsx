@@ -92,6 +92,7 @@ export async function uploadObject(object: objectDataType, projectId: string, up
                 // console.log("objects", objects)
                 return objects
             } else {
+                console.log(result)
                 return {}
             }
         } catch (err) {
@@ -115,6 +116,7 @@ export async function loadObjects(projectId: string) {
                 "Authorization": `Bearer ${accessToken}`
             }
         })
+        // console.log("result", response)
         const result = await response.json()
         if (response.status === 200) {
             const objects: objectDataType = {}

@@ -4,6 +4,8 @@ import { uploadObject, loadObjects } from "@/lib/actions/projectcanvas";
 import ObjectForm from "./ObjectForm";
 import { ProjectContext } from "../context/ProjectProvider";
 import { objectDataType, lineCordsType,  objectCoords} from "../context/ProjectProvider";
+import { ObjectCreator } from "../Objects/ObjectCreator";
+import { renderToStaticMarkup } from "react-dom/server"
 
 type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
 // export type formStateObjectType = {
@@ -12,7 +14,11 @@ type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" 
 //   gape?: number
 //   set?: number
 //   apertureSize?: number
-const defaultFormField = [
+export type formFieldsType = {type:string, name: string, verboseName: string, htmlType: string, placeholder?: string, options?: {name: string, value:string}[]}[]
+
+
+
+const defaultFormField: formFieldsType = [
   {
     type: "text",
     name: "label",
@@ -30,6 +36,7 @@ const defaultFormField = [
 // }
 export type formStateObjectType = {[index: string]: string}
 
+
 const Canvas = ({params}: {params: {id: string}}) => {
     const {canvasLoading, setCanvasLoading, objectData, hasInstance} = useContext(ProjectContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
@@ -40,7 +47,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const onMouseDown = useRef(false)
     const [objectFormPosition, setObjectFormPosition] = useState<{x: number, y: number}>({x: 20, y: 20})
     const objectLabels = useRef(new Set<string>())
-    const [formFields, setFormFields] = useState<{type:string, name: string, verboseName: string, htmlType: string}[]>(defaultFormField)
+    const [formFields, setFormFields] = useState<formFieldsType>(defaultFormField)
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
 
 
@@ -58,9 +65,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
         objectData.current[object.id].properties.set = formState!.set
       if (formState!.aperture)
         objectData.current[object.id].properties.aperture = formState!.aperture
+      if (formState!.crusherType)
+        objectData.current[object.id].properties.crusherType = formState!.crusherType as "primary" | "secondary" | "tertiary"
     }
 
-    const handleFormState = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleFormState = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       if (formState !== null)
         setFormState((prevState) => {
           return {...prevState, [e.target.name]: e.target.value}
@@ -94,6 +103,45 @@ const Canvas = ({params}: {params: {id: string}}) => {
         alert("Please provide the aperture size of the screener to be used")
         return;
       }
+      if (formState!.crusherType?.length === 0) {
+        alert("Please identify what you want to use this crusher as")
+        return;
+      }
+
+      if (formState!.gape) {
+        if (isNaN(Number(formState!.gape))) {
+          alert("Gape value must be a number (mm)")
+          return
+        }
+        if (Number(formState!.gape) < 0) {
+          alert("Gape value must be a positive number (mm)")
+          return
+        }
+      }
+
+      if (formState!.set) {
+        if (isNaN(Number(formState!.set))) {
+          alert("Set value must be a number (mm)")
+          return;
+        }
+        if (Number(formState!.set) < 0) {
+          alert("Set value must be a positive number (mm)")
+          return;
+        }
+      }
+
+      if (formState!.aperture) {
+        if (isNaN(Number(formState!.aperture))) {
+          alert("Aperture size value must be a number (mm)")
+          return;
+        }
+        if (Number(formState!.aperture) < 0) {
+          alert("Aperture size value must be a positive number (mm)")
+          return;
+        }
+      }
+
+      
       updateObjectData()
       setFormState(null)
       setFormFields(defaultFormField)
@@ -102,8 +150,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
     const showObjectForm = (x: number, y: number, type: objectType) => {
-      setIsOpened(true)
-      setObjectFormPosition({x, y})
+     
      
       let formStateObject: formStateObjectType = {
         label: "",
@@ -116,26 +163,39 @@ const Canvas = ({params}: {params: {id: string}}) => {
         case "Grinder":
           formStateObject["gape"] = ""
           formStateObject["set"] = ""
+          
           setFormFields((prevFormField) => {
             return [...prevFormField, {
               type: "number",
               name: "gape",
+              placeholder: "in mm",
               verboseName: "Gape", 
               htmlType: "input"
             }, {
               type: "number",
               name: "set",
+              placeholder: "in mm",
               verboseName: "Set", 
               htmlType: "input"
+            }]
+          })
+        case "Crusher":
+          formStateObject["crusherType"] = ""
+          setFormFields((prevFormField) => {
+            return [...prevFormField, {
+              type: "text",
+              name: "crusherType",
+              verboseName: "Crusher Type", 
+              htmlType: "select",
+              options: [{name: "Primary", value: "primary"}, {name: "Secondary", value: "secondary"}, {name:"Tertiary", value: "tertiary"}]
             }]
           })
           break
         case "Screener":
           formStateObject["aperture"] = ""
-          formStateObject["set"] = ""
           setFormFields((prevFormField) => {
             return [...prevFormField, {
-              type: "text",
+              type: "number",
               name: "aperture",
               verboseName: "Aperture Size", 
               htmlType: "input"
@@ -145,6 +205,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
       }
 
       setFormState(formStateObject)
+      setIsOpened(true)
+      setObjectFormPosition({x, y})
     }
 
 
@@ -213,11 +275,20 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // for (const prevObj of prevObject ) {
 
             // }
-            if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
-              objectData.current[shapeId].properties.prevObject.push(prevObject)
-            
-            if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-              objectData.current[prevObject].properties.nextObject.push(shapeId)
+            if (prevObject && objectData.current[prevObject]) {
+              if (!objectData.current[shapeId].properties.prevObject.includes(prevObject))
+                objectData.current[shapeId].properties.prevObject.push(prevObject)
+      
+              
+              if (!objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
+                objectData.current[prevObject].properties.nextObject.push(shapeId)
+            } else if (prevObject && !objectData.current[prevObject]) {
+              // Delete prev Object because it doesn't exist anymore
+                if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
+                  const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
+                  objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
+                }
+            }
           }
         }
 
@@ -240,11 +311,21 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // for (const prevObj of prevObject ) {
 
             // }
-            if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
-              objectData.current[shapeId].properties.prevObject.push(prevObject)
-            
-            if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-              objectData.current[prevObject].properties.nextObject.push(shapeId)
+            if (prevObject && objectData.current[prevObject]) {
+              if (!objectData.current[shapeId].properties.prevObject.includes(prevObject))
+                objectData.current[shapeId].properties.prevObject.push(prevObject)
+      
+              
+              if (!objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
+                objectData.current[prevObject].properties.nextObject.push(shapeId)
+            } else if (prevObject && !objectData.current[prevObject]) {
+              // Delete prev Object because it doesn't exist anymore
+                if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
+                  const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
+                  objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
+                }
+            }
+
           }
         }
 
@@ -268,11 +349,21 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // for (const prevObj of prevObject ) {
 
             // }
-            if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
-              objectData.current[shapeId].properties.prevObject.push(prevObject)
-            
-            if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-              objectData.current[prevObject].properties.nextObject.push(shapeId)
+            if (prevObject && objectData.current[prevObject]) {
+              if (!objectData.current[shapeId].properties.prevObject.includes(prevObject))
+                objectData.current[shapeId].properties.prevObject.push(prevObject)
+      
+              
+              if (!objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
+                objectData.current[prevObject].properties.nextObject.push(shapeId)
+            } else if (prevObject && !objectData.current[prevObject]) {
+              // Delete prev Object because it doesn't exist anymore
+                if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
+                  const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
+                  objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
+                }
+            }
+
           }
         }
 
@@ -296,11 +387,21 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // for (const prevObj of prevObject ) {
 
             // }
-            if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
-              objectData.current[shapeId].properties.prevObject.push(prevObject)
-            
-            if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-              objectData.current[prevObject].properties.nextObject.push(shapeId)
+            if (prevObject && objectData.current[prevObject]) {
+              if (!objectData.current[shapeId].properties.prevObject.includes(prevObject))
+                objectData.current[shapeId].properties.prevObject.push(prevObject)
+      
+              
+              if (!objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
+                objectData.current[prevObject].properties.nextObject.push(shapeId)
+            } else if (prevObject && !objectData.current[prevObject]) {
+              // Delete prev Object because it doesn't exist anymore
+                if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
+                  const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
+                  objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
+                }
+            }
+
           }
         }
 
@@ -309,7 +410,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
             const getObjNextObject = objectData.current[obj.id].properties.nextObject[0];
             
-            if (getObjNextObject === shapeId) {
+            if (!objectData.current[getObjNextObject]) {
+              objectData.current[obj.id].properties.nextObject.splice(0, 1)
+            }
+            else if (getObjNextObject === shapeId) {
               objectData.current[obj.id].properties.nextObject.splice(0, 1)
               const prevObject = objectData.current[obj.id].properties.prevObject[0]
               if (prevObject && objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
@@ -384,11 +488,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
             const nextObject = objectData.current[obj.id].properties.nextObject[0]
             // setting the current shape next object to the line next object
-            if (nextObject && !objectData.current[shapeId].properties.nextObject.includes(nextObject))
-              objectData.current[shapeId].properties.nextObject.push(nextObject)
-
-            if (nextObject && !objectData.current[nextObject].properties.prevObject.includes(shapeId))
-              objectData.current[nextObject].properties.prevObject.push(shapeId)
+            if (nextObject && objectData.current[nextObject]) {
+              if (!objectData.current[shapeId].properties.nextObject.includes(nextObject))
+                objectData.current[shapeId].properties.nextObject.push(nextObject)
+  
+              if (!objectData.current[nextObject].properties.prevObject.includes(shapeId))
+                objectData.current[nextObject].properties.prevObject.push(shapeId)
+            } else if (nextObject && !objectData.current[nextObject]) {
+                if (objectData.current[shapeId].properties.nextObject.includes(nextObject)){
+                  const indexOfNextObjectId = objectData.current[shapeId].properties.nextObject.indexOf(nextObject)
+                  objectData.current[shapeId].properties.nextObject.splice(indexOfNextObjectId, 1)
+                }
+            }
+            
           }
         }
 
@@ -417,11 +529,20 @@ const Canvas = ({params}: {params: {id: string}}) => {
             const prevObject = objectData.current[obj.id].properties.prevObject[0]
             // setting the shape previous attribute to the line previous object
 
-            if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
-              objectData.current[shapeId].properties.prevObject.push(prevObject)
-
-            if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-              objectData.current[prevObject].properties.nextObject.push(shapeId)
+            if (prevObject && objectData.current[prevObject]) {
+              if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
+                objectData.current[shapeId].properties.prevObject.push(prevObject)
+  
+              if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
+                objectData.current[prevObject].properties.nextObject.push(shapeId)
+            } else if (prevObject && !objectData.current[prevObject]) {
+              // removing the prev object id from the current shape  previous object attribute in case there's a prevObjectId
+              if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
+                const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
+                objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
+              }
+            }
+            
             
           }
         }
@@ -448,12 +569,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
             const nextObject = objectData.current[obj.id].properties.nextObject[0]
             // setting the current shape next object to the line next object
-            if (nextObject && !objectData.current[shapeId].properties.nextObject.includes(nextObject))
-              objectData.current[shapeId].properties.nextObject.push(nextObject)
-
-            if (nextObject && !objectData.current[nextObject].properties.prevObject.includes(shapeId))
-              objectData.current[nextObject].properties.prevObject.push(shapeId)
-
+            if (nextObject && objectData.current[nextObject]) {
+              if (!objectData.current[shapeId].properties.nextObject.includes(nextObject))
+                objectData.current[shapeId].properties.nextObject.push(nextObject)
+  
+              if (!objectData.current[nextObject].properties.prevObject.includes(shapeId))
+                objectData.current[nextObject].properties.prevObject.push(shapeId)
+            } else if (nextObject && !objectData.current[nextObject]) {
+                if (objectData.current[shapeId].properties.nextObject.includes(nextObject)){
+                  const indexOfNextObjectId = objectData.current[shapeId].properties.nextObject.indexOf(nextObject)
+                  objectData.current[shapeId].properties.nextObject.splice(indexOfNextObjectId, 1)
+                }
+            }
             
           }
         }
@@ -477,11 +604,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
             const nextObject = objectData.current[obj.id].properties.nextObject[0]
             // setting the current shape next object to the line next object
-            if (nextObject && !objectData.current[shapeId].properties.nextObject.includes(nextObject))
-              objectData.current[shapeId].properties.nextObject.push(nextObject)
-
-            if (nextObject && !objectData.current[nextObject].properties.prevObject.includes(shapeId))
-              objectData.current[nextObject].properties.prevObject.push(shapeId)
+            if (nextObject && objectData.current[nextObject]) {
+              if (!objectData.current[shapeId].properties.nextObject.includes(nextObject))
+                objectData.current[shapeId].properties.nextObject.push(nextObject)
+  
+              if (!objectData.current[nextObject].properties.prevObject.includes(shapeId))
+                objectData.current[nextObject].properties.prevObject.push(shapeId)
+            } else if (nextObject && !objectData.current[nextObject]) {
+                if (objectData.current[shapeId].properties.nextObject.includes(nextObject)){
+                  const indexOfNextObjectId = objectData.current[shapeId].properties.nextObject.indexOf(nextObject)
+                  objectData.current[shapeId].properties.nextObject.splice(indexOfNextObjectId, 1)
+                }
+            }
           }
         }
 
@@ -508,11 +642,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
             const prevObject = objectData.current[obj.id].properties.prevObject[0]
             // setting the shape previous attribute to the line previous object
 
-            if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
-              objectData.current[shapeId].properties.prevObject.push(prevObject)
-
-            if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-              objectData.current[prevObject].properties.nextObject.push(shapeId)
+            if (prevObject && objectData.current[prevObject]) {
+              if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
+                objectData.current[shapeId].properties.prevObject.push(prevObject)
+  
+              if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
+                objectData.current[prevObject].properties.nextObject.push(shapeId)
+            } else if (prevObject && !objectData.current[prevObject]) {
+              // removing the prev object id from the current shape  previous object attribute in case there's a prevObjectId
+              if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
+                const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
+                objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
+              }
+            }
           }
         }
 
@@ -537,11 +679,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
            const prevObject = objectData.current[obj.id].properties.prevObject[0]
            // setting the shape previous attribute to the line previous object
 
-           if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
-             objectData.current[shapeId].properties.prevObject.push(prevObject)
+           if (prevObject && objectData.current[prevObject]) {
+              if (prevObject && !objectData.current[shapeId].properties.prevObject.includes(prevObject))
+                objectData.current[shapeId].properties.prevObject.push(prevObject)
 
-           if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-             objectData.current[prevObject].properties.nextObject.push(shapeId)
+              if (prevObject && !objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
+                objectData.current[prevObject].properties.nextObject.push(shapeId)
+            } else if (prevObject && !objectData.current[prevObject]) {
+              // removing the prev object id from the current shape  previous object attribute in case there's a prevObjectId
+              if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
+                const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
+                objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
+              }
+            }
           }
         }
 
@@ -569,8 +719,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
           // 2. disconnection from the lines L coordinates
           // 3. no connection existed in the first place
 
-          const getCurrentLinePrevObjectId = objectData.current[obj.id].properties.prevObject[0]
-          const getCurrentLineNextObjectId = objectData.current[obj.id].properties.nextObject[0]
+          let getCurrentLinePrevObjectId: string | null = objectData.current[obj.id].properties.prevObject[0]
+          let getCurrentLineNextObjectId: string | null = objectData.current[obj.id].properties.nextObject[0]
+
+          // Check if the id still exists.
+          if (!objectData.current[getCurrentLineNextObjectId])  {
+            objectData.current[obj.id].properties.nextObject.splice(0, 1)
+            getCurrentLineNextObjectId = null
+          }
+          if (!objectData.current[getCurrentLinePrevObjectId]) {
+            objectData.current[obj.id].properties.prevObject.splice(0, 1)
+            getCurrentLinePrevObjectId = null
+          }
 
           // 1. disconnection from the lines M coordinates         
           
@@ -586,16 +746,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
             if (nextObjectId && objectData.current[shapeId].properties.nextObject.includes(nextObjectId)){
               const indexOfNextObjectId = objectData.current[shapeId].properties.nextObject.indexOf(nextObjectId)
               objectData.current[shapeId].properties.nextObject.splice(indexOfNextObjectId, 1)
-
+            }
             // removing the current shape id from the nextObject's prevObject id arrays
             if (nextObjectId && objectData.current[nextObjectId].properties.prevObject.includes(shapeId)){
               const indexOfCurrentObjectId = objectData.current[nextObjectId].properties.prevObject.indexOf(shapeId)
               objectData.current[nextObjectId].properties.prevObject.splice(indexOfCurrentObjectId, 1)
             }
-
-
-            }
-              
           }
           // 2. disconnection from the lines L coordinates
           else if (getCurrentLineNextObjectId === shapeId) {
@@ -680,12 +836,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
               const nextObjectId = objectData.current[line.id].properties.nextObject[0]
 
               // setting the current object to the line next object attribute
-              if (nextObjectId && !objectData.current[obj.id].properties.nextObject.includes(nextObjectId))
-                objectData.current[obj.id].properties.nextObject.push(nextObjectId)
-
-              if (nextObjectId && !objectData.current[nextObjectId].properties.prevObject.includes(obj.id))
-                objectData.current[nextObjectId].properties.prevObject.push(obj.id)
-
+              if (nextObjectId && objectData.current[nextObjectId]) {
+                if (!objectData.current[obj.id].properties.nextObject.includes(nextObjectId))
+                  objectData.current[obj.id].properties.nextObject.push(nextObjectId)
+  
+                if (!objectData.current[nextObjectId].properties.prevObject.includes(obj.id))
+                  objectData.current[nextObjectId].properties.prevObject.push(obj.id)
+              } else if (nextObjectId && !objectData.current[nextObjectId]) {
+                if (objectData.current[obj.id].properties.nextObject.includes(nextObjectId)){
+                  const indexOfNextObjectId = objectData.current[obj.id].properties.nextObject.indexOf(nextObjectId)
+                  objectData.current[obj.id].properties.nextObject.splice(indexOfNextObjectId, 1)  
+                }
+              }
+              
             }
           }
 
@@ -711,11 +874,21 @@ const Canvas = ({params}: {params: {id: string}}) => {
               
               const prevObjectId = objectData.current[line.id].properties.prevObject[0]
               // setting the current object previous object to the line  previous object attribute
-              if (prevObjectId && !objectData.current[obj.id].properties.prevObject.includes(prevObjectId))
-                objectData.current[obj.id].properties.prevObject.push(prevObjectId)
 
-              if (prevObjectId && !objectData.current[prevObjectId].properties.nextObject.includes(obj.id))
-                objectData.current[prevObjectId].properties.nextObject.push(obj.id)
+              if (prevObjectId && objectData.current[prevObjectId]) {
+                if (prevObjectId && !objectData.current[obj.id].properties.prevObject.includes(prevObjectId))
+                  objectData.current[obj.id].properties.prevObject.push(prevObjectId)
+  
+                if (prevObjectId && !objectData.current[prevObjectId].properties.nextObject.includes(obj.id))
+                  objectData.current[prevObjectId].properties.nextObject.push(obj.id)
+              } else if (prevObjectId && !objectData.current[prevObjectId]) {
+                 // removing the prev object from the current object  previous object attribute in case there's a prevObjectId
+                if (objectData.current[obj.id].properties.prevObject.includes(prevObjectId)) {
+                  const getPrevObjectIndex = objectData.current[obj.id].properties.prevObject.indexOf(prevObjectId)
+                  objectData.current[obj.id].properties.prevObject.splice(getPrevObjectIndex, 1)
+                }
+              }
+              
             }
           }
          
@@ -740,11 +913,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
               const nextObjectId = objectData.current[line.id].properties.nextObject[0]
 
               // setting the current object to the line next object attribute
-              if (nextObjectId && !objectData.current[obj.id].properties.nextObject.includes(nextObjectId))
-                objectData.current[obj.id].properties.nextObject.push(nextObjectId)
-
-              if (nextObjectId && !objectData.current[nextObjectId].properties.prevObject.includes(obj.id))
-                objectData.current[nextObjectId].properties.prevObject.push(obj.id)
+              if (nextObjectId && objectData.current[nextObjectId]) {
+                if (!objectData.current[obj.id].properties.nextObject.includes(nextObjectId))
+                  objectData.current[obj.id].properties.nextObject.push(nextObjectId)
+  
+                if (!objectData.current[nextObjectId].properties.prevObject.includes(obj.id))
+                  objectData.current[nextObjectId].properties.prevObject.push(obj.id)
+              } else if (nextObjectId && !objectData.current[nextObjectId]) {
+                if (objectData.current[obj.id].properties.nextObject.includes(nextObjectId)){
+                  const indexOfNextObjectId = objectData.current[obj.id].properties.nextObject.indexOf(nextObjectId)
+                  objectData.current[obj.id].properties.nextObject.splice(indexOfNextObjectId, 1)  
+                }
+              }
 
             }
           }
@@ -769,11 +949,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
               const nextObjectId = objectData.current[line.id].properties.nextObject[0]
 
               // setting the current object to the line next object attribute
-              if (nextObjectId && !objectData.current[obj.id].properties.nextObject.includes(nextObjectId))
-                objectData.current[obj.id].properties.nextObject.push(nextObjectId)
-
-              if (nextObjectId && !objectData.current[nextObjectId].properties.prevObject.includes(obj.id))
-                objectData.current[nextObjectId].properties.prevObject.push(obj.id)
+              if (nextObjectId && objectData.current[nextObjectId]) {
+                if (!objectData.current[obj.id].properties.nextObject.includes(nextObjectId))
+                  objectData.current[obj.id].properties.nextObject.push(nextObjectId)
+  
+                if (!objectData.current[nextObjectId].properties.prevObject.includes(obj.id))
+                  objectData.current[nextObjectId].properties.prevObject.push(obj.id)
+              } else if (nextObjectId && !objectData.current[nextObjectId]) {
+                if (objectData.current[obj.id].properties.nextObject.includes(nextObjectId)){
+                  const indexOfNextObjectId = objectData.current[obj.id].properties.nextObject.indexOf(nextObjectId)
+                  objectData.current[obj.id].properties.nextObject.splice(indexOfNextObjectId, 1)  
+                }
+              }
 
             }
           }
@@ -798,12 +985,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
               
              const prevObjectId = objectData.current[line.id].properties.prevObject[0]
              // setting the current object previous object to the line  previous object attribute
-             if (prevObjectId && !objectData.current[obj.id].properties.prevObject.includes(prevObjectId))
-               objectData.current[obj.id].properties.prevObject.push(prevObjectId)
+             if (prevObjectId && objectData.current[prevObjectId]) {
+                if (prevObjectId && !objectData.current[obj.id].properties.prevObject.includes(prevObjectId))
+                  objectData.current[obj.id].properties.prevObject.push(prevObjectId)
 
-             if (prevObjectId && !objectData.current[prevObjectId].properties.nextObject.includes(obj.id))
-               objectData.current[prevObjectId].properties.nextObject.push(obj.id)
-
+                if (prevObjectId && !objectData.current[prevObjectId].properties.nextObject.includes(obj.id))
+                  objectData.current[prevObjectId].properties.nextObject.push(obj.id)
+              } else if (prevObjectId && !objectData.current[prevObjectId]) {
+                // removing the prev object from the current object  previous object attribute in case there's a prevObjectId
+                  if (objectData.current[obj.id].properties.prevObject.includes(prevObjectId)) {
+                    const getPrevObjectIndex = objectData.current[obj.id].properties.prevObject.indexOf(prevObjectId)
+                    objectData.current[obj.id].properties.prevObject.splice(getPrevObjectIndex, 1)
+                  }
+                }
             }
           }
           if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
@@ -825,11 +1019,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
               
              const prevObjectId = objectData.current[line.id].properties.prevObject[0]
              // setting the current object previous object to the line  previous object attribute
-             if (prevObjectId && !objectData.current[obj.id].properties.prevObject.includes(prevObjectId))
-               objectData.current[obj.id].properties.prevObject.push(prevObjectId)
+             if (prevObjectId && objectData.current[prevObjectId]) {
+                if (prevObjectId && !objectData.current[obj.id].properties.prevObject.includes(prevObjectId))
+                  objectData.current[obj.id].properties.prevObject.push(prevObjectId)
 
-             if (prevObjectId && !objectData.current[prevObjectId].properties.nextObject.includes(obj.id))
-               objectData.current[prevObjectId].properties.nextObject.push(obj.id)
+                if (prevObjectId && !objectData.current[prevObjectId].properties.nextObject.includes(obj.id))
+                  objectData.current[prevObjectId].properties.nextObject.push(obj.id)
+              } else if (prevObjectId && !objectData.current[prevObjectId]) {
+                // removing the prev object from the current object  previous object attribute in case there's a prevObjectId
+                if (objectData.current[obj.id].properties.prevObject.includes(prevObjectId)) {
+                  const getPrevObjectIndex = objectData.current[obj.id].properties.prevObject.indexOf(prevObjectId)
+                  objectData.current[obj.id].properties.prevObject.splice(getPrevObjectIndex, 1)
+                }
+              }
             }
           }
 
@@ -860,8 +1062,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // 2. disconnection from the lines L coordinates
             // 3. no connection existed in the first place
 
-            const getCurrentLinePrevObjectId = objectData.current[line.id].properties.prevObject[0]
-            const getCurrentLineNextObjectId = objectData.current[line.id].properties.nextObject[0]
+            let getCurrentLinePrevObjectId: string | null = objectData.current[line.id].properties.prevObject[0]
+            let getCurrentLineNextObjectId: string | null = objectData.current[line.id].properties.nextObject[0]
+
+            // Check if the id still exists.
+            if (!objectData.current[getCurrentLineNextObjectId])  {
+              objectData.current[obj.id].properties.nextObject.splice(0, 1)
+              getCurrentLineNextObjectId = null
+            }
+            if (!objectData.current[getCurrentLinePrevObjectId]) {
+              objectData.current[obj.id].properties.prevObject.splice(0, 1)
+              getCurrentLinePrevObjectId = null
+            }
+
 
             // 1. disconnection from the lines M coordinates         
             
@@ -877,6 +1090,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
               if (nextObjectId && objectData.current[obj.id].properties.nextObject.includes(nextObjectId)){
                 const indexOfNextObjectId = objectData.current[obj.id].properties.nextObject.indexOf(nextObjectId)
                 objectData.current[obj.id].properties.nextObject.splice(indexOfNextObjectId, 1)
+              }
 
               // removing the current object id from the nextObject's prevObject id arrays
               if (nextObjectId && objectData.current[nextObjectId].properties.prevObject.includes(obj.id)){
@@ -885,7 +1099,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
               }
 
 
-              }
+             
                 
             }
             // 2. disconnection from the lines L coordinates
@@ -1151,19 +1365,22 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const loadObjectToCanvas = useCallback(() => {
       for (const dataId in objectData.current) {
         const data = objectData.current[dataId]
-        const elementId = data.object_info.object_id
-        const element = document.getElementById(elementId as string)
+  
         // console.log("element", element)
+        const objectJSX = <ObjectCreator objectData={objectData.current} dataId={dataId}/>
 
-        if (!element) continue
-        const elementObjectType = element.getAttribute("data-object-type")! // Shape, Grinder, Crusher
-        const elementObjectName = element.getAttribute("data-object-name") || null 
-        const newEl = element.cloneNode(true) as HTMLElement
+        const jsxToHTMLString= renderToStaticMarkup(objectJSX)
+        const parser = new DOMParser()
+        const temporaryDocument = parser.parseFromString(jsxToHTMLString, "text/html")
+        const newEl = temporaryDocument.getElementById(data.object!.id) as HTMLDivElement
+        const elementObjectName = data.object!.name
+        const elementObjectType = data.object!.model_name
+
         newEl.setAttribute("tabindex", "-1")
         newEl.removeAttribute("data-object-type")
         newEl.removeAttribute("data-object-name")
 
-        if (elementObjectType === "Shape" && elementObjectName === "text") {
+        if (elementObjectType === "Shape" && elementObjectName === "Text") {
           newEl.classList.remove('text-2xl')
           newEl.setAttribute("data-variant", "text")
           newEl.setAttribute("data-placeholder", "Text")
@@ -1181,7 +1398,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
               objectData.current[newEl.id].description = newEl.textContent!
           })
           newEl.addEventListener("keyup", handleInput)
-        } else if (elementObjectType === "Shape" && elementObjectName === "line") {
+        } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
           // Lines 
           newEl.setAttribute("data-variant", "line")
           newEl.style.width = "30px"
@@ -1254,10 +1471,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.style.left = `${x}px`
        
 
-        if (elementObjectName !== "line") newEl.style.transform = `scale(${data.scale})`
+        if (elementObjectName !== "Line") newEl.style.transform = `scale(${data.scale})`
         newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
         newEl.addEventListener("mouseup", handleMouseUp);
         canvasRef.current.appendChild(newEl)
+        console.log("newEl", newEl)
         // currentObject.current = newEl
 
       }
@@ -1280,7 +1498,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const element = document.getElementById(elementId as string)
       if (!element) return
       const elementObjectType = element.getAttribute("data-object-type")! as objectType // Shape, Grinder, Crusher
-      const elementObjectName = element.getAttribute("data-object-name") || null //circle, text etc...
+      const elementObjectName = element.getAttribute("data-object-name") || null //Circle, Text etc...
       const newEl = element.cloneNode(true) as HTMLElement
       const canvasX = canvasRef.current.getBoundingClientRect().x
       const canvasY = canvasRef.current.getBoundingClientRect().y
@@ -1297,7 +1515,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
       // Text
-      if (elementObjectType === "Shape" && elementObjectName === "text") {
+      if (elementObjectType === "Shape" && elementObjectName === "Text") {
         defaultElementLabel = "Text"
         newEl.classList.remove('text-2xl')
         newEl.setAttribute("data-variant", "text")
@@ -1314,7 +1532,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             objectData.current[newEl.id].description = newEl.textContent!
         })
         newEl.addEventListener("keyup", handleInput)
-      } else if (elementObjectType === "Shape" && elementObjectName === "line") {
+      } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
         // Lines 
         newEl.setAttribute("data-variant", "line")
         newEl.style.width = "30px"
@@ -1362,7 +1580,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
       }
       const uuid4 = crypto.randomUUID()
-      newEl.style.border = "1px solid red"
+      // newEl.style.border = "1px solid red"
 
       const defaultObjectData = {
           oid: uuid4,
@@ -1398,14 +1616,14 @@ const Canvas = ({params}: {params: {id: string}}) => {
       objectData.current[uuid4].y_coordinate = y
       newEl.style.top = `${y}px`
       newEl.style.left = `${x}px`
-      if (elementObjectName !== "line") newEl.style.transform = "scale(1.25)"
+      if (elementObjectName !== "Line") newEl.style.transform = "scale(1.25)"
       LineConnector(newEl)
       newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
       newEl.addEventListener("mouseup", handleMouseUp);
       canvasRef.current.appendChild(newEl)
 
       currentObject.current = newEl
-      // if (elementObjectName !== "text") showObjectForm(x, y, elementObjectType)
+      if (elementObjectName !== "Text") showObjectForm(x, y, elementObjectType)
 
     }
 

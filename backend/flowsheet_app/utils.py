@@ -19,10 +19,11 @@ def get_queryset_util(self, obj_class):
 
 
 def object_formatter(obj):
+    image = getattr(obj, "image", None)
     default = {
         "id": obj.id,
         "name": obj.name,
-        "image": getattr(obj, "image", None), 
+        "image_url": image.url if image else image, 
         "model_name": obj.__class__.__name__
     }
     # if isinstance(obj, Crusher) or isinstance(obj, Grinder):
@@ -31,7 +32,7 @@ def object_formatter(obj):
     #         "gape": obj.gape,
     #         # "set": obj.set
     #     })
-    
+
     if isinstance(obj, Concentrator):
         default.update({
             "description": obj.description,
@@ -42,7 +43,8 @@ def object_formatter(obj):
             "description": obj.description
         })
     elif isinstance(obj, Shape):
-        default.pop("image")
+        default.pop("image_url")
+
     return default
 
 
