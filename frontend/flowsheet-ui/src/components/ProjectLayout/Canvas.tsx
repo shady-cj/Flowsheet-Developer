@@ -1561,7 +1561,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.style.zIndex = "5"
         newEl.setAttribute("data-variant", "line")
         newEl.style.width = "30px"
-        newEl.style.height = "50px"
+        newEl.style.height = "30px"
         newEl.style.outline = "none"
         newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
         newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
@@ -1585,7 +1585,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         point2.addEventListener("mousedown", (e)=> handleMouseDown(e, point2)) 
         point2.addEventListener("mouseup", handleMouseUp)
         point2.addEventListener("dblclick", e => createMultiplePoint(e, point2))
-        const startCoords: [number, number] = [15, 25]
+        const startCoords: [number, number] = [15, 15]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
         point2.style.left = `${startCoords[0]}px`
