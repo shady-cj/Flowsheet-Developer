@@ -20,6 +20,10 @@ body {
 
 }
 
+.current-object {
+  z-index: 20;
+}
+
 .placeholder-style:after {
   content: attr(data-placeholder);
   color: rgb(158, 155, 155);

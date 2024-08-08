@@ -49,6 +49,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const objectLabels = useRef(new Set<string>())
     const [formFields, setFormFields] = useState<formFieldsType>(defaultFormField)
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
+    const primaryCrusherInUse = useRef(false)
 
 
 
@@ -65,8 +66,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
         objectData.current[object.id].properties.set = formState!.set
       if (formState!.aperture)
         objectData.current[object.id].properties.aperture = formState!.aperture
-      if (formState!.crusherType)
+      if (formState!.crusherType){
+        if (formState!.crusherType === "primary") primaryCrusherInUse.current = true
         objectData.current[object.id].properties.crusherType = formState!.crusherType as "primary" | "secondary" | "tertiary"
+      }
+       
     }
 
     const handleFormState = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -139,6 +143,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
           alert("Aperture size value must be a positive number (mm)")
           return;
         }
+      }
+      if (formState!.crusherType === "primary" && primaryCrusherInUse.current){
+        alert("You can't have multiple primary crushing operation")
+        return;
       }
 
       
@@ -507,11 +515,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (shapeOffsetY === lYAxis || Math.abs(shapeOffsetY - lYAxis) < 10) {
           // Dragging the line in from the top (L coordinates)
           if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
+          
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
             // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - L[0] - (extrasX/2)
-            const newLineOffsetY = parseFloat((shapeOffsetY - L[1] - M[1]).toFixed(6))
-            // console.log(mYAxis, "myaxis")
+            const newLineOffsetY = parseFloat((shapeOffsetY - L[1] - extrasY/2).toFixed(6))
             if (newLineOffsetY < 6)
               return
             obj.style.top = `${newLineOffsetY}px`;
@@ -588,9 +596,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (shapeOffsetXRight === mXAxis || Math.abs(shapeOffsetXRight - mXAxis) < 10) {
           // Dragging the line in from the right (for M coordinates)
           if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
+            
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = parseFloat((shapeOffsetXRight - M[0]).toFixed(6))
+        
             // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
             // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
@@ -696,6 +706,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
         }
 
         if (!isConnected) {
+          // console.log('got here')
+          // console.log(objectData.current[shapeId])
           /**
            * 
            * STEPS TO CAREFULLY DISCONNECTING THE LINES
@@ -1219,6 +1231,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if (e.keyCode === 8 || e.keyCode === 46) {
         element.remove()
         // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
+        objectLabels.current.delete(objectData.current[element.id].label)
+        if (objectData.current[element.id].properties.crusherType === "primary") 
+          primaryCrusherInUse.current = false
         delete objectData.current[element.id]
       }
     }, [objectData])
@@ -1234,6 +1249,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
     const handleMouseUpUtil = useCallback(() => {
       if (onMouseDown.current) {
+        currentObject.current.classList.remove("current-object")
         const obj = currentObject.current
 
           if (currentActivePoint.current) {
@@ -1267,7 +1283,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
           obj.style.transform = "scale(1.5) translate(-40%, -40%)"
           // console.log(e.clientX, e.clientY)
       } else {
+          currentObject.current?.classList.remove("current-object")
           currentObject.current = obj
+          currentObject.current.classList.add("current-object")
+          
           objectData.current[obj.id].properties.coordinates.startX = parseFloat(e.clientX.toFixed(6))
           objectData.current[obj.id].properties.coordinates.startY = parseFloat(e.clientY.toFixed(6))
       }
@@ -1380,7 +1399,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.removeAttribute("data-object-type")
         newEl.removeAttribute("data-object-name")
 
+
         if (elementObjectType === "Shape" && elementObjectName === "Text") {
+          newEl.style.zIndex = "5"
           newEl.classList.remove('text-2xl')
           newEl.setAttribute("data-variant", "text")
           newEl.setAttribute("data-placeholder", "Text")
@@ -1400,6 +1421,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           newEl.addEventListener("keyup", handleInput)
         } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
           // Lines 
+          newEl.style.zIndex = "5"
           newEl.setAttribute("data-variant", "line")
           newEl.style.width = "30px"
           newEl.style.height = "50px"
@@ -1475,9 +1497,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
         newEl.addEventListener("mouseup", handleMouseUp);
         canvasRef.current.appendChild(newEl)
-        console.log("newEl", newEl)
-        // currentObject.current = newEl
-
+        objectLabels.current.add(data.label)
+        if (data.properties.crusherType === "primary")
+          primaryCrusherInUse.current = true
       }
     }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData])
 
@@ -1497,6 +1519,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if (!elementId) return
       const element = document.getElementById(elementId as string)
       if (!element) return
+      currentObject.current?.classList.remove('current-object')
       const elementObjectType = element.getAttribute("data-object-type")! as objectType // Shape, Grinder, Crusher
       const elementObjectName = element.getAttribute("data-object-name") || null //Circle, Text etc...
       const newEl = element.cloneNode(true) as HTMLElement
@@ -1516,6 +1539,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
       // Text
       if (elementObjectType === "Shape" && elementObjectName === "Text") {
+        newEl.style.zIndex = "5"
         defaultElementLabel = "Text"
         newEl.classList.remove('text-2xl')
         newEl.setAttribute("data-variant", "text")
@@ -1534,6 +1558,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.addEventListener("keyup", handleInput)
       } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
         // Lines 
+        newEl.style.zIndex = "5"
         newEl.setAttribute("data-variant", "line")
         newEl.style.width = "30px"
         newEl.style.height = "50px"
@@ -1622,8 +1647,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
       newEl.addEventListener("mouseup", handleMouseUp);
       canvasRef.current.appendChild(newEl)
 
-      currentObject.current = newEl
       if (elementObjectName !== "Text") showObjectForm(x, y, elementObjectType)
+
+      currentObject.current = newEl
+     
+      
 
     }
 
@@ -1648,6 +1676,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     
       
       const handleMouseMove = (e: MouseEvent) => {
+        // console.log(e.clientY - CanvasContainer.offsetTop)
         if (onMouseDown.current) {
           if (currentActivePoint.current !== null) {
             DrawPoint(e, currentActivePoint.current)
@@ -1734,6 +1763,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       // Sidebar Canvas
       // SidebarCanvas.addEventListener("mousemove",)
       // SidebarCanvas.addEventListener("mouseleave")
+      
       return () => {
         objects.forEach(object=> {
           (object as HTMLElement).removeEventListener("mousedown", (e) => handleMouseDown(e, object as HTMLElement));
