@@ -53,6 +53,17 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
 
+    const validatePositiveInteger = (attribute: keyof formStateObjectType, title: string) => {
+      if (isNaN(Number(formState![attribute]))) {
+        alert(`${title} value must be a number (mm)`)
+        return false
+      }
+      if (Number(formState![attribute]) < 0) {
+        alert(`${title} value must be a positive number (mm)`)
+        return false
+      }
+      return true
+    }
 
     const updateObjectData = () => {
       const object = currentObject.current
@@ -69,6 +80,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if (formState!.crusherType){
         if (formState!.crusherType === "primary") primaryCrusherInUse.current = true
         objectData.current[object.id].properties.crusherType = formState!.crusherType as "primary" | "secondary" | "tertiary"
+      }
+      if (formState!.maxOreSize) {
+        objectData.current[object.id].properties.maxOreSize = formState!.maxOreSize
+      }
+      if (formState!.oreQuantity) {
+        objectData.current[object.id].properties.oreQuantity = formState!.oreQuantity
+      }
+      if (formState!.oreGrade) {
+        objectData.current[object.id].properties.oreGrade = formState!.oreGrade
       }
        
     }
@@ -111,43 +131,60 @@ const Canvas = ({params}: {params: {id: string}}) => {
         alert("Please identify what you want to use this crusher as")
         return;
       }
+      if (formState!.maxOreSize?.length === 0) {
+        alert("The maximum size of the ore is required")
+        return;
+      }
+      
+      if (formState!.oreGrade?.length === 0) {
+        alert("The grade of the ore is required")
+        return;
+      }
+      
+      if (formState!.oreQuantity?.length === 0) {
+        alert("The quantity of the ore is required")
+        return;
+      }
 
       if (formState!.gape) {
-        if (isNaN(Number(formState!.gape))) {
-          alert("Gape value must be a number (mm)")
+        if (!validatePositiveInteger("gape", "Gape"))
           return
-        }
-        if (Number(formState!.gape) < 0) {
-          alert("Gape value must be a positive number (mm)")
-          return
-        }
       }
 
       if (formState!.set) {
-        if (isNaN(Number(formState!.set))) {
-          alert("Set value must be a number (mm)")
-          return;
-        }
-        if (Number(formState!.set) < 0) {
-          alert("Set value must be a positive number (mm)")
-          return;
-        }
+        if (!validatePositiveInteger("set", "Set"))
+          return
       }
 
       if (formState!.aperture) {
-        if (isNaN(Number(formState!.aperture))) {
-          alert("Aperture size value must be a number (mm)")
-          return;
-        }
-        if (Number(formState!.aperture) < 0) {
-          alert("Aperture size value must be a positive number (mm)")
+       if (!validatePositiveInteger("aperture", "Aperture"))
+          return
+      }
+
+      if (formState!.maxOreSize) {
+        if (!validatePositiveInteger("maxOreSize", "Maximum Ore Size"))
+          return
+      }
+
+      if (formState!.oreGrade) {
+        if (!validatePositiveInteger("oreGrade", "Ore Grade"))
+          return
+        if (Number(formState!.oreGrade) > 1) {
+          alert("Ore grade can't be greater than 1")
           return;
         }
       }
+      if (formState!.oreQuantity) {
+        if (!validatePositiveInteger("oreQuantity", "Ore Quantity"))
+          return
+      }
+
+
       if (formState!.crusherType === "primary" && primaryCrusherInUse.current){
         alert("You can't have multiple primary crushing operation")
         return;
       }
+     
 
       
       updateObjectData()
@@ -157,7 +194,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     }
 
 
-    const showObjectForm = (x: number, y: number, type: objectType) => {
+    const showObjectForm = (x: number, y: number, type: objectType, auxilliaryType: string | null) => {
      
      
       let formStateObject: formStateObjectType = {
@@ -209,6 +246,34 @@ const Canvas = ({params}: {params: {id: string}}) => {
               htmlType: "input"
             }]
           })
+          break
+        case "Auxilliary":
+          if (auxilliaryType === "ORE") {
+            formStateObject["maxOreSize"] = ""
+            formStateObject["oreGrade"] = ""
+            formStateObject["oreQuantity"] = ""
+            setFormFields((prevFormField) => {
+              return [...prevFormField, {
+                type: "number",
+                name: "maxOreSize", 
+                verboseName: "Maximum Size of Ore",
+                placeholder: "in mm",
+                htmlType: "input"
+              }, {
+                type: "number",
+                name: "oreGrade", 
+                verboseName: "Ore Grade",
+                placeholder: "in decimal",
+                htmlType: "input"
+              }, {
+                type: "number",
+                name: "oreQuantity", 
+                verboseName: "Ore Quantity",
+                placeholder: "in metric tons",
+                htmlType: "input"
+              }]
+            })
+          }
           break
       }
 
@@ -1249,7 +1314,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
     const handleMouseUpUtil = useCallback(() => {
       if (onMouseDown.current) {
-        currentObject.current.classList.remove("current-object")
+        // currentObject.current.classList.remove("current-object")
         const obj = currentObject.current
 
           if (currentActivePoint.current) {
@@ -1401,7 +1466,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
         if (elementObjectType === "Shape" && elementObjectName === "Text") {
-          newEl.style.zIndex = "5"
+          // newEl.style.zIndex = "5"
           newEl.classList.remove('text-2xl')
           newEl.setAttribute("data-variant", "text")
           newEl.setAttribute("data-placeholder", "Text")
@@ -1421,10 +1486,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
           newEl.addEventListener("keyup", handleInput)
         } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
           // Lines 
-          newEl.style.zIndex = "5"
+          // newEl.style.zIndex = "5"
+          // newEl.style.border= "1px solid black"
           newEl.setAttribute("data-variant", "line")
           newEl.style.width = "30px"
-          newEl.style.height = "50px"
+          newEl.style.height = "30px"
           newEl.style.outline = "none"
           newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
           newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
@@ -1515,6 +1581,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         
       }
       let defaultElementLabel = ""
+      let auxilliaryType = null;
       const elementId = e.dataTransfer?.getData("elementId");
       if (!elementId) return
       const element = document.getElementById(elementId as string)
@@ -1528,7 +1595,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
       newEl.setAttribute("tabindex", "-1")
       newEl.removeAttribute("data-object-type")
       newEl.removeAttribute("data-object-name")
-
+      if (elementObjectType === "Auxilliary") {
+        auxilliaryType = element.getAttribute("data-object-type-variant")
+        newEl.removeAttribute("data-object-type-variant")
+      }
       // console.log(newEl, "new el")
       // 
       // newEl.style.outline = "1px solid red"
@@ -1539,7 +1609,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
       // Text
       if (elementObjectType === "Shape" && elementObjectName === "Text") {
-        newEl.style.zIndex = "5"
+        // newEl.style.zIndex = "5"
         defaultElementLabel = "Text"
         newEl.classList.remove('text-2xl')
         newEl.setAttribute("data-variant", "text")
@@ -1558,7 +1628,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.addEventListener("keyup", handleInput)
       } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
         // Lines 
-        newEl.style.zIndex = "5"
+        // newEl.style.zIndex = "5"
         newEl.setAttribute("data-variant", "line")
         newEl.style.width = "30px"
         newEl.style.height = "30px"
@@ -1585,7 +1655,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         point2.addEventListener("mousedown", (e)=> handleMouseDown(e, point2)) 
         point2.addEventListener("mouseup", handleMouseUp)
         point2.addEventListener("dblclick", e => createMultiplePoint(e, point2))
-        const startCoords: [number, number] = [15, 15]
+        const startCoords: [number, number] = [15, 0]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
         point2.style.left = `${startCoords[0]}px`
@@ -1647,7 +1717,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       newEl.addEventListener("mouseup", handleMouseUp);
       canvasRef.current.appendChild(newEl)
 
-      if (elementObjectName !== "Text") showObjectForm(x, y, elementObjectType)
+      if (elementObjectName !== "Text") showObjectForm(x, y, elementObjectType, auxilliaryType)
 
       currentObject.current = newEl
      

@@ -51,7 +51,7 @@ export async function login(prevState: any, formData:FormData) {
         
     } catch(err) {
         if (err instanceof Error)
-            return {error: err.message}
+            return {error: "Sorry!, An error occured"}
         else
             return {error: "Something went wrong"}
     }
@@ -96,7 +96,7 @@ export async function register(prevState: any, formData: FormData) {
         
     } catch(err) {
         if (err instanceof Error)
-            return {error: err.message}
+            return {error: "Sorry!, an error occured"}
         else
             return {error: "Something went wrong"}
     }

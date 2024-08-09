@@ -80,6 +80,9 @@ export type objectDataType = {
       gape?: string,
       set?: string,
       aperture?: string,
+      maxOreSize?: string,
+      oreQuantity?: string,
+      oreGrade?: string,
       crusherType?: "primary" | "secondary" | "tertiary",
       coordinates: objectCoords
     }
