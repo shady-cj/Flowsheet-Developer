@@ -42,7 +42,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
-    const pointStore = useRef<{[key: string]: ["M"] | ["L", number, number?]}>({})
+    const pointStore = useRef<{[key: string]: [string | null, ["M"]] | [string, ["L", number, number?]]}>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
     const currentActivePoint = useRef<HTMLSpanElement | null>(null)
     const onMouseDown = useRef(false)
     const [objectFormPosition, setObjectFormPosition] = useState<{x: number, y: number}>({x: 20, y: 20})
@@ -307,7 +307,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const shapeHeight =  shape.getBoundingClientRect().height
 
 
-        const path = obj.querySelector("svg path")
+        const path = obj.querySelector("svg.line-svg path")
+        const arrow = obj.querySelector("svg.arrow-indicator") as SVGElement
         const offsetLineX = obj.offsetLeft
         const offsetLineY = obj.offsetTop
         const lineData = objectData.current[obj.id].properties.coordinates
@@ -503,8 +504,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
           path!.setAttribute("stroke", "#000")
+          arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#000"))
         } else {
           path!.setAttribute("stroke", "#D1D0CE")
+          arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#D1D0CE"))
+
         }
       }
     }, [objectData])
@@ -530,7 +534,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
 
-        const path = obj.querySelector("svg path")
+        const path = obj.querySelector("svg.line-svg path")
+        const arrow = obj.querySelector("svg.arrow-indicator") as SVGElement
         const offsetLineX = obj.offsetLeft
         const offsetLineY = obj.offsetTop
         const lineData = objectData.current[obj.id].properties.coordinates
@@ -872,8 +877,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
           path!.setAttribute("stroke", "#000")
+          arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#000"))
+          
         } else {
           path!.setAttribute("stroke", "#D1D0CE")
+          arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#D1D0CE"))
         }
       }
     }, [objectData])
@@ -893,7 +901,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
           const objectWidth = obj.getBoundingClientRect().width
 
           
-          const path = line.querySelector("svg path")
+          const path = line.querySelector("svg.line-svg path")
+          const arrow = line.querySelector("svg.arrow-indicator") as SVGElement
           const offsetLineX = (line as HTMLElement).offsetLeft
           const offsetLineY = (line as HTMLElement).offsetTop
           const lineData = objectData.current[line.id].properties.coordinates
@@ -1240,8 +1249,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
           if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
             path!.setAttribute("stroke", "#000")
+            arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#000"))
           } else {
             path!.setAttribute("stroke", "#D1D0CE")
+            arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#D1D0CE"))
           }
       
         })
@@ -1302,7 +1313,13 @@ const Canvas = ({params}: {params: {id: string}}) => {
       return mPath + " " + lPath
     }
 
- 
+    const getTheta = (x1: number, x2: number, y1: number, y2: number) => {
+      const gradient = y2 - y1 / x2 - x1
+      const theta = (Math.atan(gradient) * 180 / Math.PI)
+      console.log("theta before", theta)
+      
+      return theta - 90
+    }
 
     const DrawPoint = useCallback((e: MouseEvent, point: HTMLElement) => {
       // const 
@@ -1316,14 +1333,39 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const objectY = object.getBoundingClientRect().y
       const pointX = parseFloat((e.clientX - objectX).toFixed(6))
       const pointY = parseFloat((e.clientY - objectY).toFixed(6))
-      const pointDetails = pointStore.current[point.id] // point here is expected to be ["L", :any number]
+      const pointDetails = pointStore.current[point.id][1] // point here is expected to be ["L", :any number]
+      const prevPoint = pointStore.current[point.id][0] as string
+      const prevPointDetails = pointStore.current[prevPoint][1]
       const objectDetails = objectData.current[object.id].properties.coordinates
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
       point.style.left = `${pointX}px`
       point.style.top = `${pointY}px`
       const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
-      const path = object.querySelector("svg path")
+      const path = object.querySelector("svg.line-svg path")
       path?.setAttribute("d", coordString)
+      // arrow
+      const arrow = object.querySelector("svg.arrow-indicator")! as SVGElement
+
+
+     
+      if (pointDetails.length < 3) {
+        arrow.style.left = `${pointX}px`
+        arrow.style.top = `${pointY}px`
+        // arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
+      }
+      // console.log("prevpoint details", prevPointDetails, prevPoint)
+      let x1: number, y1: number;
+
+      if (prevPointDetails[0] === "M") {
+        [x1, y1] = objectDetails.lineCoordinates![prevPointDetails[0]] as [number, number]
+      } else {
+        [x1, y1] = objectDetails.lineCoordinates![prevPointDetails[0]][prevPointDetails[1]!] as [number, number]
+      }
+      
+      const theta = getTheta(x1, pointX, y1, pointY)
+      console.log("theta", theta)
+      arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
+
       // 
     }, [objectData])
 
@@ -1408,7 +1450,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
     const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
       // Ability of a line to have multiple breakpoints on a line instead of just the regular straight line (That's why we are using the svg path element)
-      const pointDetails = pointStore.current[point.id]
+      const pointDetails = pointStore.current[point.id][1]
 
       if (pointDetails.length < 3) {
         const object = currentObject.current
@@ -1424,18 +1466,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
         
         const lineWrapEl = object.querySelector(".line-wrap") as HTMLDivElement
         lineWrapEl.appendChild(newPoint)
-        const path = object.querySelector("svg path")
+        const path = object.querySelector("svg.line-svg path")
 
 
         // update the pointStore.current for point.id to show there is a third point
 
-        pointStore.current[point.id][2] = pointDetails[1]! + 1
+        pointStore.current[point.id][1][2] = pointDetails[1]! + 1
 
         // create a new pointStore.current for  newPoint
-        pointStore.current[newPointUid] = ["L", pointStore.current[point.id][2]!]
+        pointStore.current[newPointUid] = [point.id, ["L", pointStore.current[point.id][1][2]!]]
 
         // update line coordinates
-        const newPointDetails = pointStore.current[newPointUid]
+        const newPointDetails = pointStore.current[newPointUid][1]
         const objectDetails = objectData.current[object.id].properties.coordinates
         objectDetails.lineCoordinates![newPointDetails[0]][newPointDetails[1]!] = objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] as [number, number]
         const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
@@ -1530,7 +1572,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
           newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
           const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
-          const svg = newEl.querySelector("svg")!
+          const svg = newEl.querySelector("svg.line-svg")!
           svg.setAttribute("width", "30")
           svg.setAttribute("height", "30")
           const path = svg.querySelector("path")
@@ -1550,12 +1592,13 @@ const Canvas = ({params}: {params: {id: string}}) => {
           pointAnchor.classList.add("point-indicators")
           pointAnchor.classList.add("hide-indicator")
           pointAnchor.setAttribute("id", pointAnchorUid)
-          pointStore.current[pointAnchorUid] = ["M"]
+          pointStore.current[pointAnchorUid] = [null, ["M"]]
           pointAnchor.style.top = `${data.properties.coordinates.lineCoordinates!.M[1]}px`
           pointAnchor.style.left = `${data.properties.coordinates.lineCoordinates!.M[0]}px`
           lineWrapEl.appendChild(pointAnchor)
-
+          let prevPointUid = pointAnchorUid;
           const movablePoints = data.properties.coordinates.lineCoordinates!.L
+          
           for (let pointIndex = 0; pointIndex < movablePoints.length; pointIndex++) {
             const newPoint = document.createElement("span")
             const newPointUid = "point-"+crypto.randomUUID()
@@ -1566,13 +1609,13 @@ const Canvas = ({params}: {params: {id: string}}) => {
             newPoint.addEventListener("mouseup", handleMouseUp)
             newPoint.addEventListener("dblclick", e => createMultiplePoint(e, newPoint))
             if (pointIndex === movablePoints.length - 1)
-              pointStore.current[newPointUid] = ["L", pointIndex]
+              pointStore.current[newPointUid] = [prevPointUid, ["L", pointIndex]]
             else
-              pointStore.current[newPointUid] = ["L", pointIndex, pointIndex + 1]
+              pointStore.current[newPointUid] = [prevPointUid, ["L", pointIndex, pointIndex + 1]]
             newPoint.style.left = `${movablePoints[pointIndex][0]}px`
             newPoint.style.top = `${movablePoints[pointIndex][1]}px`
-            
             lineWrapEl.appendChild(newPoint)
+            prevPointUid = newPointUid
 
           }
           const coordString = LineCoordinateToPathString(data.properties.coordinates.lineCoordinates!)
@@ -1675,7 +1718,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
         const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
-        const svg = newEl.querySelector("svg")!
+        const svg = newEl.querySelector("svg.line-svg")!
         svg.setAttribute("width", "30")
         svg.setAttribute("height", "30")
         const path = svg.querySelector("path")
@@ -1687,7 +1730,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         const point1 = document.createElement("span") // Starting point which doesn't change
         const point2 = document.createElement("span")
-        const arrow = document.createElement("svg")
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         arrow.setAttribute("height", "20")
         arrow.setAttribute("width", "20")
         arrow.setAttribute("xmlns", "http://www.w3.org/2000/svg")
@@ -1708,11 +1751,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
         point2.style.top = "100px"
         arrow.style.top = "100px";
         arrow.style.left = `${startCoords[0]}px`
-        arrow.style.overflow = "visible"
+        
+
         arrow.innerHTML = `
-          <path d="M10 20 L20 0" fill="none" stroke="black" stroke-width="1.5"></path> 
+          <path d="M10 20 L20 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path> 
           
-          <path d="M10 20 L0 0" fill="none" stroke="black" stroke-width="1.5"></path>
+          <path d="M10 20 L0 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
         `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)
@@ -1722,10 +1766,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const y2: number = 100
         const x1 = 15
         const x2 = 15
-        
-        const gradient = y2 - y1 / x2 - x1
-        const theta = Math.atan(gradient) * 180 / Math.PI
-        // arrow.style.transform = `translate(-50%, -100%) rotate(180deg)`
+        const theta = getTheta(x1, x2, y1, y2)
+        arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
         
         
 
@@ -1734,8 +1776,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
         defaultCoords["lineCoordinates"] = lineCoordinates
         const coordString = LineCoordinateToPathString(lineCoordinates)
         path?.setAttribute("d", coordString)
-        pointStore.current[point1Uid] = ["M"]
-        pointStore.current[point2Uid] = ["L", 0]
+        pointStore.current[point1Uid] = [null, ["M"]]
+        pointStore.current[point2Uid] = [point1Uid, ["L", 0]]
         
       }else {
         newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")

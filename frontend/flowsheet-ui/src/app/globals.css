@@ -49,17 +49,18 @@ body {
   background-color: red;
   transform: translate(-50%, -50%);
   transition: transform 0.4s ease-in;
+  z-index: 2;
 }
 
 .arrow-indicator {
   display: inline-block;
   position: absolute;
-  height: 20px;
-  width: 20px;
   /* transform-origin: center; */
   transform: translate(-50%, -100%);
   background-color: transparent;
-  border: 1px solid black;
+  overflow: visible;
+  border:1px solid black;
+  
 }
 .hide-indicator {
   visibility: hidden;
