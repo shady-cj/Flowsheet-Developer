@@ -306,6 +306,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const shapeWidth =  shape.getBoundingClientRect().width
         const shapeHeight =  shape.getBoundingClientRect().height
 
+
+        const path = obj.querySelector("svg path")
         const offsetLineX = obj.offsetLeft
         const offsetLineY = obj.offsetTop
         const lineData = objectData.current[obj.id].properties.coordinates
@@ -336,7 +338,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
             const pointGap = shapeOffsetY - lYAxis           
             coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap - (extrasY/2)).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
-            const path = obj.querySelector("svg path")
             point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
             path?.setAttribute("d", pathDString)
 
@@ -373,7 +374,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
             const pointGap = shapeOffsetYBottom - lYAxis
             coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
-            const path = obj.querySelector("svg path")
             point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
             path?.setAttribute("d", pathDString)
 
@@ -411,7 +411,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             const pointGap = shapeOffsetXRight - lXAxis
             coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
-            const path = obj.querySelector("svg path")
+            
             point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
             path?.setAttribute("d", pathDString)
 
@@ -449,7 +449,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
             const pointGap = shapeOffsetX - lXAxis
             coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap - (extrasX / 2)).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
-            const path = obj.querySelector("svg path")
             point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
             path?.setAttribute("d", pathDString)
 
@@ -501,6 +500,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
             } 
 
         }
+
+        if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
+          path!.setAttribute("stroke", "#000")
+        } else {
+          path!.setAttribute("stroke", "#D1D0CE")
+        }
       }
     }, [objectData])
 
@@ -523,6 +528,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const shapeWidth =  shape.getBoundingClientRect().width
         const shapeHeight =  shape.getBoundingClientRect().height
 
+
+
+        const path = obj.querySelector("svg path")
         const offsetLineX = obj.offsetLeft
         const offsetLineY = obj.offsetTop
         const lineData = objectData.current[obj.id].properties.coordinates
@@ -544,6 +552,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (shapeOffsetYBottom === mYAxis || Math.abs(shapeOffsetYBottom - mYAxis) < 10) {
           // Dragging the line in from the bottom (M coordinates)
           if (mXAxis >= shapeOffsetX && mXAxis <= shapeOffsetXRight) {
+            // console.log("Dragging the line in from the bottom (M coordinates)")
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
             // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - M[0] - (extrasX/2)
@@ -580,7 +589,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (shapeOffsetY === lYAxis || Math.abs(shapeOffsetY - lYAxis) < 10) {
           // Dragging the line in from the top (L coordinates)
           if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
-          
+            // console.log("Dragging the line in from the top (L coordinates)")
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
             // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - L[0] - (extrasX/2)
@@ -624,6 +633,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (shapeOffsetX === mXAxis || Math.abs(shapeOffsetX - mXAxis) < 10) {
           // Dragging the line in from the left (for M coordinates)
           if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
+            // console.log("Dragging the line in from the left (for M coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = parseFloat((shapeOffsetX - M[0] - (extrasX/2)).toFixed(6))
@@ -661,7 +671,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (shapeOffsetXRight === mXAxis || Math.abs(shapeOffsetXRight - mXAxis) < 10) {
           // Dragging the line in from the right (for M coordinates)
           if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
-            
+            // console.log("Dragging the line in from the right (for M coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = parseFloat((shapeOffsetXRight - M[0]).toFixed(6))
@@ -697,6 +707,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (shapeOffsetX === lXAxis || Math.abs(shapeOffsetX - lXAxis) < 10) {
           // Dragging the line in from the left (for L coordinates)
           if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+            // console.log("Dragging the line in from the left (for L coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = parseFloat((shapeOffsetX - L[0] - (extrasX/2)).toFixed(6))
@@ -736,6 +747,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (shapeOffsetXRight === lXAxis || Math.abs(shapeOffsetXRight - lXAxis) < 10) {
           // Dragging the line in from the right (for L coordinates)
           if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+            // console.log("Dragging the line in from the right (for L coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = parseFloat((shapeOffsetXRight - L[0]).toFixed(6))
@@ -857,6 +869,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
           // Nothing happens
           
         }
+
+        if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
+          path!.setAttribute("stroke", "#000")
+        } else {
+          path!.setAttribute("stroke", "#D1D0CE")
+        }
       }
     }, [objectData])
 
@@ -874,7 +892,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
           const objectHeight = obj.getBoundingClientRect().height
           const objectWidth = obj.getBoundingClientRect().width
 
-
+          
+          const path = line.querySelector("svg path")
           const offsetLineX = (line as HTMLElement).offsetLeft
           const offsetLineY = (line as HTMLElement).offsetTop
           const lineData = objectData.current[line.id].properties.coordinates
@@ -895,6 +914,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // Dragging the object in from the top (M coordinates)
             if (mXAxis >= objectOffsetX && mXAxis <= objectOffsetXRight) {
               isConnected = true
+              if (objectData.current[line.id].properties.prevObject[0])
+                return
               // const objWidthMidpoint = objectWidth / 2
               // const newObjectOffsetX = mXAxis - objWidthMidpoint + (extrasX/2)
               const newObjectOffsetY = parseFloat((mYAxis - objectHeight + (extrasY/2)).toFixed(6))
@@ -933,6 +954,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // Dragging the object in from bottom (L coordinates)
             if (lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) {
               isConnected = true
+              if (objectData.current[line.id].properties.nextObject[0])
+                return
               // const objWidthMidpoint = objectWidth / 2
               // const newObjectOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
               const newObjectOffsetY = parseFloat((lYAxis + (extrasY/2)).toFixed(6))
@@ -973,6 +996,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // Dragging the object in from the left (for M coordinates)
             if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
               isConnected = true
+              if (objectData.current[line.id].properties.prevObject[0])
+                return
 
               // const objHeightMidpoint = objectHeight / 2
               const newObjectOffsetX = parseFloat((mXAxis - objectWidth + (extrasX/2)).toFixed(6))
@@ -1011,6 +1036,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
             if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
 
               isConnected = true
+              if (objectData.current[line.id].properties.prevObject[0])
+                return
               // const objHeightMidpoint = objectHeight / 2
               const newObjectOffsetX = parseFloat((mXAxis + (extrasX/2)).toFixed(6))
               // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
@@ -1046,6 +1073,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // Dragging the object in from the left (for L coordinates)
             if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
               isConnected = true
+              if (objectData.current[line.id].properties.nextObject[0])
+                return
               // const objHeightMidpoint = objectHeight / 2
               const newObjectOffsetX = parseFloat((lXAxis - objectWidth + (extrasX/2)).toFixed(6))
               // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
@@ -1081,6 +1110,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // Dragging the object in from the right (for L coordinates)
             if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
               isConnected = true
+              if (objectData.current[line.id].properties.nextObject[0])
+                return
               // const objHeightMidpoint = objectHeight / 2
               const newObjectOffsetX = parseFloat((lXAxis + (extrasX/2)).toFixed(6))
               // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
@@ -1205,6 +1236,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
             // 3. no connection existed in the first place 
             // Nothing happens
             
+          }
+
+          if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
+            path!.setAttribute("stroke", "#000")
+          } else {
+            path!.setAttribute("stroke", "#D1D0CE")
           }
       
         })
@@ -1342,7 +1379,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const handleMouseDown = useCallback((e: MouseEvent, obj: HTMLElement) => {
       // console.log("event target", e.target)
       // console.log("obj", obj)
-
       if (obj.classList.contains("point-indicators")) {
           currentActivePoint.current = obj
           obj.style.transform = "scale(1.5) translate(-40%, -40%)"
@@ -1487,17 +1523,21 @@ const Canvas = ({params}: {params: {id: string}}) => {
         } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
           // Lines 
           // newEl.style.zIndex = "5"
-          // newEl.style.border= "1px solid black"
+      
           newEl.setAttribute("data-variant", "line")
-          newEl.style.width = "30px"
-          newEl.style.height = "30px"
           newEl.style.outline = "none"
           newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
           newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
           newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
           const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
-          const svg = newEl.querySelector("svg")
-          const path = svg!.querySelector("path")
+          const svg = newEl.querySelector("svg")!
+          svg.setAttribute("width", "30")
+          svg.setAttribute("height", "30")
+          const path = svg.querySelector("path")
+          if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0)
+            path!.setAttribute("stroke", "#000")
+          else
+            path!.setAttribute("stroke", "#D1D0CE")
           path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
           // path!.addEventListener("mouseover", (e)=> console.log("hover"))
           const pointAnchorUid = "point-"+crypto.randomUUID()
@@ -1630,22 +1670,28 @@ const Canvas = ({params}: {params: {id: string}}) => {
         // Lines 
         // newEl.style.zIndex = "5"
         newEl.setAttribute("data-variant", "line")
-        newEl.style.width = "30px"
-        newEl.style.height = "30px"
         newEl.style.outline = "none"
         newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
         newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
         const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
-        const svg = newEl.querySelector("svg")
-        const path = svg!.querySelector("path")
+        const svg = newEl.querySelector("svg")!
+        svg.setAttribute("width", "30")
+        svg.setAttribute("height", "30")
+        const path = svg.querySelector("path")
         path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
+        path!.setAttribute("stroke", "#D1D0CE")
         // path!.addEventListener("mouseover", (e)=> console.log("hover"))
         const point1Uid = "point-"+crypto.randomUUID()
         const point2Uid = "point-"+crypto.randomUUID()
 
         const point1 = document.createElement("span") // Starting point which doesn't change
         const point2 = document.createElement("span")
+        const arrow = document.createElement("svg")
+        arrow.setAttribute("height", "20")
+        arrow.setAttribute("width", "20")
+        arrow.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+        arrow.classList.add("arrow-indicator")
         point1.classList.add("point-indicators")
         point2.classList.add("point-indicators")
         point1.classList.add("hide-indicator")
@@ -1660,8 +1706,30 @@ const Canvas = ({params}: {params: {id: string}}) => {
         point1.style.left = `${startCoords[0]}px`
         point2.style.left = `${startCoords[0]}px`
         point2.style.top = "100px"
+        arrow.style.top = "100px";
+        arrow.style.left = `${startCoords[0]}px`
+        arrow.style.overflow = "visible"
+        arrow.innerHTML = `
+          <path d="M10 20 L20 0" fill="none" stroke="black" stroke-width="1.5"></path> 
+          
+          <path d="M10 20 L0 0" fill="none" stroke="black" stroke-width="1.5"></path>
+        `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)
+        lineWrapEl.appendChild(arrow)
+        // arrow section
+        const y1: number = 0
+        const y2: number = 100
+        const x1 = 15
+        const x2 = 15
+        
+        const gradient = y2 - y1 / x2 - x1
+        const theta = Math.atan(gradient) * 180 / Math.PI
+        // arrow.style.transform = `translate(-50%, -100%) rotate(180deg)`
+        
+        
+
+
         const lineCoordinates: lineCordsType  = {"M": startCoords, "L": [[15, 100]]}
         defaultCoords["lineCoordinates"] = lineCoordinates
         const coordString = LineCoordinateToPathString(lineCoordinates)
