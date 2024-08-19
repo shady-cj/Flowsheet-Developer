@@ -308,7 +308,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
         const path = obj.querySelector("svg.line-svg path")
-        const arrow = obj.querySelector("svg.arrow-indicator") as SVGElement
+        const arrowContainer = obj.querySelector("svg.arrow-indicator") as SVGElement
+        const arrow = arrowContainer.querySelector("polygon") as SVGPolygonElement
         const offsetLineX = obj.offsetLeft
         const offsetLineY = obj.offsetTop
         const lineData = objectData.current[obj.id].properties.coordinates
@@ -340,6 +341,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap - (extrasY/2)).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
             point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
+            arrowContainer.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
             path?.setAttribute("d", pathDString)
 
 
@@ -376,6 +378,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
             point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
+            arrowContainer.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
             path?.setAttribute("d", pathDString)
 
 
@@ -414,6 +417,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             const pathDString = LineCoordinateToPathString(coordinates)
             
             point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
+            arrowContainer.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
             path?.setAttribute("d", pathDString)
 
 
@@ -451,6 +455,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap - (extrasX / 2)).toFixed(6))
             const pathDString = LineCoordinateToPathString(coordinates)
             point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
+            arrowContainer.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
             path?.setAttribute("d", pathDString)
 
 
@@ -504,10 +509,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
           path!.setAttribute("stroke", "#000")
-          arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#000"))
+          arrow.setAttribute("fill", "#000")
         } else {
           path!.setAttribute("stroke", "#D1D0CE")
-          arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#D1D0CE"))
+          arrow.setAttribute("fill", "#D1D0CE")
 
         }
       }
@@ -535,7 +540,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
         const path = obj.querySelector("svg.line-svg path")
-        const arrow = obj.querySelector("svg.arrow-indicator") as SVGElement
+        const arrow = obj.querySelector("svg.arrow-indicator polygon") as SVGPolygonElement
         const offsetLineX = obj.offsetLeft
         const offsetLineY = obj.offsetTop
         const lineData = objectData.current[obj.id].properties.coordinates
@@ -877,11 +882,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
           path!.setAttribute("stroke", "#000")
-          arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#000"))
+          arrow.setAttribute("fill", "#000")
           
         } else {
           path!.setAttribute("stroke", "#D1D0CE")
-          arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#D1D0CE"))
+          arrow.setAttribute("fill", "#D1D0CE")
         }
       }
     }, [objectData])
@@ -902,7 +907,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
           
           const path = line.querySelector("svg.line-svg path")
-          const arrow = line.querySelector("svg.arrow-indicator") as SVGElement
+          const arrow = line.querySelector("svg.arrow-indicator polygon") as SVGPolygonElement
           const offsetLineX = (line as HTMLElement).offsetLeft
           const offsetLineY = (line as HTMLElement).offsetTop
           const lineData = objectData.current[line.id].properties.coordinates
@@ -1249,10 +1254,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
           if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
             path!.setAttribute("stroke", "#000")
-            arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#000"))
+            arrow.setAttribute("fill", "#000")
           } else {
             path!.setAttribute("stroke", "#D1D0CE")
-            arrow.querySelectorAll("path").forEach(iPath => iPath.setAttribute("stroke", "#D1D0CE"))
+            arrow.setAttribute("fill", "#D1D0CE")
           }
       
         })
@@ -1314,16 +1319,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
     }
 
     const getTheta = (x1: number, x2: number, y1: number, y2: number) => {
-      console.log("x1", x1)
-      console.log("x2", x2)
-      console.log("y1", y1)
-      console.log("y2", y2)
+      let orientation = 90
+      if (x2 < x1) orientation = 270
       const gradient = (y2 - y1) / (x2 - x1)
-      console.log("gradient", gradient)
       const theta = (Math.atan(gradient) * 180 / Math.PI)
-      console.log("theta", theta)
       
-      return theta - 90
+      return theta - orientation
     }
 
     const DrawPoint = useCallback((e: MouseEvent, point: HTMLElement) => {
@@ -1735,12 +1736,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         const point1 = document.createElement("span") // Starting point which doesn't change
         const point2 = document.createElement("span")
-        // const arrowWrapper = document.createElement("span")
         const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-
-
-        /// test
-        // arrowWrapper.classList.add("arrow-wrapper")
         
         arrow.setAttribute("height", "20")
         arrow.setAttribute("width", "20")
@@ -1764,10 +1760,13 @@ const Canvas = ({params}: {params: {id: string}}) => {
         arrow.style.left = `${startCoords[0]}px`
         
 
-        arrow.innerHTML = `
-          <path d="M10 20 L18.5 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path> 
+        // arrow.innerHTML = `
+        //   <path d="M10 20 L20 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path> 
           
-          <path d="M8.5 20 L0 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
+        //   <path d="M10 20 L0 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
+        // `
+        arrow.innerHTML = `
+          <polygon points="10,22 20,0 0,0" fill="#D1D0CE" stroke="transparent" strokeWidth="1.5" />
         `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)
