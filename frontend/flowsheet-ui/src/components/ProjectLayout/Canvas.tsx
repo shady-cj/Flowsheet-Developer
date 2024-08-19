@@ -1314,9 +1314,14 @@ const Canvas = ({params}: {params: {id: string}}) => {
     }
 
     const getTheta = (x1: number, x2: number, y1: number, y2: number) => {
-      const gradient = y2 - y1 / x2 - x1
+      console.log("x1", x1)
+      console.log("x2", x2)
+      console.log("y1", y1)
+      console.log("y2", y2)
+      const gradient = (y2 - y1) / (x2 - x1)
+      console.log("gradient", gradient)
       const theta = (Math.atan(gradient) * 180 / Math.PI)
-      console.log("theta before", theta)
+      console.log("theta", theta)
       
       return theta - 90
     }
@@ -1363,7 +1368,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       }
       
       const theta = getTheta(x1, pointX, y1, pointY)
-      console.log("theta", theta)
+      // console.log("theta", theta)
       arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
 
       // 
@@ -1730,7 +1735,13 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         const point1 = document.createElement("span") // Starting point which doesn't change
         const point2 = document.createElement("span")
+        // const arrowWrapper = document.createElement("span")
         const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+
+
+        /// test
+        // arrowWrapper.classList.add("arrow-wrapper")
+        
         arrow.setAttribute("height", "20")
         arrow.setAttribute("width", "20")
         arrow.setAttribute("xmlns", "http://www.w3.org/2000/svg")
@@ -1754,9 +1765,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
         
 
         arrow.innerHTML = `
-          <path d="M10 20 L20 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path> 
+          <path d="M10 20 L18.5 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path> 
           
-          <path d="M10 20 L0 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
+          <path d="M8.5 20 L0 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
         `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)
