@@ -8,6 +8,16 @@ import { ObjectCreator } from "../Objects/ObjectCreator";
 import { renderToStaticMarkup } from "react-dom/server"
 
 type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
+
+type pointStoreType = {
+  [key: string]: [
+    {
+      prev: string | null, 
+      next: string | null
+    }, 
+    ["M"] | ["L", number, number?]
+  ]
+}
 // export type formStateObjectType = {
 //   label: string
 //   description: string
@@ -15,6 +25,7 @@ type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" 
 //   set?: number
 //   apertureSize?: number
 export type formFieldsType = {type:string, name: string, verboseName: string, htmlType: string, placeholder?: string, options?: {name: string, value:string}[]}[]
+
 
 
 
@@ -42,7 +53,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
-    const pointStore = useRef<{[key: string]: [string | null, ["M"]] | [string, ["L", number, number?]]}>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
+    const pointStore = useRef<pointStoreType>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
     const currentActivePoint = useRef<HTMLSpanElement | null>(null)
     const onMouseDown = useRef(false)
     const [objectFormPosition, setObjectFormPosition] = useState<{x: number, y: number}>({x: 20, y: 20})
@@ -294,7 +305,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           continue
 
         const pointMetadata = pointStore.current[point.id]
-        if (pointMetadata[0] === "M") continue // Not likely possible but we still check
+        if (pointMetadata[1][0] === "M") continue // Not likely possible but we still check
         if (pointMetadata.length > 2) continue // Must be the last point
 
 
@@ -1334,14 +1345,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if ((e.clientX - containerX) < 7 || (e.clientY - containerY) < 7) {
         return
       }
+      let isLast = false // if point is the last point
       const object = currentObject.current
       const objectX = object.getBoundingClientRect().x
       const objectY = object.getBoundingClientRect().y
       const pointX = parseFloat((e.clientX - objectX).toFixed(6))
       const pointY = parseFloat((e.clientY - objectY).toFixed(6))
-      const pointDetails = pointStore.current[point.id][1] // point here is expected to be ["L", :any number]
-      const prevPoint = pointStore.current[point.id][0] as string
-      const prevPointDetails = pointStore.current[prevPoint][1]
+      const pointID = pointStore.current[point.id]
+      const pointDetails = pointID[1] // point here is expected to be ["L", :any number]
+     
       const objectDetails = objectData.current[object.id].properties.coordinates
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
       point.style.left = `${pointX}px`
@@ -1352,24 +1364,49 @@ const Canvas = ({params}: {params: {id: string}}) => {
       // arrow
       const arrow = object.querySelector("svg.arrow-indicator")! as SVGElement
 
-
+      let otherPoint: string, otherPointDetails: ["M"] | ["L", number, number?]
      
-      if (pointDetails.length < 3) {
+      if (pointDetails.length < 3 && pointID[0].next === null) {
+        isLast = true
         arrow.style.left = `${pointX}px`
         arrow.style.top = `${pointY}px`
-        // arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
-      }
-      // console.log("prevpoint details", prevPointDetails, prevPoint)
-      let x1: number, y1: number;
-
-      if (prevPointDetails[0] === "M") {
-        [x1, y1] = objectDetails.lineCoordinates![prevPointDetails[0]] as [number, number]
+        otherPoint = pointID[0].prev as string
+        otherPointDetails = pointStore.current[otherPoint][1]
       } else {
-        [x1, y1] = objectDetails.lineCoordinates![prevPointDetails[0]][prevPointDetails[1]!] as [number, number]
+        if (pointID[0].next) {
+          otherPoint = pointID[0].next
+          const otherPointID = pointStore.current[otherPoint]
+          otherPointDetails = otherPointID[1]
+          if (!(otherPointID[0].next === null && otherPointDetails.length < 3)) {
+            return;
+          }
+        } else return;
+      }
+
+      
+      // console.log("prevpoint details", prevPointDetails, prevPoint)
+      let x1: number, y1: number, x2: number, y2: number;
+
+      
+      
+
+      if (otherPointDetails[0] === "M") {
+        [x1, y1] = objectDetails.lineCoordinates![otherPointDetails[0]] as [number, number]
+      } else {
+        [x1, y1] = objectDetails.lineCoordinates![otherPointDetails[0]][otherPointDetails[1]!] as [number, number]
+      }
+
+      if (isLast) {
+        x2 = pointX
+        y2 = pointY
+      } else {
+        x2 = x1
+        y2 = y1
+        x1 = pointX
+        y1 = pointY
       }
       
-      const theta = getTheta(x1, pointX, y1, pointY)
-      // console.log("theta", theta)
+      const theta = getTheta(x1, x2, y1, y2)
       arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
 
       // 
@@ -1478,9 +1515,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
         // update the pointStore.current for point.id to show there is a third point
 
         pointStore.current[point.id][1][2] = pointDetails[1]! + 1
+        
+        // Update the next uid of the current point.id to newPointUid
+        pointStore.current[point.id][0].next = newPointUid
 
         // create a new pointStore.current for  newPoint
-        pointStore.current[newPointUid] = [point.id, ["L", pointStore.current[point.id][1][2]!]]
+        pointStore.current[newPointUid] = [{prev: point.id, next: null}, ["L", pointStore.current[point.id][1][2]!]]
 
         // update line coordinates
         const newPointDetails = pointStore.current[newPointUid][1]
@@ -1581,11 +1621,29 @@ const Canvas = ({params}: {params: {id: string}}) => {
           const svg = newEl.querySelector("svg.line-svg")!
           svg.setAttribute("width", "30")
           svg.setAttribute("height", "30")
+
+
           const path = svg.querySelector("path")
-          if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0)
+          const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          arrow.setAttribute("height", "20")
+          arrow.setAttribute("width", "20")
+          arrow.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+          arrow.classList.add("arrow-indicator")
+          
+          if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0) {
+            arrow.innerHTML = `
+              <polygon points="10,22 20,0 0,0" fill="#000" stroke="transparent" strokeWidth="1.5" />
+            `
             path!.setAttribute("stroke", "#000")
-          else
+          }
+           
+          else {
+            arrow.innerHTML = `
+              <polygon points="10,22 20,0 0,0" fill="#D1D0CE" stroke="transparent" strokeWidth="1.5" />
+            `
             path!.setAttribute("stroke", "#D1D0CE")
+          }
+            
           path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
           // path!.addEventListener("mouseover", (e)=> console.log("hover"))
           const pointAnchorUid = "point-"+crypto.randomUUID()
@@ -1598,13 +1656,14 @@ const Canvas = ({params}: {params: {id: string}}) => {
           pointAnchor.classList.add("point-indicators")
           pointAnchor.classList.add("hide-indicator")
           pointAnchor.setAttribute("id", pointAnchorUid)
-          pointStore.current[pointAnchorUid] = [null, ["M"]]
+          pointStore.current[pointAnchorUid] = [{prev: null, next: null}, ["M"]]
           pointAnchor.style.top = `${data.properties.coordinates.lineCoordinates!.M[1]}px`
           pointAnchor.style.left = `${data.properties.coordinates.lineCoordinates!.M[0]}px`
           lineWrapEl.appendChild(pointAnchor)
-          let prevPointUid = pointAnchorUid;
           const movablePoints = data.properties.coordinates.lineCoordinates!.L
-          
+          let prevPointUid = pointAnchorUid;
+
+
           for (let pointIndex = 0; pointIndex < movablePoints.length; pointIndex++) {
             const newPoint = document.createElement("span")
             const newPointUid = "point-"+crypto.randomUUID()
@@ -1615,18 +1674,44 @@ const Canvas = ({params}: {params: {id: string}}) => {
             newPoint.addEventListener("mouseup", handleMouseUp)
             newPoint.addEventListener("dblclick", e => createMultiplePoint(e, newPoint))
             if (pointIndex === movablePoints.length - 1)
-              pointStore.current[newPointUid] = [prevPointUid, ["L", pointIndex]]
+              pointStore.current[newPointUid] = [{prev: prevPointUid, next: null}, ["L", pointIndex]]
             else
-              pointStore.current[newPointUid] = [prevPointUid, ["L", pointIndex, pointIndex + 1]]
+              pointStore.current[newPointUid] = [{prev: prevPointUid, next: null}, ["L", pointIndex, pointIndex + 1]]
+
+            // update the prevPointUid next property to point to the new point (newPointUid)
+            pointStore.current[prevPointUid][0].next = newPointUid
             newPoint.style.left = `${movablePoints[pointIndex][0]}px`
             newPoint.style.top = `${movablePoints[pointIndex][1]}px`
             lineWrapEl.appendChild(newPoint)
             prevPointUid = newPointUid
 
           }
-          const coordString = LineCoordinateToPathString(data.properties.coordinates.lineCoordinates!)
+
+          const objectDetails = data.properties.coordinates
+         
+          const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
           path?.setAttribute("d", coordString)
+
+          let x1: number, y1: number, x2: number, y2: number;
+          const pointID = pointStore.current[prevPointUid]
+          const pointDetails = pointID[1]
+          const prevPointDetails = pointStore.current[pointID[0].prev as string][1]
+
+          if (prevPointDetails[0] === "M") {
+            [x1, y1] = objectDetails.lineCoordinates![prevPointDetails[0]] as [number, number]
+          } else {
+            [x1, y1] = objectDetails.lineCoordinates![prevPointDetails[0]][prevPointDetails[1]!] as [number, number]
+          }
+          [x2, y2] = objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] as [number, number]
+          arrow.style.top = `${y2}px`
+          arrow.style.left = `${x2}px`
           
+          
+          const theta = getTheta(x1, x2, y1, y2)
+
+          arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
+          lineWrapEl.appendChild(arrow)
+
           
         }else {
           newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
@@ -1770,7 +1855,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)
-        lineWrapEl.appendChild(arrow)
+     
         // arrow section
         const y1: number = 0
         const y2: number = 100
@@ -1778,7 +1863,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const x2 = 15
         const theta = getTheta(x1, x2, y1, y2)
         arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
-        
+
+        lineWrapEl.appendChild(arrow)
         
 
 
@@ -1786,8 +1872,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
         defaultCoords["lineCoordinates"] = lineCoordinates
         const coordString = LineCoordinateToPathString(lineCoordinates)
         path?.setAttribute("d", coordString)
-        pointStore.current[point1Uid] = [null, ["M"]]
-        pointStore.current[point2Uid] = [point1Uid, ["L", 0]]
+        pointStore.current[point1Uid] = [{prev: null, next: point2Uid}, ["M"]]
+        pointStore.current[point2Uid] = [{prev: point1Uid, next: null}, ["L", 0]]
         
       }else {
         newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
