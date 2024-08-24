@@ -1632,14 +1632,14 @@ const Canvas = ({params}: {params: {id: string}}) => {
           
           if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0) {
             arrow.innerHTML = `
-              <polygon points="10,22 20,0 0,0" fill="#000" stroke="transparent" strokeWidth="1.5" />
+              <polygon points="10,21 20,10 10,13 0,10" fill="#000" stroke="transparent" strokeWidth="1.5" />
             `
             path!.setAttribute("stroke", "#000")
           }
            
           else {
             arrow.innerHTML = `
-              <polygon points="10,22 20,0 0,0" fill="#D1D0CE" stroke="transparent" strokeWidth="1.5" />
+              <polygon points="10,21 20,10 10,13 0,10" fill="#D1D0CE" stroke="transparent" strokeWidth="1.5" />
             `
             path!.setAttribute("stroke", "#D1D0CE")
           }
@@ -1846,12 +1846,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
         
 
         // arrow.innerHTML = `
-        //   <path d="M10 20 L20 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path> 
+        //   <path d="M10 20 L20 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
           
         //   <path d="M10 20 L0 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
         // `
         arrow.innerHTML = `
-          <polygon points="10,22 20,0 0,0" fill="#D1D0CE" stroke="transparent" strokeWidth="1.5" />
+          <polygon points="10,21 20,10 10,13 0,10" fill="#D1D0CE" stroke="transparent" strokeWidth="1.5" />
         `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)
@@ -1863,7 +1863,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const x2 = 15
         const theta = getTheta(x1, x2, y1, y2)
         arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
-
         lineWrapEl.appendChild(arrow)
         
 
