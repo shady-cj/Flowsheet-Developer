@@ -101,7 +101,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if (formState!.oreGrade) {
         objectData.current[object.id].properties.oreGrade = formState!.oreGrade
       }
-       
     }
 
     const handleFormState = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -294,16 +293,76 @@ const Canvas = ({params}: {params: {id: string}}) => {
     }
 
 
+    const checkAndSetConnection = useCallback((type: "from" | "to", lineId: string, shapeId: string) => {
+      // Check and validate connection (ore size, aperture size, gape, set)
+      // Update the ore quantity.
+      const line = objectData.current[lineId]
+      const activeObject = objectData.current[shapeId]
+
+
+      if (type === "from") {
+        const nextObjectId = line.properties.nextObject[0]
+        if (!nextObjectId) return true
+        const nextObject = objectData.current[nextObjectId]
+
+        if (nextObject.properties.gape || nextObject.properties.aperture) {
+          if (!activeObject.properties.maxOreSize) return false
+          const feedSize = parseFloat(activeObject.properties.maxOreSize)
+          if (nextObject.properties.gape) {
+            const gape = parseFloat(nextObject.properties.gape)
+            if ((0.8 * gape) >= feedSize) {
+              nextObject.properties.maxOreSize = nextObject.properties.set
+              return true
+            }
+            return false
+          } else if (nextObject.properties.aperture) {
+            const apertureSize = parseFloat(nextObject.properties.aperture)
+            if (feedSize <= apertureSize) {
+              nextObject.properties.maxOreSize = nextObject.properties.aperture
+              return true
+            }
+            return false
+          }
+        }
+        return true
+      }
+      if (type === "to") {
+        const prevObjectId = line.properties.prevObject[0]
+        if (!prevObjectId) return true
+        const prevObject = objectData.current[prevObjectId]
+        if (activeObject.properties.gape || activeObject.properties.aperture) {
+          if (!prevObject.properties.maxOreSize) return false
+          const feedSize = parseFloat(prevObject.properties.maxOreSize)
+          if (activeObject.properties.gape) {
+            const gape = parseFloat(activeObject.properties.gape)
+            if ((0.8 * gape) >= feedSize) {
+              activeObject.properties.maxOreSize = activeObject.properties.set
+              return true
+            }
+            return false
+          } else if(activeObject.properties.aperture) {
+            const apertureSize = parseFloat(activeObject.properties.aperture)
+            if (feedSize <= apertureSize) {
+              activeObject.properties.maxOreSize = activeObject.properties.aperture
+              return true
+            }
+            return false
+          }
+        }
+        return true
+      }
+
+    }, [objectData])
 
     const DrawLineToShape = useCallback((obj: HTMLElement, point: HTMLSpanElement) => {
       for (const shapeId in objectData.current) {
-        if (obj.id === shapeId) 
+        if (obj.id === shapeId)
           continue
         const shape = document.getElementById(shapeId) as HTMLElement;
         if (!shape) continue
         if (shape.getAttribute("data-variant") === "text"  || shape.getAttribute("data-variant") === "line")
           continue
-
+        
         const pointMetadata = pointStore.current[point.id]
         if (pointMetadata[1][0] === "M") continue // Not likely possible but we still check
         if (pointMetadata.length > 2) continue // Must be the last point
@@ -345,7 +404,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
         // scenario 1: Drawing from the top:
         if (lYAxis === shapeOffsetY || Math.abs(lYAxis - shapeOffsetY) <= 10) {
 
-          if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
+          if ((lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId)) {
+            
             isConnected = true
             // Ensure the point is within the box range on x axis
             const pointGap = shapeOffsetY - lYAxis           
@@ -360,7 +420,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
             objectData.current[obj.id].properties.nextObject[0] = shapeId
 
             const prevObject = objectData.current[obj.id].properties.prevObject[0]
+
             // for (const prevObj of prevObject ) {
+
 
             // }
             if (prevObject && objectData.current[prevObject]) {
@@ -380,9 +442,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
           }
         }
 
+        
         // scenario 2: Drawing from the bottom
+
         if (lYAxis === shapeOffsetYBottom || Math.abs(lYAxis - shapeOffsetYBottom) <= 10) {
-          if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
+          if ((lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId)) {
             isConnected = true
             // Ensure the point is within the box range on x axis
             const pointGap = shapeOffsetYBottom - lYAxis
@@ -420,7 +484,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         // scenario 3: Drawing from the right
 
         if (lXAxis === shapeOffsetXRight || Math.abs(lXAxis - shapeOffsetXRight) <= 10) {
-          if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+          if ((lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId)) {
             isConnected = true
             // Ensure the point is within the box range on y axis
             const pointGap = shapeOffsetXRight - lXAxis
@@ -459,7 +523,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         // scenario 4: Drawing from the left
 
         if (lXAxis === shapeOffsetX || Math.abs(lXAxis - shapeOffsetX) <= 10) {
-          if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+          if ((lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId)) {
             isConnected = true
             // Ensure the point is within the box range on y axis
             const pointGap = shapeOffsetX - lXAxis
@@ -527,7 +591,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         }
       }
-    }, [objectData])
+    }, [objectData, checkAndSetConnection])
 
 
 
@@ -572,7 +636,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (shapeOffsetYBottom === mYAxis || Math.abs(shapeOffsetYBottom - mYAxis) < 10) {
           // Dragging the line in from the bottom (M coordinates)
-          if (mXAxis >= shapeOffsetX && mXAxis <= shapeOffsetXRight) {
+          if ((mXAxis >= shapeOffsetX && mXAxis <= shapeOffsetXRight) && checkAndSetConnection("from", obj.id, shapeId)) {
             // console.log("Dragging the line in from the bottom (M coordinates)")
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
@@ -609,7 +673,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (shapeOffsetY === lYAxis || Math.abs(shapeOffsetY - lYAxis) < 10) {
           // Dragging the line in from the top (L coordinates)
-          if (lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) {
+          if ((lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId)) {
             // console.log("Dragging the line in from the top (L coordinates)")
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
@@ -653,7 +717,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (shapeOffsetX === mXAxis || Math.abs(shapeOffsetX - mXAxis) < 10) {
           // Dragging the line in from the left (for M coordinates)
-          if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
+          if ((mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) && checkAndSetConnection("from", obj.id, shapeId)) {
             // console.log("Dragging the line in from the left (for M coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
@@ -691,7 +755,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (shapeOffsetXRight === mXAxis || Math.abs(shapeOffsetXRight - mXAxis) < 10) {
           // Dragging the line in from the right (for M coordinates)
-          if (mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) {
+          if ((mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) && checkAndSetConnection("from", obj.id, shapeId)) {
             // console.log("Dragging the line in from the right (for M coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
@@ -727,7 +791,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (shapeOffsetX === lXAxis || Math.abs(shapeOffsetX - lXAxis) < 10) {
           // Dragging the line in from the left (for L coordinates)
-          if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+          if ((lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId)) {
             // console.log("Dragging the line in from the left (for L coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
@@ -767,7 +831,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (shapeOffsetXRight === lXAxis || Math.abs(shapeOffsetXRight - lXAxis) < 10) {
           // Dragging the line in from the right (for L coordinates)
-          if (lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) {
+          if ((lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId)) {
             // console.log("Dragging the line in from the right (for L coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
@@ -900,7 +964,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           arrow.setAttribute("fill", "#D1D0CE")
         }
       }
-    }, [objectData])
+    }, [objectData, checkAndSetConnection])
 
 
     const ShapeToLine = useCallback((obj: HTMLElement) => {
@@ -937,7 +1001,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
          
           if (objectOffsetYBottom === mYAxis || Math.abs(objectOffsetYBottom - mYAxis) < 10) {
             // Dragging the object in from the top (M coordinates)
-            if (mXAxis >= objectOffsetX && mXAxis <= objectOffsetXRight) {
+            if ((mXAxis >= objectOffsetX && mXAxis <= objectOffsetXRight) && checkAndSetConnection("from", line.id, obj.id)) {
               isConnected = true
               if (objectData.current[line.id].properties.prevObject[0])
                 return
@@ -977,7 +1041,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
           if (objectOffsetY === lYAxis || Math.abs(objectOffsetY - lYAxis) < 10) {
             // Dragging the object in from bottom (L coordinates)
-            if (lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) {
+            if ((lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id)) {
               isConnected = true
               if (objectData.current[line.id].properties.nextObject[0])
                 return
@@ -1019,7 +1083,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
          
           if (objectOffsetXRight === mXAxis || Math.abs(objectOffsetXRight - mXAxis) < 10) {
             // Dragging the object in from the left (for M coordinates)
-            if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
+            if ((mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) && checkAndSetConnection("from", line.id, obj.id)) {
               isConnected = true
               if (objectData.current[line.id].properties.prevObject[0])
                 return
@@ -1058,7 +1122,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           
           if (objectOffsetX === mXAxis || Math.abs(objectOffsetX - mXAxis) < 10) {
             // Dragging the object in from the right (for M coordinates)
-            if (mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) {
+            if ((mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) && checkAndSetConnection("from", line.id, obj.id)) {
 
               isConnected = true
               if (objectData.current[line.id].properties.prevObject[0])
@@ -1096,7 +1160,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
           if (objectOffsetXRight === lXAxis || Math.abs(objectOffsetXRight - lXAxis) < 10) {
             // Dragging the object in from the left (for L coordinates)
-            if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
+            if ((lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id)) {
               isConnected = true
               if (objectData.current[line.id].properties.nextObject[0])
                 return
@@ -1133,7 +1197,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           }
           if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
             // Dragging the object in from the right (for L coordinates)
-            if (lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) {
+            if ((lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id)) {
               isConnected = true
               if (objectData.current[line.id].properties.nextObject[0])
                 return
@@ -1272,7 +1336,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           }
       
         })
-    }, [objectData])
+    }, [objectData, checkAndSetConnection])
 
 
     const LineConnector = useCallback((obj: HTMLElement, point?: HTMLSpanElement) => {
@@ -1940,11 +2004,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
       // console.log(objects)
       const invokeLoadObjects = async () => {
         const loadedObj = await loadObjects(params.id)
-        if (Object.keys(loadedObj).length > 0) {
-          objectData.current = loadedObj!
-          hasInstance.current = true
-          loadObjectToCanvas()
+        if (loadedObj.error) {
+          alert(loadedObj.error)
+          // window.reload()
+          return;
         }
+    
+        objectData.current = loadedObj as objectDataType
+        hasInstance.current = true
+        loadObjectToCanvas()
         setCanvasLoading(false)
       }
       invokeLoadObjects()

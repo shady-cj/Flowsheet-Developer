@@ -138,12 +138,12 @@ export async function loadObjects(projectId: string) {
             return objects
         } else {
             console.log(result)
-            return {}
+            return {error: "error occured while loading data"}
 
         }
 
     } catch(err) {
         console.log(err)
-        return {}
+        return {error: "error occured while loading data"}
     }
 }
