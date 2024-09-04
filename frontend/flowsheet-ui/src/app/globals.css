@@ -81,3 +81,15 @@ body {
 .object-form {
   font-size: attr(data-position-top)
 }
+
+.object-details-tooltip {
+  position: absolute;
+  padding: 0.5rem;
+  white-space: nowrap;
+  background-color:aqua;
+  z-index: 50;
+  visibility: hidden;
+}
+.object-details-tooltip > p {
+  font-size: 0.6rem;
+}

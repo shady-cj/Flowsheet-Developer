@@ -305,7 +305,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (!nextObjectId) return true
         const nextObject = objectData.current[nextObjectId]
 
-        if (nextObject.properties.gape || nextObject.properties.aperture) {
+        if (nextObject?.properties.gape || nextObject?.properties.aperture) {
           if (!activeObject.properties.maxOreSize) return false
           const feedSize = parseFloat(activeObject.properties.maxOreSize)
           if (nextObject.properties.gape) {
@@ -330,8 +330,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const prevObjectId = line.properties.prevObject[0]
         if (!prevObjectId) return true
         const prevObject = objectData.current[prevObjectId]
+        if (!prevObject) return true
         if (activeObject.properties.gape || activeObject.properties.aperture) {
           if (!prevObject.properties.maxOreSize) return false
+          
           const feedSize = parseFloat(prevObject.properties.maxOreSize)
           if (activeObject.properties.gape) {
             const gape = parseFloat(activeObject.properties.gape)
@@ -1633,6 +1635,36 @@ const Canvas = ({params}: {params: {id: string}}) => {
     }, [objectData])
   
 
+
+
+    const showObjectDetailsToolTip = (element: HTMLDivElement, tooltip: HTMLDivElement, dataId: string) => {
+     
+      // console.log(element.style.top, element.style.left, element.style.width)
+      const data = objectData.current[dataId]
+      const elementWidth = element.getBoundingClientRect().width
+      const elementHeight = element.getBoundingClientRect().height
+      tooltip.style.left = `${elementWidth}px`
+      tooltip.style.top = `-${elementHeight}px`
+      tooltip.style.visibility = "visible"
+      
+      tooltip.innerHTML = `
+        <p><strong>Label:</strong> ${data.label} </p>
+        <p><strong>Description:</strong> ${data.description}</p>
+        ${data.properties.oreGrade ? `<p><strong>Ore Grade:</strong> ${data.properties.oreGrade}</p>`:''}
+
+        ${data.properties.oreQuantity ? `<p><strong>Ore Quantity:</strong> ${data.properties.oreQuantity} ${parseFloat(data.properties.oreQuantity) > 1 ? "tons": "ton"}</p>`:''}
+        ${data.properties.maxOreSize ? `<p><strong>Max. Ore Size:</strong> ${data.properties.maxOreSize}mm</p>`:''}
+        ${data.properties.gape ? `<p><strong>Gape:</strong> ${data.properties.gape}mm</p>`:''}
+        ${data.properties.set ? `<p><strong>Set:</strong> ${data.properties.set}mm</p>`:''}
+        ${data.properties.aperture ? `<p><strong>Aperture:</strong> ${data.properties.aperture}mm</p>`:''}
+        ${data.properties.crusherType ? `<p><strong>Crusher Type:</strong> ${data.properties.crusherType}</p>`:''}
+      `
+
+      
+    }
+
+
+
     
     const loadObjectToCanvas = useCallback(() => {
       for (const dataId in objectData.current) {
@@ -1709,6 +1741,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           }
             
           path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
+       
           // path!.addEventListener("mouseover", (e)=> console.log("hover"))
           const pointAnchorUid = "point-"+crypto.randomUUID()
           // const point2Uid = 
@@ -1804,6 +1837,17 @@ const Canvas = ({params}: {params: {id: string}}) => {
         objectLabels.current.add(data.label)
         if (data.properties.crusherType === "primary")
           primaryCrusherInUse.current = true
+
+        if (elementObjectName !== "Text") {
+          const tooltipWrapper = document.createElement("div")
+          tooltipWrapper.classList.add('object-details-tooltip')
+          newEl.appendChild(tooltipWrapper)
+          newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl, tooltipWrapper, dataId))
+          newEl.addEventListener("mouseleave", (e)=> {
+            tooltipWrapper.style.visibility = "hidden"
+          })
+        }
+
       }
     }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData])
 
@@ -1986,7 +2030,16 @@ const Canvas = ({params}: {params: {id: string}}) => {
       newEl.addEventListener("mouseup", handleMouseUp);
       canvasRef.current.appendChild(newEl)
 
-      if (elementObjectName !== "Text") showObjectForm(x, y, elementObjectType, auxilliaryType)
+      if (elementObjectName !== "Text") {
+        showObjectForm(x, y, elementObjectType, auxilliaryType)
+        const tooltipWrapper = document.createElement("div")
+        tooltipWrapper.classList.add('object-details-tooltip')
+        newEl.appendChild(tooltipWrapper)
+        newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl as HTMLDivElement, tooltipWrapper, uuid4))
+        newEl.addEventListener("mouseleave", (e)=> {
+          tooltipWrapper.style.visibility = "hidden"
+        })
+      }
 
       currentObject.current = newEl
      
