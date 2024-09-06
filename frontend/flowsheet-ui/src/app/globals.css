@@ -72,6 +72,14 @@ body {
   /* border:1px solid black; */
   
 }
+.show-tooltip {
+  visibility: visible;
+  left: 120%;
+  top: -5%;
+}
+.hide-tooltip {
+  visibility: hidden;
+}
 
 
 
@@ -88,7 +96,6 @@ body {
   white-space: nowrap;
   background-color:aqua;
   z-index: 50;
-  visibility: hidden;
 }
 .object-details-tooltip > p {
   font-size: 0.6rem;

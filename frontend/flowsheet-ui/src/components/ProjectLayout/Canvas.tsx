@@ -1551,6 +1551,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if (onMouseDown.current) {
         handleMouseUpUtil()
         console.log(objectData.current)
+        const tooltip = currentObject.current?.querySelector(".object-details-tooltip")
+
+        tooltip?.classList.remove("show-tooltip")
+        tooltip?.classList.add("hide-tooltip")
+        
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
       
@@ -1637,15 +1642,21 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
 
-    const showObjectDetailsToolTip = (element: HTMLDivElement, tooltip: HTMLDivElement, dataId: string) => {
+    const showObjectDetailsToolTip = useCallback((element: HTMLDivElement, tooltip: HTMLDivElement, dataId: string) => {
      
       // console.log(element.style.top, element.style.left, element.style.width)
       const data = objectData.current[dataId]
-      const elementWidth = element.getBoundingClientRect().width
-      const elementHeight = element.getBoundingClientRect().height
-      tooltip.style.left = `${elementWidth}px`
-      tooltip.style.top = `-${elementHeight}px`
-      tooltip.style.visibility = "visible"
+      console.log(currentObject.current, "current")
+  
+      if (element.id === currentObject.current?.id) { 
+        tooltip.classList.remove("show-tooltip")
+        tooltip.classList.add("hide-tooltip")
+      } else {
+        element.classList.add("current-object")
+        tooltip.classList.remove("hide-tooltip")
+        tooltip.classList.add("show-tooltip")
+      }
+      
       
       tooltip.innerHTML = `
         <p><strong>Label:</strong> ${data.label} </p>
@@ -1661,7 +1672,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       `
 
       
-    }
+    }, [objectData])
 
 
 
@@ -1841,15 +1852,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
         if (elementObjectName !== "Text") {
           const tooltipWrapper = document.createElement("div")
           tooltipWrapper.classList.add('object-details-tooltip')
+          tooltipWrapper.classList.add("hide-tooltip")
           newEl.appendChild(tooltipWrapper)
           newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl, tooltipWrapper, dataId))
           newEl.addEventListener("mouseleave", (e)=> {
-            tooltipWrapper.style.visibility = "hidden"
+            tooltipWrapper.classList.remove("show-tooltip")
+            tooltipWrapper.classList.add("hide-tooltip")
+            if (newEl.id !== currentObject.current?.id)
+              newEl.classList.remove("current-object")
           })
         }
 
       }
-    }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData])
+    }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip])
 
 
 
@@ -2037,7 +2052,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.appendChild(tooltipWrapper)
         newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl as HTMLDivElement, tooltipWrapper, uuid4))
         newEl.addEventListener("mouseleave", (e)=> {
-          tooltipWrapper.style.visibility = "hidden"
+          tooltipWrapper.classList.remove("show-tooltip")
+          tooltipWrapper.classList.add("hide-tooltip")
+          if (newEl.id !== currentObject.current?.id)
+            newEl.classList.remove("current-object")
         })
       }
 
