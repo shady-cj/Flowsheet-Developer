@@ -1499,8 +1499,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
     const handleDblClick = (e: MouseEvent, element: HTMLElement) => {
+      const parentElement = element.closest(".text-object-container") as HTMLDivElement
       element.setAttribute("contenteditable", "true")
-      element.style.border = "1px solid black"
+      parentElement.style.border = "1px solid #006644"
+      parentElement.querySelectorAll(".text-panel").forEach(el=>el.classList.add("text-panel-show"))
+
+      
     }
 
 
@@ -1630,15 +1634,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
     const handleInput = useCallback((e: KeyboardEvent) => {
       const element = e.target as HTMLElement
-
+      const parentElementContainer = element.closest(".text-object-container")!
+  
       if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
         element.remove()
         // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
-        delete objectData.current[element.id]
+        delete objectData.current[parentElementContainer.id]
       }
       
       if (element.textContent!.length > 0) element.classList.remove("placeholder-style")
-      else element.classList.add("placeholder-style")
+      else {
+        element.innerHTML = ""
+        element.classList.add("placeholder-style")
+      }
 
       
       
@@ -1703,23 +1711,29 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (elementObjectType === "Shape" && elementObjectName === "Text") {
           // newEl.style.zIndex = "5"
+
+          // defaultElementLabel = "Text"
+          const contentEditableDiv = document.createElement("div")
+          contentEditableDiv.setAttribute("tabindex", "-1")
           newEl.classList.remove('text-2xl')
-          newEl.setAttribute("data-variant", "text")
-          newEl.setAttribute("data-placeholder", "Text")
-          // newEl.classList.add("placeholder-style")
-          newEl.classList.add("shape-text-base-styles")
-          newEl.textContent = objectData.current[dataId].description
-          if (newEl.textContent!.length === 0)
-            newEl.classList.add("placeholder-style")
-          newEl.addEventListener("dblclick", (e) => handleDblClick(e, newEl))
-          newEl.addEventListener("focusout", ()=>{
-            newEl.removeAttribute("contenteditable")
-            newEl.style.color = "black"
+          newEl.innerHTML = ""
+          newEl.appendChild(contentEditableDiv)
+          contentEditableDiv.setAttribute("data-variant", "text")
+          contentEditableDiv.setAttribute("data-placeholder", "Text")
+          contentEditableDiv.classList.add("shape-text-base-styles")
+          contentEditableDiv.textContent = objectData.current[dataId].description
+          if (contentEditableDiv.textContent!.length === 0)
+            contentEditableDiv.classList.add("placeholder-style")
+          contentEditableDiv.addEventListener("dblclick", (e) => handleDblClick(e, contentEditableDiv))
+          contentEditableDiv.addEventListener("focusout", ()=>{
+            contentEditableDiv.removeAttribute("contenteditable")
+            contentEditableDiv.style.color = "#4D4D4D"
             newEl.style.border = "none"
-            if (newEl.textContent!.length > 0)
-              objectData.current[newEl.id].description = newEl.textContent!
+            newEl.querySelectorAll(".text-panel").forEach(el=>el.classList.remove("text-panel-show"))
+            if (contentEditableDiv.textContent!.length > 0)
+              objectData.current[newEl.id].description = contentEditableDiv.textContent!
           })
-          newEl.addEventListener("keyup", handleInput)
+          contentEditableDiv.addEventListener("keyup", handleInput)
         } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
           // Lines 
           // newEl.style.zIndex = "5"
@@ -1910,21 +1924,30 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if (elementObjectType === "Shape" && elementObjectName === "Text") {
         // newEl.style.zIndex = "5"
         defaultElementLabel = "Text"
+        const contentEditableDiv = document.createElement("div")
+        contentEditableDiv.setAttribute("tabindex", "-1")
         newEl.classList.remove('text-2xl')
-        newEl.setAttribute("data-variant", "text")
-        newEl.setAttribute("data-placeholder", "Text")
-        newEl.classList.add("placeholder-style")
-        newEl.classList.add("shape-text-base-styles")
-        newEl.textContent = ""
-        newEl.addEventListener("dblclick", (e) => handleDblClick(e, newEl))
-        newEl.addEventListener("focusout", ()=>{
-          newEl.removeAttribute("contenteditable")
-          newEl.style.color = "black"
+        newEl.innerHTML = `
+          <span class="text-panel text-panel-tl"></span>
+          <span class="text-panel text-panel-tr"></span>
+          <span class="text-panel text-panel-br"></span>
+          <span class="text-panel text-panel-bl"></span>
+        `
+        newEl.appendChild(contentEditableDiv)
+        contentEditableDiv.setAttribute("data-variant", "text")
+        contentEditableDiv.setAttribute("data-placeholder", "Text")
+        contentEditableDiv.classList.add("placeholder-style")
+        contentEditableDiv.classList.add("shape-text-base-styles")
+        contentEditableDiv.addEventListener("dblclick", (e) => handleDblClick(e, contentEditableDiv))
+        contentEditableDiv.addEventListener("focusout", ()=>{
+          contentEditableDiv.removeAttribute("contenteditable")
+          contentEditableDiv.style.color = "#4D4D4D"
           newEl.style.border = "none"
-          if (newEl.textContent!.length > 0)
-            objectData.current[newEl.id].description = newEl.textContent!
+          newEl.querySelectorAll(".text-panel").forEach(el=>el.classList.remove("text-panel-show"))
+          if (contentEditableDiv.textContent!.length > 0)
+            objectData.current[newEl.id].description = contentEditableDiv.textContent!
         })
-        newEl.addEventListener("keyup", handleInput)
+        contentEditableDiv.addEventListener("keyup", handleInput)
       } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
         // Lines 
         // newEl.style.zIndex = "5"

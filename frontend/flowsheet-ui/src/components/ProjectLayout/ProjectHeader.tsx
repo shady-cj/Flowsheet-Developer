@@ -22,11 +22,11 @@ const ProjectHeader = ({params}: {params: {id: string}}) => {
             </button>
         </nav>
         <div className="flex items-center gap-5">
-          <div className="bg-[#E381E3] font-semibold text-[#261A26] text-base w-10 h-10 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset;"}}>
+          <div className="bg-[#E381E3] font-semibold text-[#261A26] text-base w-10 h-10 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
           PE
           </div>
 
-          <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={htmlToImageConvert}>
+          <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={htmlToImageConvert} disabled={canvasLoading}>
             <Image width={16} height={16} src={exportImage} alt="export" quality={100} />
             Export </button>
         </div>

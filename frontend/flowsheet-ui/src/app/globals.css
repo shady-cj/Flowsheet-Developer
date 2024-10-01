@@ -53,13 +53,45 @@ body {
 .shape-text-base-styles {
   min-width: 3rem;
   max-width: 10rem;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1;
   padding: 0.2rem 0.1rem;
   outline: none;
-  min-height: 1.5rem;
+  min-height: 1.3rem;
+  display: inline-block;
+  color: #4D4D4D;
+}
+
+.text-panel {
+  position: absolute;
+  height: 0.5rem;
+  width: 0.5rem;
+  background-color: #006644;
+  display: none
+}
+
+.text-panel-show {
   display: inline-block;
 }
+.text-panel-tl {
+  transform: translate(-4px, -4px);
+}
+.text-panel-tr {
+  left: 100%;
+  transform: translate(-4px, -4px);
+}
+.text-panel-br {
+  left: 100%;
+  top: 100%;
+  transform: translate(-4px, -4px);
+}
+.text-panel-bl {
+  top: 100%;
+  transform: translate(-4px, -4px);
+}
+
+
+
 
 .point-indicators {
   display: inline-block;
