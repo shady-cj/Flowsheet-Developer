@@ -2,6 +2,12 @@
 import {createContext, useState, useRef, Dispatch, SetStateAction, MutableRefObject} from 'react'
 import { uploadObject } from '@/lib/actions/projectcanvas'
 // import { objectDataType } from '../ProjectLayout/Canvas'
+import { toPng } from 'html-to-image';
+
+
+
+
+
 
 export type lineCordsType = {
   M: [number, number], 
@@ -97,14 +103,17 @@ type contextType = {
   canvasLoading: boolean,
   objectData: MutableRefObject<objectDataType>,
   hasInstance: MutableRefObject<boolean>,
+  canvasRef: MutableRefObject<HTMLDivElement>
   setCanvasLoading: Dispatch<SetStateAction<boolean>>,
   saveObjectData: (paramsId: string)=>void
+  htmlToImageConvert: () =>void
 }
 
 export const ProjectContext = createContext<contextType>(null!)
 
 
 const ProjectProvider = ({children}: {children: React.ReactNode}) => {
+  const canvasRef = useRef<HTMLDivElement>(null!)
   const objectData = useRef<objectDataType>({})
   const [canvasLoading, setCanvasLoading] = useState(true)
   const hasInstance = useRef(false) // To check if the objectData has initially been created so it'll be updated instead of be recreated
@@ -116,10 +125,28 @@ const ProjectProvider = ({children}: {children: React.ReactNode}) => {
       hasInstance.current = true
     }
   }
+
+  /**
+ * 
+ * Test feature on saving html to image
+ */
+  const htmlToImageConvert = () => {
+  
+    toPng(canvasRef.current, { cacheBust: false, width: 700, height: 650, style: {background: "transparent"}})
+      .then((dataUrl) => {
+        const link = document.createElement("a");
+        link.download = "my-image-name.png";
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
   
 
   return (
-    <ProjectContext.Provider value={{canvasLoading, setCanvasLoading, saveObjectData, objectData, hasInstance}}>
+    <ProjectContext.Provider value={{canvasRef, canvasLoading, setCanvasLoading, saveObjectData, objectData, hasInstance, htmlToImageConvert}}>
       {children}
     </ProjectContext.Provider>
   )

@@ -1,17 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+
+html, body {
+  font-family: "Instrument Sans", sans-serif;
+  font-optical-sizing: auto;
+}
+
+
 
 
 body {
   background-color: #f0f8ff;
+ 
   /* color: #99cbf7f7; */
 }
+
+
 .font-size-default {
   font-size: clamp(0.7vw, 1rem, 4vw);
 }
+
+
+
 .landing-page-main {
   height: clamp(50rem, 70vh, 200rem)
+}
+
+.canvas-bg {
+  background-image: url('../assets/grid.png');
+  background-color: #F9FAFC;
+  background-position:  center;
+  background-repeat: repeat;
 }
 @media (min-width: 2000px) {
   .font-size-default {
@@ -72,23 +93,29 @@ body {
   /* border:1px solid black; */
   
 }
+
+
 .show-tooltip {
   visibility: visible;
   left: 120%;
   top: -5%;
 }
+
+
 .hide-tooltip {
   visibility: hidden;
 }
 
 
-
 .hide-indicator {
   visibility: hidden;
 }
+
+
 .object-form {
   font-size: attr(data-position-top)
 }
+
 
 .object-details-tooltip {
   position: absolute;
@@ -97,6 +124,14 @@ body {
   background-color:aqua;
   z-index: 50;
 }
+
+
 .object-details-tooltip > p {
   font-size: 0.6rem;
+}
+
+
+.hide-components {
+  height: 0;
+  transition: height 0.5s;
 }

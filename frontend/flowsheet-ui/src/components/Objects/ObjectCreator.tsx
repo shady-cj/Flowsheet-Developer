@@ -11,7 +11,8 @@ export const ObjectCreator = ({objectData, dataId}:{objectData: objectDataType, 
 
     switch (elementObject.model_name) {
         case "Shape":
-            return <ConvertStringToShape objectType={elementObject.model_name} objectId={elementObject.id} objectName={elementObject.name}/>
+
+            return <ConvertStringToShape objectType={elementObject.model_name} objectId={elementObject.id} objectName={elementObject.name} forCanvas={true}/>
         case "Crusher":
             return  <Crusher crusher={elementObject}/>
         case "Grinder":

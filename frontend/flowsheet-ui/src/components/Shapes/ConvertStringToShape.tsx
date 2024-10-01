@@ -6,8 +6,9 @@ import Ellipse from "./Ellipse";
 import Triangle from "./Triangle";
 import Text from "./Text";
 import Line from "./Line";
+import Polygon from "./Polygon";
 
-const ConvertStringToShape = ({objectType, objectName, objectId}: {objectType: string, objectName: string, objectId: string}) => {
+const ConvertStringToShape = ({objectType, objectName, objectId, forCanvas}: {objectType: string, objectName: string, objectId: string, forCanvas?: boolean}) => {
   return (
     <>
     {
@@ -16,8 +17,9 @@ const ConvertStringToShape = ({objectType, objectName, objectId}: {objectType: s
       objectName === "Square" ? <Square objectType={objectType} objectId={objectId}/>:
       objectName === "Ellipse" ? <Ellipse objectType={objectType} objectId={objectId}/>:
       objectName === "Triangle" ? <Triangle objectType={objectType} objectId={objectId}/>:
-      objectName === "Text" ? <Text objectType={objectType} objectId={objectId}/>:
-      objectName === "Line" ? <Line objectType={objectType} objectId={objectId}/>:""
+      objectName === "Polygon" ? <Polygon objectType={objectType} objectId={objectId}/>:
+      objectName === "Text" ? <Text objectType={objectType} objectId={objectId} />:
+      objectName === "Line" ? <Line objectType={objectType} objectId={objectId} forCanvas={forCanvas}/>:""
     }
     </>
 

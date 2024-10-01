@@ -3,9 +3,9 @@
 const Circle = ({objectType, objectId}: {objectType: string, objectId: string}) => {
   return (
     <div id={objectId} data-object-name="Circle" data-object-type={objectType} className="objects bg-transparent cursor-grab" draggable={true} onDragStart={(e)=>{e.dataTransfer.setData("elementId", (e.target as HTMLDivElement).id)}}>
-        <svg height="50" width="50" xmlns="http://www.w3.org/2000/svg"  className="bg-transparent">
-            <circle r="24" cx="25" cy="25" fill='transparent' stroke="black" strokeWidth="1.5" />
-        </svg>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="14" r="13" stroke="#4D4D4D" stroke-width="2"/>
+      </svg>
     </div>
   )
 }

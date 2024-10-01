@@ -1,5 +1,6 @@
 "use client"
 import ProjectSidebar from "./ProjectSidebar"
+import ProjectHeader from "@/components/ProjectLayout/ProjectHeader"
 import Canvas from "./Canvas"
 import { useContext } from "react"
 import { ProjectContext } from "../context/ProjectProvider"
@@ -9,12 +10,15 @@ const Project = ({params}: {params: {id: string}}) => {
   return (
     <>
       <ProjectSidebar params={params} />
-      <div className="w-[70%]" id="canvas-wrapper">
-        <div className={`w-full h-full ${canvasLoading? "overflow-hidden" :"overflow-auto"} scroll-smooth`} id="canvas-parent-container">
-          <Canvas params={params}/>
-        </div>
+      <section className="flex w-[80%] flex-col h-screen overflow-hidden">
+        <ProjectHeader params={params} />
+        <div id="canvas-wrapper">
+          <div className={`w-full h-full ${canvasLoading? "overflow-hidden" :"overflow-auto"} scroll-smooth`} id="canvas-parent-container">
+            <Canvas params={params}/>
+          </div>
 
-      </div>
+        </div>
+      </section>
     </>
   )
 }

@@ -7,6 +7,7 @@ import { objectDataType, lineCordsType,  objectCoords} from "../context/ProjectP
 import { ObjectCreator } from "../Objects/ObjectCreator";
 import { renderToStaticMarkup } from "react-dom/server"
 
+
 type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
 
 type pointStoreType = {
@@ -49,9 +50,8 @@ export type formStateObjectType = {[index: string]: string}
 
 
 const Canvas = ({params}: {params: {id: string}}) => {
-    const {canvasLoading, setCanvasLoading, objectData, hasInstance} = useContext(ProjectContext)
+    const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef} = useContext(ProjectContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
-    const canvasRef = useRef<HTMLDivElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
     const pointStore = useRef<pointStoreType>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
     const currentActivePoint = useRef<HTMLSpanElement | null>(null)
@@ -61,6 +61,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const [formFields, setFormFields] = useState<formFieldsType>(defaultFormField)
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
+
+
+
+
+
 
 
 
@@ -585,15 +590,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
         }
 
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
-          path!.setAttribute("stroke", "#000")
-          arrow.setAttribute("fill", "#000")
+          path!.setAttribute("stroke", "#4D4D4D")
+          arrow.setAttribute("fill", "#4D4D4D")
         } else {
-          path!.setAttribute("stroke", "#D1D0CE")
-          arrow.setAttribute("fill", "#D1D0CE")
+          path!.setAttribute("stroke", "#beb4b4")
+          arrow.setAttribute("fill", "#beb4b4")
 
         }
       }
-    }, [objectData, checkAndSetConnection])
+    }, [objectData,canvasRef, checkAndSetConnection])
 
 
 
@@ -958,15 +963,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
         }
 
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
-          path!.setAttribute("stroke", "#000")
-          arrow.setAttribute("fill", "#000")
+          path!.setAttribute("stroke", "#4D4D4D")
+          arrow.setAttribute("fill", "#4D4D4D")
           
         } else {
-          path!.setAttribute("stroke", "#D1D0CE")
-          arrow.setAttribute("fill", "#D1D0CE")
+          path!.setAttribute("stroke", "#beb4b4")
+          arrow.setAttribute("fill", "#beb4b4")
         }
       }
-    }, [objectData, checkAndSetConnection])
+    }, [objectData, canvasRef, checkAndSetConnection])
 
 
     const ShapeToLine = useCallback((obj: HTMLElement) => {
@@ -1330,15 +1335,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
           }
 
           if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
-            path!.setAttribute("stroke", "#000")
-            arrow.setAttribute("fill", "#000")
+            path!.setAttribute("stroke", "#4D4D4D")
+            arrow.setAttribute("fill", "#4D4D4D")
           } else {
-            path!.setAttribute("stroke", "#D1D0CE")
-            arrow.setAttribute("fill", "#D1D0CE")
+            path!.setAttribute("stroke", "#beb4b4")
+            arrow.setAttribute("fill", "#beb4b4")
           }
       
         })
-    }, [objectData, checkAndSetConnection])
+    }, [objectData,canvasRef, checkAndSetConnection])
 
 
     const LineConnector = useCallback((obj: HTMLElement, point?: HTMLSpanElement) => {
@@ -1476,7 +1481,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
 
       // 
-    }, [objectData])
+    }, [objectData, canvasRef])
 
 
 
@@ -1726,9 +1731,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
           newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
           const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
           const svg = newEl.querySelector("svg.line-svg")!
-          svg.setAttribute("width", "30")
-          svg.setAttribute("height", "30")
-
 
           const path = svg.querySelector("path")
           const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1739,16 +1741,16 @@ const Canvas = ({params}: {params: {id: string}}) => {
           
           if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0) {
             arrow.innerHTML = `
-              <polygon points="10,21 20,10 10,13 0,10" fill="#000" stroke="transparent" strokeWidth="1.5" />
+              <polygon points="10,20 18,5 10,9 2,5" fill="#4D4D4D" stroke="transparent" strokeWidth="1.5" />
             `
-            path!.setAttribute("stroke", "#000")
+            path!.setAttribute("stroke", "#4D4D4D")
           }
            
           else {
             arrow.innerHTML = `
-              <polygon points="10,21 20,10 10,13 0,10" fill="#D1D0CE" stroke="transparent" strokeWidth="1.5" />
+              <polygon points="10,20 18,10 10,13 2,10" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />
             `
-            path!.setAttribute("stroke", "#D1D0CE")
+            path!.setAttribute("stroke", "#beb4b4")
           }
             
           path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
@@ -1864,7 +1866,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         }
 
       }
-    }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip])
+    }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip, canvasRef])
 
 
 
@@ -1932,12 +1934,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
         newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
         const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
-        const svg = newEl.querySelector("svg.line-svg")!
-        svg.setAttribute("width", "30")
-        svg.setAttribute("height", "30")
-        const path = svg.querySelector("path")
+        lineWrapEl.innerHTML = ""
+        const lineSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        lineSvg.classList.add("overflow-visible")
+        lineSvg.classList.add("line-svg")
+        lineSvg.setAttribute("width", "30")
+        lineSvg.setAttribute("height", "30")
+        lineSvg.innerHTML = `
+          <path d="M0 10 L30 10" fill="none" stroke="#beb4b4" strokeWidth="1.5"/>
+        `
+        lineWrapEl.appendChild(lineSvg)
+        const path = lineSvg.querySelector("path")
         path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
-        path!.setAttribute("stroke", "#D1D0CE")
         // path!.addEventListener("mouseover", (e)=> console.log("hover"))
         const point1Uid = "point-"+crypto.randomUUID()
         const point2Uid = "point-"+crypto.randomUUID()
@@ -1959,38 +1967,32 @@ const Canvas = ({params}: {params: {id: string}}) => {
         point2.addEventListener("mousedown", (e)=> handleMouseDown(e, point2)) 
         point2.addEventListener("mouseup", handleMouseUp)
         point2.addEventListener("dblclick", e => createMultiplePoint(e, point2))
-        const startCoords: [number, number] = [15, 0]
+        const startCoords: [number, number] = [0, 15]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
-        point2.style.left = `${startCoords[0]}px`
-        point2.style.top = "100px"
-        arrow.style.top = "100px";
-        arrow.style.left = `${startCoords[0]}px`
+        point2.style.left = `50px`
+        point2.style.top = `${startCoords[1]}px`
+        arrow.style.top = `${startCoords[1]}px`;
+        arrow.style.left = `50px`
         
-
-        // arrow.innerHTML = `
-        //   <path d="M10 20 L20 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
-          
-        //   <path d="M10 20 L0 0" fill="none" stroke="#D1D0CE" stroke-width="1.5"></path>
-        // `
         arrow.innerHTML = `
-          <polygon points="10,21 20,10 10,13 0,10" fill="#D1D0CE" stroke="transparent" strokeWidth="1.5" />
+          <polygon points="10,20 18,5 10,9 2,5" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />
         `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)
      
         // arrow section
-        const y1: number = 0
-        const y2: number = 100
-        const x1 = 15
-        const x2 = 15
+        const y1: number = 15
+        const y2: number = 15
+        const x1 = 0
+        const x2 = 50
         const theta = getTheta(x1, x2, y1, y2)
         arrow.style.transform = `translate(-50%, -100%) rotate(${theta}deg)`
         lineWrapEl.appendChild(arrow)
         
 
 
-        const lineCoordinates: lineCordsType  = {"M": startCoords, "L": [[15, 100]]}
+        const lineCoordinates: lineCordsType  = {"M": startCoords, "L": [[50, 15]]}
         defaultCoords["lineCoordinates"] = lineCoordinates
         const coordString = LineCoordinateToPathString(lineCoordinates)
         path?.setAttribute("d", coordString)
@@ -2049,6 +2051,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         showObjectForm(x, y, elementObjectType, auxilliaryType)
         const tooltipWrapper = document.createElement("div")
         tooltipWrapper.classList.add('object-details-tooltip')
+        tooltipWrapper.classList.add("hide-tooltip")
         newEl.appendChild(tooltipWrapper)
         newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl as HTMLDivElement, tooltipWrapper, uuid4))
         newEl.addEventListener("mouseleave", (e)=> {
@@ -2196,7 +2199,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral, params, loadObjectToCanvas, objectData, handleShapeDelete, setCanvasLoading, hasInstance])
+    }, [handleMouseDown,canvasRef, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral, params, loadObjectToCanvas, objectData, handleShapeDelete, setCanvasLoading, hasInstance])
 
 
     
@@ -2206,7 +2209,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         canvasLoading && (<div className="relative w-full h-full bg-[#00000080] z-20 flex justify-center items-center"> Loading... </div>) 
       }
       
-      <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative bg-white cursor-move border-l overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
+      <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
         { 
           isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType}/>
         }

@@ -19,7 +19,15 @@ const config: Config = {
         "darkVariant": "#4C535D",
         "default": "#f0f8ff",
         "blueVariant": "#3c41c2",
-        "darkBlueVariant": "#1e2179"
+        "darkBlueVariant": "#1e2179",
+        "grayVariant": "#F4F5F7",
+        "normalBlueVariant": "#0052CC"
+      },
+      colors: {
+        "text-black": "#17181A",
+        "text-black-2": "#333333",
+        "text-gray": "#DFE1E6",
+        "text-gray-2": "#F4F5F7"
       }
     },
   },
