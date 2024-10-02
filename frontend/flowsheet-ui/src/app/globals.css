@@ -127,6 +127,11 @@ body {
 }
 
 
+.text-selected {
+  background-color:#F4F5F7 ;
+}
+
+
 
 
 /* Styles for highlighting the text box when focused on */

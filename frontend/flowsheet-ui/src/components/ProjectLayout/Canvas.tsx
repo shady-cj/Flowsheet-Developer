@@ -1752,7 +1752,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const controlOptionButton = textControl.querySelector(".open-control-options") as HTMLImageElement
 
         controlOptionButton?.addEventListener("click", (e)=> {
-          console.log("called")
+
           if (textControlOptions?.classList.contains("text-size-control-options-show")) {
             textControlOptions?.classList.remove("text-size-control-options-show")
             controlOptionButton.src = arrowDown.src
@@ -1764,6 +1764,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         })
         textControlOptions?.querySelectorAll("span").forEach((span) => {
           span.addEventListener("click", () => {
+            const activeFont = textControlOptions?.querySelector("span.text-selected")
             objectData.current[newEl.id].font_size = parseInt(span.getAttribute("data-size") || "14")
             newEl.style.fontSize = `${objectData.current[newEl.id].font_size}px`
 
@@ -1782,6 +1783,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
                 size_name = "Medium"
             }
             newEl.querySelector(".selected-size-name")!.textContent = size_name
+            activeFont?.classList.remove("text-selected")
+            span.classList.add("text-selected")
+            textControlOptions?.classList.remove("text-size-control-options-show")
+            controlOptionButton.src = arrowDown.src
           })
         })
 
@@ -1794,6 +1799,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
             contentEditableDiv.classList.add("placeholder-style")
           
           contentEditableDiv.addEventListener("dblclick", (e) => handleDblClick(e, contentEditableDiv))
+
+
           contentEditableDiv.addEventListener("focusout", ()=>{
             contentEditableDiv.removeAttribute("contenteditable")
             contentEditableDiv.style.color = "#4D4D4D"
@@ -1802,6 +1809,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             if (contentEditableDiv.textContent!.length > 0)
               objectData.current[newEl.id].description = contentEditableDiv.textContent!
           })
+
           contentEditableDiv.addEventListener("keyup", handleInput)
         } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
           // Lines 
@@ -1935,7 +1943,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
           primaryCrusherInUse.current = true
 
         if (elementObjectName !== "Text") {
-          newEl.style.fontSize = `${data.font_size}px`
           const tooltipWrapper = document.createElement("div")
           tooltipWrapper.classList.add('object-details-tooltip')
           tooltipWrapper.classList.add("hide-tooltip")
@@ -1947,6 +1954,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
             if (newEl.id !== currentObject.current?.id)
               newEl.classList.remove("current-object")
           })
+        } else {
+          // Set font size and focus the active element on the right font size option
+          newEl.style.fontSize = `${data.font_size}px`
+          const textControlPanel = newEl.querySelector(".text-control-panel")!
+          textControlPanel.querySelector(".selected-size-name")!.textContent = data.font_size === 12 ? "Small" : data.font_size === 14 ? "Medium" : "Large"
+          textControlPanel.querySelector(`[data-size="${data.font_size}"]`)?.classList.add("text-selected")
         }
 
       }
@@ -2001,7 +2014,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
           <div class="text-size-control"> <span class="selected-size-name">Medium</span>  <img class="open-control-options" src=${arrowDown.src} width="10" height="10"/>
                 <div class="text-size-control-options">
                   <span class="text-size-small" data-size="12">Small</span>
-                  <span class="text-size-medium" data-size="14">Medium</span>
+                  <span class="text-size-medium text-selected" data-size="14">Medium</span>
                   <span class="text-size-large" data-size="16">Large</span>
                 </div>
           </div>
@@ -2032,7 +2045,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
         const controlOptionButton = textControl.querySelector(".open-control-options") as HTMLImageElement
 
         controlOptionButton?.addEventListener("click", (e)=> {
-          console.log("called")
           if (textControlOptions?.classList.contains("text-size-control-options-show")) {
             textControlOptions?.classList.remove("text-size-control-options-show")
             controlOptionButton.src = arrowDown.src
@@ -2044,10 +2056,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
         })
         textControlOptions?.querySelectorAll("span").forEach((span) => {
           span.addEventListener("click", () => {
+            const activeFont = textControlOptions?.querySelector("span.text-selected")
             objectData.current[newEl.id].font_size = parseInt(span.getAttribute("data-size") || "14")
             newEl.style.fontSize = `${objectData.current[newEl.id].font_size}px`
 
-            console.log(objectData.current[newEl.id].font_size, "font-size")
+         
             let size_name;
             switch(objectData.current[newEl.id].font_size) {
               case 12:
@@ -2063,6 +2076,11 @@ const Canvas = ({params}: {params: {id: string}}) => {
                 size_name = "Medium"
             }
             newEl.querySelector(".selected-size-name")!.textContent = size_name
+            activeFont?.classList.remove("text-selected")
+            span.classList.add("text-selected")
+            textControlOptions?.classList.remove("text-size-control-options-show")
+            controlOptionButton.src = arrowDown.src
+
           })
         })
 
@@ -2212,7 +2230,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
       canvasRef.current.appendChild(newEl)
 
       if (elementObjectName !== "Text") {
-        newEl.style.fontSize = `${defaultObjectData.font_size}px`
         showObjectForm(x, y, elementObjectType, auxilliaryType)
         const tooltipWrapper = document.createElement("div")
         tooltipWrapper.classList.add('object-details-tooltip')
@@ -2225,6 +2242,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
           if (newEl.id !== currentObject.current?.id)
             newEl.classList.remove("current-object")
         })
+      } else {
+          newEl.style.fontSize = `${defaultObjectData.font_size}px`
       }
 
       currentObject.current = newEl
