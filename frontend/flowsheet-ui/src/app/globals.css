@@ -53,7 +53,7 @@ body {
 .shape-text-base-styles {
   min-width: 3rem;
   max-width: 10rem;
-  font-size: 0.8rem;
+  /* font-size: 0.8rem; dynamic value */
   line-height: 1;
   padding: 0.2rem 0.1rem;
   outline: none;
@@ -62,6 +62,74 @@ body {
   color: #4D4D4D;
 }
 
+
+/* Styles for styling the text in the text box */
+.text-control-panel {
+  position: absolute;
+  bottom: 120%;
+  display: none;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #FFFFFF;
+  border-top: 1px solid #DFE1E6;
+  box-shadow: 0px 4px 8px 0px #00000029;
+  font-size: 0.8rem;
+  color: #17181A;
+  font-weight: 500;
+
+}
+.text-control-panel-show {
+  display:flex;
+}
+.text-size-control {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  position: relative;
+}
+.panel-split {
+  border: 1px solid #CAD8E5;
+}
+
+.text-control-panel .text-size-control-options {
+  /* display: none; */
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: 150%;
+  background-color:white;
+  box-shadow: 0px 4px 8px 0px #00000029;
+  border-radius: 0.2rem;
+  display:flex;
+  flex-direction: column;
+}
+.text-size-control-options-show {
+  visibility: visible !important;
+  opacity: 1 !important;
+  transition: opacity 0.5s ease-in-out;
+}
+.open-control-options {
+  cursor: pointer;
+}
+.text-size-control-options span {
+  display: inline-block;
+  padding: 0.7rem 1.25rem;
+  cursor:pointer;
+  
+}
+.text-size-control-options span:hover {
+  background-color: #CAD8E5;
+}
+.text-style-control {
+  display: flex;
+  gap: 1.5rem;
+}
+
+
+
+
+/* Styles for highlighting the text box when focused on */
 .text-panel {
   position: absolute;
   height: 0.5rem;
