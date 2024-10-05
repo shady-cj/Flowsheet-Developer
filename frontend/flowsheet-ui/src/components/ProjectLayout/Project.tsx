@@ -12,7 +12,7 @@ const Project = ({params}: {params: {id: string}}) => {
       <ProjectSidebar params={params} />
       <section className="flex w-[80%] flex-col h-screen overflow-hidden">
         <ProjectHeader params={params} />
-        <div id="canvas-wrapper">
+        <div id="canvas-wrapper" className="overflow-auto">
           <div className={`w-full h-full ${canvasLoading? "overflow-hidden" :"overflow-auto"} scroll-smooth`} id="canvas-parent-container">
             <Canvas params={params}/>
           </div>

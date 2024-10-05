@@ -73,6 +73,7 @@ body {
   padding: 0.75rem 1.5rem;
   background-color: #FFFFFF;
   border-top: 1px solid #DFE1E6;
+  border-radius: 0.2rem;
   box-shadow: 0px 4px 8px 0px #00000029;
   font-size: 0.8rem;
   color: #17181A;
@@ -97,7 +98,8 @@ body {
   visibility: hidden;
   opacity: 0;
   position: absolute;
-  top: 150%;
+  top: 180%;
+  left: -50%;
   background-color:white;
   box-shadow: 0px 4px 8px 0px #00000029;
   border-radius: 0.2rem;
@@ -218,7 +220,9 @@ body {
 
 
 .object-form {
-  font-size: attr(data-position-top)
+  font-size: attr(data-position-top);
+  box-shadow: -8px 8px 16px 0px #00000014;
+
 }
 
 

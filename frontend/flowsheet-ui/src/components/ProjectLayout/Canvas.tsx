@@ -10,7 +10,7 @@ import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
 
 
-type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
+export type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
 
 type pointStoreType = {
   [key: string]: [
@@ -61,6 +61,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const [objectFormPosition, setObjectFormPosition] = useState<{x: number, y: number}>({x: 20, y: 20})
     const objectLabels = useRef(new Set<string>())
     const [formFields, setFormFields] = useState<formFieldsType>(defaultFormField)
+    const objectFormType = useRef<objectType>("Shape")
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
 
@@ -218,7 +219,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         label: "",
         description: ""
       }
-      
+      objectFormType.current = type
 
       switch (type) {
         case "Crusher":
@@ -230,13 +231,13 @@ const Canvas = ({params}: {params: {id: string}}) => {
             return [...prevFormField, {
               type: "number",
               name: "gape",
-              placeholder: "in mm",
+              placeholder: "Gape in mm",
               verboseName: "Gape", 
               htmlType: "input"
             }, {
               type: "number",
               name: "set",
-              placeholder: "in mm",
+              placeholder: "Set in mm",
               verboseName: "Set", 
               htmlType: "input"
             }]
@@ -260,7 +261,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
               type: "number",
               name: "aperture",
               verboseName: "Aperture Size", 
-              htmlType: "input"
+              htmlType: "input",
+              placeholder: "Size in mm"
             }]
           })
           break
@@ -274,19 +276,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
                 type: "number",
                 name: "maxOreSize", 
                 verboseName: "Maximum Size of Ore",
-                placeholder: "in mm",
+                placeholder: "Max. Size in mm",
                 htmlType: "input"
               }, {
                 type: "number",
                 name: "oreGrade", 
                 verboseName: "Ore Grade",
-                placeholder: "in decimal",
+                placeholder: "Grade e.g 0.45",
                 htmlType: "input"
               }, {
                 type: "number",
                 name: "oreQuantity", 
                 verboseName: "Ore Quantity",
-                placeholder: "in metric tons",
+                placeholder: "Quantity in metric tons",
                 htmlType: "input"
               }]
             })
@@ -1638,7 +1640,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const handleInput = useCallback((e: KeyboardEvent) => {
       const element = e.target as HTMLElement
       const parentElementContainer = element.closest(".text-object-container")!
-  
+      
       if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
         element.remove()
         // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
@@ -1656,14 +1658,32 @@ const Canvas = ({params}: {params: {id: string}}) => {
     }, [objectData])
   
 
+    const textFocusOut = useCallback((element: HTMLDivElement, contentEditableDiv: HTMLDivElement) => {
+      const textControlOptions = element.querySelector(".text-size-control-options") as HTMLDivElement
+      const controlOptionButton = element.querySelector(".open-control-options") as HTMLImageElement
+    
+      if (!objectData.current[element.id]?.textActive) {
+        textControlOptions?.classList.remove("text-size-control-options-show")
+        controlOptionButton.src = arrowDown.src
+        contentEditableDiv.removeAttribute("contenteditable")
+        contentEditableDiv.style.color = "#4D4D4D"
+        element.style.border = "none"
+        element.querySelectorAll(".text-panel").forEach(el=>el.classList.remove("text-panel-show"))
+        element.querySelector(".text-control-panel")?.classList.remove("text-control-panel-show")
+        if (contentEditableDiv.textContent!.length > 0)
+          objectData.current[element.id].description = contentEditableDiv.textContent!
+      }
+    }, [objectData])
+
+
+
 
 
     const showObjectDetailsToolTip = useCallback((element: HTMLDivElement, tooltip: HTMLDivElement, dataId: string) => {
      
       // console.log(element.style.top, element.style.left, element.style.width)
       const data = objectData.current[dataId]
-      console.log(currentObject.current, "current")
-  
+      
       if (element.id === currentObject.current?.id) { 
         tooltip.classList.remove("show-tooltip")
         tooltip.classList.add("hide-tooltip")
@@ -1727,13 +1747,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
                     <span class="text-size-large" data-size="16">Large</span>
                   </div>
             </div>
-            <div class="panel-split"></div>
-            <div class="text-style-control"> 
-                  <span class="text-bold-control">B</span> 
-                  <span class="text-italic-control">I</span> 
-                  <span class="text-underline-control">U</span>
-            </div>
+           
           `
+          // For adding text bold, italic and underline Later
+          // <div class="panel-split"></div>
+          // <div class="text-style-control"> 
+          //       <span class="text-bold-control">B</span> 
+          //       <span class="text-italic-control">I</span> 
+          //       <span class="text-underline-control">U</span>
+          // </div>
           
           textControl.classList.add('text-control-panel')
           contentEditableDiv.setAttribute("tabindex", "-1")
@@ -1797,20 +1819,23 @@ const Canvas = ({params}: {params: {id: string}}) => {
           contentEditableDiv.textContent = objectData.current[dataId].description
           if (contentEditableDiv.textContent!.length === 0)
             contentEditableDiv.classList.add("placeholder-style")
+
+
+          textControl.addEventListener("mouseenter", (e)=> {
+            objectData.current[newEl.id].textActive = true
+          })
+          textControl.addEventListener("mouseleave", (e)=> {
+            objectData.current[newEl.id].textActive = false
+          })
+     
           
           contentEditableDiv.addEventListener("dblclick", (e) => handleDblClick(e, contentEditableDiv))
 
 
-          contentEditableDiv.addEventListener("focusout", ()=>{
-            contentEditableDiv.removeAttribute("contenteditable")
-            contentEditableDiv.style.color = "#4D4D4D"
-            newEl.style.border = "none"
-            newEl.querySelectorAll(".text-panel").forEach(el=>el.classList.remove("text-panel-show"))
-            if (contentEditableDiv.textContent!.length > 0)
-              objectData.current[newEl.id].description = contentEditableDiv.textContent!
-          })
-
+          contentEditableDiv.addEventListener("focusout", (e) => textFocusOut(newEl as HTMLDivElement, contentEditableDiv))
+          newEl.addEventListener("focusout", (e) => textFocusOut(newEl as HTMLDivElement, contentEditableDiv))
           contentEditableDiv.addEventListener("keyup", handleInput)
+
         } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
           // Lines 
           // newEl.style.zIndex = "5"
@@ -1963,7 +1988,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         }
 
       }
-    }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip, canvasRef])
+    }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip, canvasRef, textFocusOut])
 
 
 
@@ -2018,14 +2043,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
                   <span class="text-size-large" data-size="16">Large</span>
                 </div>
           </div>
-          <div class="panel-split"></div>
-          <div class="text-style-control"> 
-                <span class="text-bold-control">B</span> 
-                <span class="text-italic-control">I</span> 
-                <span class="text-underline-control">U</span>
-          </div>
+         
         `
-        
+        // For adding text bold, italic and underline Later
+        // <div class="panel-split"></div>
+        // <div class="text-style-control"> 
+        //       <span class="text-bold-control">B</span> 
+        //       <span class="text-italic-control">I</span> 
+        //       <span class="text-underline-control">U</span>
+        // </div>
         textControl.classList.add('text-control-panel')
         contentEditableDiv.setAttribute("tabindex", "-1")
        
@@ -2092,20 +2118,21 @@ const Canvas = ({params}: {params: {id: string}}) => {
         contentEditableDiv.classList.add("placeholder-style")
         contentEditableDiv.classList.add("shape-text-base-styles")
 
-        contentEditableDiv.addEventListener("dblclick", (e) => handleDblClick(e, contentEditableDiv))
-        contentEditableDiv.addEventListener("focusout", ()=>{
-          // if (textControlOptions?.classList.contains("text-size-control-options-show")) return;
-          return;
-          // console.log("active element", currentObject.current)
-          contentEditableDiv.removeAttribute("contenteditable")
-          contentEditableDiv.style.color = "#4D4D4D"
-          newEl.style.border = "none"
-          newEl.querySelectorAll(".text-panel").forEach(el=>el.classList.remove("text-panel-show"))
-          newEl.querySelector(".text-control-panel")?.classList.remove("text-control-panel-show")
-          if (contentEditableDiv.textContent!.length > 0)
-            objectData.current[newEl.id].description = contentEditableDiv.textContent!
+
+        textControl.addEventListener("mouseenter", (e)=> {
+          objectData.current[newEl.id].textActive = true
         })
+        textControl.addEventListener("mouseleave", (e)=> {
+          objectData.current[newEl.id].textActive = false
+        })
+   
+        contentEditableDiv.addEventListener("dblclick", (e) => handleDblClick(e, contentEditableDiv))
+
+
+        contentEditableDiv.addEventListener("focusout", (e) => textFocusOut(newEl as HTMLDivElement, contentEditableDiv))
+        newEl.addEventListener("focusout", (e) => textFocusOut(newEl as HTMLDivElement, contentEditableDiv))
         contentEditableDiv.addEventListener("keyup", handleInput)
+
       } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
         // Lines 
         // newEl.style.zIndex = "5"
@@ -2395,7 +2422,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       
       <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
         { 
-          isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType}/>
+          isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
         }
       </div>
     

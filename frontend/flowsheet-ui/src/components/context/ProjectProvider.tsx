@@ -67,6 +67,7 @@ export type objectDataType = {
     scale: number,
     font_size: number,
     description: string,
+    textActive?: boolean, // for text elements
     object?: {
       id: string,
       name: string,
