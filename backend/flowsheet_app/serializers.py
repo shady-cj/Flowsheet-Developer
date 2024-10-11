@@ -18,97 +18,79 @@ class ShapeSerializer(ModelSerializer):
 
 
 class ScreenerSerializer(ModelSerializer):
-    image_url = serializers.SerializerMethodField()
     class Meta:
         model = Screener
         fields = [
             "id", 
             "name",
-            "image", 
             "image_url",
+            "image_height",
+            "image_width",
             "creator"
         ]
-        read_only_fields = ["id", "image_url"]
-
-    def get_image_url(self, instance): 
-        return instance.image.url
+        read_only_fields = ["id"]
 
 
 
 class CrusherSerializer(ModelSerializer):
-    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Crusher
         fields = [
             "id",
             "name",
-            "image", 
             "image_url",
-            # "type",
-            # "gape",
-            # "set",
+            "image_height",
+            "image_width",
             "creator"
         ]
-        read_only_fields = ["id", "image_url"]
-    
-    def get_image_url(self, instance): 
-        return instance.image.url
+        read_only_fields = ["id"]
 
 
 class GrinderSerializer(ModelSerializer):
-    image_url = serializers.SerializerMethodField()
     class Meta:
         model = Grinder
         fields = [
             "id",
             "name",
-            "image",
-            "image_url", 
-            # "gape",
-            # "set",
+            "image_url",
+            "image_height",
+            "image_width",
             "creator"
         ]
-        read_only_fields = ["id","image_url"]
+        read_only_fields = ["id"]
 
-    def get_image_url(self, instance): 
-        return instance.image.url
 
 class ConcentratorSerializer(ModelSerializer):
-    image_url = serializers.SerializerMethodField()
     class Meta:
         model = Concentrator
         fields = [
             "id", 
             "name",
-            "image",
             "image_url",
+            "image_height",
+            "image_width",
             "description",
             # "recovery_rate",
             # "dilution_gain",
             "creator",
         ]
-        read_only_fields = ["id", "image_url"]
-
-    def get_image_url(self, instance): 
-        return instance.image.url
 
 
 class AuxilliarySerializer(ModelSerializer):
-    image_url = serializers.SerializerMethodField()
     class Meta:
         model = Auxilliary
         fields = [
             "id",
             "name",
-            "image",
             "image_url", 
+            "image_height",
+            "image_width",
             "description",
             "type",
             "creator"
         ]
-        read_only_fields = ["id", "image_url"]
-    def get_image_url(self, instance): 
-        return instance.image.url
+        read_only_fields = ["id"]
 
 # class ProjectInlineSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)

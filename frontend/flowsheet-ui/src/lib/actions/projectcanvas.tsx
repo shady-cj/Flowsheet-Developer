@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
+import { redirect} from "next/navigation"
 import { resolve } from "path"
 import { objectDataType, objectCoords } from "@/components/context/ProjectProvider"
 
@@ -74,6 +74,7 @@ export async function uploadObject(object: objectDataType, projectId: string, up
 
             
             const result = await response.json()
+            
             if (response.status  === 201 || response.status === 200) {
                 const objects: objectDataType = {}
                 for (const entry of result) {
@@ -91,7 +92,9 @@ export async function uploadObject(object: objectDataType, projectId: string, up
                 }
                 // console.log("objects", objects)
                 return objects
-            } else {
+            }  else if (response.status === 404) {
+                return redirect("/projects")
+            }else {
                 console.log(result)
                 return {}
             }
@@ -116,7 +119,6 @@ export async function loadObjects(projectId: string) {
                 "Authorization": `Bearer ${accessToken}`
             }
         })
-        // console.log("result", response)
         const result = await response.json()
         if (response.status === 200) {
             const objects: objectDataType = {}
@@ -134,9 +136,10 @@ export async function loadObjects(projectId: string) {
                 objects[entry.oid] = entry
                 
             }
-            // console.log("objects", objects)
             return objects
-        } else {
+        } else if (response.status === 404) {
+            return {notfound: "not found error"}
+        }else {
             console.log(result)
             return {error: "error occured while loading data"}
 
@@ -147,3 +150,5 @@ export async function loadObjects(projectId: string) {
         return {error: "error occured while loading data"}
     }
 }
+
+

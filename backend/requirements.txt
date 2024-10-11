@@ -5,3 +5,5 @@ pillow
 python-dotenv
 psycopg2-binary
 cloudinary
+rembg
+rembg[gpu]

@@ -3,19 +3,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, GenericAPIView
 from rest_framework import serializers, status
+
 from .serializers import ShapeSerializer, ScreenerSerializer, CrusherSerializer, GrinderSerializer, ConcentratorSerializer, AuxilliarySerializer, ProjectSerializer, ProjectObjectSerializer
 from .models import Shape, Screener, Crusher,Grinder, Concentrator, Auxilliary, Project, ProjectObject
 from authentication.models import User
 from .utils import get_queryset_util, create_object_util, update_object_util
-from .mixins import ObjectPermissionMixin,UpdateCreatorMixin
+from .mixins import ObjectPermissionMixin,UpdateCreatorMixin, handleCreationMixin
 from .permissions import ProjectObjectPermission
 from rest_framework.exceptions import PermissionDenied
-
-
-
-
-
-
 
 
 
@@ -24,12 +19,16 @@ class ListCreateShapes(ListCreateAPIView):
     queryset = Shape.objects.all()
 
 
-class ListCreateScreener(UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateScreener(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
     serializer_class = ScreenerSerializer
     queryset = Screener.objects.all()
+    
 
     def get_queryset(self):
         return get_queryset_util(self, Screener)
+    
+
+    
     
 class RetrieveUpdateDestroyScreener(ObjectPermissionMixin,RetrieveUpdateDestroyAPIView):
     serializer_class = ScreenerSerializer
@@ -39,7 +38,7 @@ class RetrieveUpdateDestroyScreener(ObjectPermissionMixin,RetrieveUpdateDestroyA
         return get_queryset_util(self, Screener)
 
 
-class ListCreateCrusher(UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateCrusher(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
     serializer_class = CrusherSerializer
     queryset = Crusher.objects.all()
     def get_queryset(self):
@@ -54,7 +53,7 @@ class RetrieveUpdateDestroyCrusher(ObjectPermissionMixin,RetrieveUpdateDestroyAP
 
 
 
-class ListCreateGrinder(UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateGrinder(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
     serializer_class = GrinderSerializer
     queryset = Grinder.objects.all()
     def get_queryset(self):
@@ -68,7 +67,7 @@ class RetrieveUpdateDestroyGrinder(ObjectPermissionMixin,RetrieveUpdateDestroyAP
         return get_queryset_util(self, Grinder)
 
 
-class ListCreateConcentrator(UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateConcentrator(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
     serializer_class = ConcentratorSerializer
     queryset = Concentrator.objects.all()
     def get_queryset(self):
@@ -83,7 +82,7 @@ class RetrieveUpdateDestroyConcentrator(ObjectPermissionMixin,RetrieveUpdateDest
 
 
 
-class ListCreateAuxilliary(UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateAuxilliary(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
     serializer_class = AuxilliarySerializer
     queryset = Auxilliary.objects.all()
     def get_queryset(self):

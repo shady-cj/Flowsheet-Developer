@@ -8,6 +8,7 @@ import { ObjectCreator } from "../Objects/ObjectCreator";
 import { renderToStaticMarkup } from "react-dom/server"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
+import { notFound } from "next/navigation";
 
 
 export type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
@@ -2293,6 +2294,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
           alert(loadedObj.error)
           // window.reload()
           return;
+        } else if (loadedObj.notfound) {
+          notFound();
         }
     
         objectData.current = loadedObj as objectDataType

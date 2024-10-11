@@ -3,7 +3,10 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from .models import ProjectObject
-
+from PIL import Image
+from io import BytesIO
+from rembg import remove
+from cloudinary.uploader import upload
 
 
 # =================================
@@ -19,11 +22,11 @@ def get_queryset_util(self, obj_class):
 
 
 def object_formatter(obj):
-    image = getattr(obj, "image", None)
+    image_url = getattr(obj, "image_url", None)
     default = {
         "id": obj.id,
         "name": obj.name,
-        "image_url": image.url if image else image, 
+        "image_url": image_url, 
         "model_name": obj.__class__.__name__
     }
     # if isinstance(obj, Crusher) or isinstance(obj, Grinder):
@@ -99,3 +102,28 @@ def update_object_util(self, index, data):
         else:
             raise PermissionDenied("You are not authorized to use this object")
     return object_instance
+
+
+
+
+
+def process_component_image(data):
+    image = data['image']
+   
+    if not image:
+        return None
+    input = Image.open(image)
+    input.thumbnail((60, 60))
+    output = remove(input)
+    data["image_width"], data["image_height"] = output.size
+    imageBuffer = BytesIO()
+    output.save(imageBuffer, format="PNG")
+    imageBuffer.seek(0)
+    upload_result = upload(
+        imageBuffer.getvalue(), 
+        folder=data["folder"], 
+        resource_type="image"
+    )
+    data["image_url"] = upload_result['secure_url']
+    return data
+    

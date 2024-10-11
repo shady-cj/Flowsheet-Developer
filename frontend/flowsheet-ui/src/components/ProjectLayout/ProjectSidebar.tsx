@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link"
 import {useState, useEffect, MouseEvent} from 'react'
+import CustomComponentForm from "./CustomComponentForm";
 import { fetchObjects } from "@/lib/actions/projectsidebar";
 import Image, { StaticImageData } from "next/image";
 import Crusher from "../Objects/Crusher";
@@ -20,6 +21,7 @@ import screenerImage from "@/assets/screener.svg"
 import crusherImage from "@/assets/crusher.svg"
 import grinderImage from "@/assets/grinder.svg"
 import auxilliaryImage from "@/assets/auxilliary.svg"
+import importComponent from "@/assets/import.svg"
 
 
 
@@ -28,8 +30,9 @@ import ConvertStringToShape from "../Shapes/ConvertStringToShape";
 export type genericImageObjectType = {
     id: string, 
     creator?: string, 
-    image?: string,
     image_url?: string,
+    image_height?: number,
+    image_width?: number,
     name: string
 }
 
@@ -48,6 +51,9 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
     const [screeners, setScreeners] = useState<genericImageObjectType[]>([])
     const [grinders, setGrinders] = useState<genericImageObjectType[]>([])
     const [auxilliaries, setAuxilliaries] = useState<AuxilliaryImageObjectType[]>([])
+    const [addCustomComponent, setAddCustomComponent] = useState(false)
+    const [loadComponent, setLoadComponent] = useState(true)
+
 
     const [activeComponent, setActiveComponent] = useState<{properties: genericImageObjectType[] | AuxilliaryImageObjectType[],  type: string}>({properties: [], type: ""})
 
@@ -83,10 +89,14 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
             setScreeners(await fetchObjects("screeners"))
             setAuxilliaries(await fetchObjects("auxilliary"))
         }
-        fetchObj()
+        if (loadComponent) {
+            fetchObj()
+            setLoadComponent(false)
+        }
 
-    }, [])
+    }, [loadComponent])
   return (
+    <>
     <div className="w-[20%] bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-10 border-r border-[#DFE1E6] border-solid">
         <header>
             <Image width={88} height={29} src={mineflo} alt="mineflo" quality={100} loading="lazy"/>
@@ -208,18 +218,27 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                 </div>
             </div> */}
             <div className="flex flex-col gap-y-5 pt-4">
-            <div className="flex justify-between items-center">
-                    <div className="flex gap-x-2">
-                        <Image width={12} height={12} src={menu} alt="vector" quality={100}/>
-                        <h2 className="text-md font-medium text-text-black">Personalized Objects</h2>
-                    </div>
-                    
-                    <Image className="cursor-pointer" width={12} height={12} src={customObjectOpen?arrowUp:arrowDown} onClick={() => setCustomObjectOpen(!customObjectOpen)} alt="vector" quality={100}/>
+                <div className="flex justify-between items-center">
+                        <div className="flex gap-x-2">
+                            <Image width={12} height={12} src={menu} alt="vector" quality={100}/>
+                            <h2 className="text-md font-medium text-text-black">Personalized Objects</h2>
+                        </div>
+                        
+                        <Image className="cursor-pointer" width={12} height={12} src={customObjectOpen?arrowUp:arrowDown} onClick={() => setCustomObjectOpen(!customObjectOpen)} alt="vector" quality={100}/>
                 </div>
             </div>
+            <div className="pt-6">
+            
+                <Image src={importComponent} width={200} height={118} alt="import" quality={100} className="w-full cursor-pointer" draggable={false} onClick={(e)=>setAddCustomComponent(true)}/>
+            </div>
         </section>
-      
+        {
+            addCustomComponent && <CustomComponentForm setAddCustomComponent={setAddCustomComponent} setLoadComponent={setLoadComponent}/>
+        }
+        
     </div>
+    
+    </>
   )
 }
 
