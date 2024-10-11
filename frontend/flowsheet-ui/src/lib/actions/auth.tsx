@@ -109,3 +109,33 @@ export async function logout() {
     cookies().delete("refresh")
     redirect("/")
 }
+
+
+export async function fetchUser() {
+    const accessToken = cookies().get("access")?.value
+    const refreshToken = cookies().get("refresh")?.value
+    if (!accessToken && !refreshToken)
+        return redirect("/login")
+
+    
+    try {
+
+        const response = await fetch(`${BASE_URL}/auth/user`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }
+
+        })
+        const result = await response.json()
+        if (response.status === 200) return result
+        else {
+            console.log(result);
+            return null
+        }
+    } catch (err) {
+        console.log(err)
+        return null
+    }
+}

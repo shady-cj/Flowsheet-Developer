@@ -55,3 +55,35 @@ export async function createProject(prevState: any, formData: FormData) {
     redirect("/login")
 
 }
+
+
+
+export async function fetchProject(projectId: string) {
+    const accessToken = cookies().get("access")?.value
+    const refreshToken = cookies().get("refresh")?.value
+    if (!accessToken && !refreshToken)
+        return redirect("/login")
+
+    
+    try {
+
+        const response = await fetch(`${BASE_URL}/projects/${projectId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }
+
+        })
+        const result = await response.json()
+        console.log(response, response.text)
+        if (response.status === 200) return result
+        else {
+            console.log(result);
+            return null
+        }
+    } catch (err) {
+        console.log(err)
+        return null
+    }
+}

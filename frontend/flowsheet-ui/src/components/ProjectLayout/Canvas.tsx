@@ -244,6 +244,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
             }]
           })
         case "Crusher":
+          if (type === "Grinder") break
           formStateObject["crusherType"] = ""
           setFormFields((prevFormField) => {
             return [...prevFormField, {

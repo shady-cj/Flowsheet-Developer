@@ -14,7 +14,7 @@ urlpatterns = [
         path("auxilliary/", ListCreateAuxilliary.as_view()),
         path("auxilliary/<str:id>", RetrieveUpdateDestroyAuxilliary.as_view()),
         path("projects/", ListCreateProject.as_view()), 
-        path("projects/<int:id>", RetrieveUpdateDestroyProject.as_view()),
+        path("projects/<str:id>", RetrieveUpdateDestroyProject.as_view()),
         path("project_objects/<str:project_id>", ListCreateProjectObject.as_view()),
         path("project_objects/<str:project_id>/update", UpdateDestroyProjectObject.as_view())
     ]

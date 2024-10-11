@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link"
-import {useState, useEffect, MouseEvent} from 'react'
+import {useState, useEffect, MouseEvent, useContext} from 'react'
 import CustomComponentForm from "./CustomComponentForm";
+import { ProjectContext } from "../context/ProjectProvider"
 import { fetchObjects } from "@/lib/actions/projectsidebar";
 import Image, { StaticImageData } from "next/image";
 import Crusher from "../Objects/Crusher";
@@ -13,6 +14,7 @@ import search from "@/assets/search.svg"
 import menu from "@/assets/menu.svg"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
+
 // import screenerImage from "@/assets/screener.png"
 // import crusherImage from "@/assets/crusher.png"
 // import grinderImage from "@/assets/coner.png"
@@ -53,6 +55,7 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
     const [auxilliaries, setAuxilliaries] = useState<AuxilliaryImageObjectType[]>([])
     const [addCustomComponent, setAddCustomComponent] = useState(false)
     const [loadComponent, setLoadComponent] = useState(true)
+    const {userObject} = useContext(ProjectContext)
 
 
     const [activeComponent, setActiveComponent] = useState<{properties: genericImageObjectType[] | AuxilliaryImageObjectType[],  type: string}>({properties: [], type: ""})
@@ -97,7 +100,7 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
     }, [loadComponent])
   return (
     <>
-    <div className="w-[20%] bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-10 border-r border-[#DFE1E6] border-solid">
+    <div className="w-[22%] bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-10 border-r border-[#DFE1E6] border-solid">
         <header>
             <Image width={88} height={29} src={mineflo} alt="mineflo" quality={100} loading="lazy"/>
         </header>
@@ -225,6 +228,36 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                         </div>
                         
                         <Image className="cursor-pointer" width={12} height={12} src={customObjectOpen?arrowUp:arrowDown} onClick={() => setCustomObjectOpen(!customObjectOpen)} alt="vector" quality={100}/>
+                </div>
+                <div className={`flex gap-2 flex-wrap overflow-hidden transition-all ${!customObjectOpen ? "hide-components": ""}`}>
+                    <div className="flex flex-wrap gap-5 overflow-hidden p-2">
+                        {
+                            crushers.length > 0 && crushers.map(crusher=> {
+                                if (crusher.creator === userObject?.id) {
+                                    return (<div key={crusher.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Crusher  crusher={crusher} /></div>)
+                                }
+                            })
+                        }
+                         {
+                            grinders.length > 0 && grinders.map(grinder=>{
+                                if (grinder.creator === userObject?.id) {
+                                    return (<div key={grinder.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Grinder grinder={grinder}/></div>)
+                                }
+                            })
+                        }
+                        {
+                            screeners.length > 0 && screeners.map(screener=>{
+                                if (screener.creator === userObject?.id)
+                                    return (<div key={screener.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Screener  screener={screener}/></div>)
+                            })
+                        }
+                        {
+                            auxilliaries.length > 0 && auxilliaries.map(auxilliary=>{
+                                if (auxilliary.creator === userObject?.id)
+                                    return (<div key={auxilliary.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"> <Auxilliary auxilliary={auxilliary}/></div>)
+                            })
+                        }
+                    </div>
                 </div>
             </div>
             <div className="pt-6">

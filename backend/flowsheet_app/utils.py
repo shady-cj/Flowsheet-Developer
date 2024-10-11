@@ -3,7 +3,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from .models import ProjectObject
-from PIL import Image
+from PIL import Image, ImageEnhance
 from io import BytesIO
 from rembg import remove
 from cloudinary.uploader import upload
@@ -113,11 +113,12 @@ def process_component_image(data):
     if not image:
         return None
     input = Image.open(image)
-    input.thumbnail((60, 60))
     output = remove(input)
+    output.thumbnail((60, 60), Image.LANCZOS)
+    enhanced_img = ImageEnhance.Brightness(output)
     data["image_width"], data["image_height"] = output.size
     imageBuffer = BytesIO()
-    output.save(imageBuffer, format="PNG")
+    enhanced_img.enhance(1.25).save(imageBuffer, format="PNG", optimize=True)
     imageBuffer.seek(0)
     upload_result = upload(
         imageBuffer.getvalue(), 

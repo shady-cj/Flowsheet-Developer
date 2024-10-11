@@ -11,16 +11,28 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
     const [file, setFile] = useState<File | null>(null)
     const [uploadingComponent, setUploadingComponent] = useState(false)
     const [status, setStatus] = useState<{error: string} | {success: string} | null>(null)
+    const [showDescription, setShowDescription] = useState(false)
+    const [isAuxilliary, setIsAuxilliary] = useState(false)
     const dropArea = useRef<HTMLDivElement>(null!)
     const labelInput = useRef<HTMLInputElement>(null!)
     const categoryInput = useRef<HTMLSelectElement>(null!)
+    const descriptionInput = useRef<HTMLInputElement | null>(null)
+    const auxilliaryType = useRef<HTMLSelectElement | null>(null)
 
+
+    const checkSelectedCategory = () => {
+        const category = categoryInput.current.value
+        if (category  === "concentrator" || category  === "auxilliary") setShowDescription(true)
+        else setShowDescription(false)
+
+        if (category === "auxilliary") setIsAuxilliary(true)
+        else setIsAuxilliary(false)
+    }
 
     if (!uploadingComponent && status) {
         setTimeout(()=> {
-            console.log(status)
             setStatus(null)
-            if (status.success) {
+            if ("success" in status) {
                 setLoadComponent(true)
                 setAddCustomComponent(false)
             }
@@ -39,8 +51,20 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
             alert("add an image to the component")
             return;
         } 
+        if (showDescription && !descriptionInput.current?.value) {
+            alert("Description is required for the Component")
+            return
+        }
+        if (isAuxilliary && !auxilliaryType.current?.value) {
+            alert("Add a type for the auxilliary component")
+            return;
+        }
+        
         formData.append("name", labelInput.current.value)
         formData.append("image", file)
+        if (auxilliaryType.current?.value) formData.append("type", auxilliaryType.current?.value)
+        if (descriptionInput.current?.value) formData.append("description", descriptionInput.current?.value)
+        
         const result = await createCustomComponent(formData, categoryInput.current.value)
         setUploadingComponent(false)
         setStatus(result)
@@ -95,13 +119,27 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
                     </h2>
                     <form className="pt-8 flex flex-col gap-y-6" onSubmit={handleFormSubmit}>
                         <input type="text" placeholder="Component Label" className="border border-[#DFE1E6] p-2 w-full rounded-sm text-sm " ref={labelInput}/>
-                        <select name="category" id="category" className="border border-[#DFE1E6] p-2 w-full rounded-sm text-sm" ref={categoryInput}>
+                        <select name="category" id="category" className="border border-[#DFE1E6] p-2 w-full rounded-sm text-sm" ref={categoryInput}  onChange={checkSelectedCategory}>
                             <option value="grinder">Grinder</option>
                             <option value="crusher">Crusher</option>
                             <option value="screener">Screener</option>
                             <option value="concentrator">Concentrator</option>
                             <option value="auxilliary">Auxilliary</option>
                         </select>
+                        {
+                            showDescription && <input type="text" placeholder="Description of the component" className="border border-[#DFE1E6] p-2 w-full rounded-sm text-sm " ref={descriptionInput}/>
+                        }
+                        {
+                            isAuxilliary && <select name="type" id="type" className="border border-[#DFE1E6] p-2 w-full rounded-sm text-sm" ref={auxilliaryType}>
+                                <option value="ORE">ore</option>
+                                <optgroup label="FACILITY" >
+                                    <option value="STOCKPILE">stockpile</option>
+                                    <option value="BINS">bins</option>
+                                </optgroup>
+                                <option value="OTHERS">others</option>
+                            </select>
+                        }
+                        
                         {
                             preview ? <div className='flex gap-4'>
                                 <Image src={preview as string} width={70} height={50} className='h-auto' alt="image preview" quality={100} /> 

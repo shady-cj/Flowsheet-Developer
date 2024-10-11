@@ -53,7 +53,7 @@ const ObjectForm = ({formFields, position, handleFormState, saveForm, formState,
                         {
                             formFields.map(field => {
                                 return ( field.htmlType === "select" && field.name === "crusherType" && (
-                                      <div className='flex gap-2'>
+                                      <div key={field.name} className='flex gap-2'>
 
                                         {field.options!.map(option => {
                                             
@@ -91,7 +91,7 @@ const ObjectForm = ({formFields, position, handleFormState, saveForm, formState,
                                     field.name === "aperture" ?
                                     <div key={field.name} className='flex items-center gap-3 border border-[#DFE1E6] p-2 rounded-sm '>
                                         <Image src={gape} alt="icon" width={20} height={20} quality={100}/>
-                                        <input type={field.type} id={field.name} name={field.name} className="text-sm font-normal w-full" onChange={handleFormState} value={formState[field.name]} placeholder={field.placeholder?field.placeholder:field.verboseName}/>
+                                        <input type={field.type} id={field.name} name={field.name} className="text-sm font-normal w-full outline-none" onChange={handleFormState} value={formState[field.name]} placeholder={field.placeholder?field.placeholder:field.verboseName}/>
                                     </div> : ""
                                 )
                             })

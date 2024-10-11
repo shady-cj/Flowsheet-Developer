@@ -118,7 +118,7 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin,RetrieveUpdateDestroyAP
             return Project.objects.all()
         return Project.objects.filter(creator=user)
         # return Project.objects.all()
-    
+
     # def update(self, request, *args, **kwargs):
     #     partial = kwargs.pop('partial', False)
     #     data = request.data

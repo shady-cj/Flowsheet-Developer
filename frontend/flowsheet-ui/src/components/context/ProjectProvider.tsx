@@ -1,6 +1,8 @@
 "use client"
-import {createContext, useState, useRef, Dispatch, SetStateAction, MutableRefObject} from 'react'
+import {createContext, useState, useRef, Dispatch, SetStateAction, MutableRefObject, useCallback} from 'react'
 import { uploadObject } from '@/lib/actions/projectcanvas'
+import { fetchUser } from '@/lib/actions/auth';
+import { fetchProject } from '@/lib/actions/project';
 // import { objectDataType } from '../ProjectLayout/Canvas'
 import { toPng } from 'html-to-image';
 
@@ -97,18 +99,29 @@ export type objectDataType = {
 }
 
 
+export type userType = {
+  id: string, 
+  email: string,
+  projects: {id: string, name: string, description: string, creator: string}[]
+} | null
 
-
+export type projectType = {id: string, name: string, description: string, creator: string} | null
 
 type contextType = {
   canvasLoading: boolean,
   objectData: MutableRefObject<objectDataType>,
   hasInstance: MutableRefObject<boolean>,
-  canvasRef: MutableRefObject<HTMLDivElement>
+  canvasRef: MutableRefObject<HTMLDivElement>,
+  userObject: userType,
+  projectObject: projectType,
   setCanvasLoading: Dispatch<SetStateAction<boolean>>,
-  saveObjectData: (paramsId: string)=>void
-  htmlToImageConvert: () =>void
+  saveObjectData: (paramsId: string)=>void,
+  htmlToImageConvert: () =>void,
+  getUser: () => void,
+  getProject: (projectID: string) => void
 }
+
+
 
 export const ProjectContext = createContext<contextType>(null!)
 
@@ -118,6 +131,8 @@ const ProjectProvider = ({children}: {children: React.ReactNode}) => {
   const objectData = useRef<objectDataType>({})
   const [canvasLoading, setCanvasLoading] = useState(true)
   const hasInstance = useRef(false) // To check if the objectData has initially been created so it'll be updated instead of be recreated
+  const [userObject, setUserObject] = useState<userType>(null)
+  const [projectObject, setProjectObject] = useState<projectType>(null)
 
   const saveObjectData = async (paramsId: string) => {
     const objects = await uploadObject(objectData.current, paramsId, hasInstance.current)
@@ -144,10 +159,14 @@ const ProjectProvider = ({children}: {children: React.ReactNode}) => {
         console.log(err);
       });
   };
-  
-
+  const getUser = useCallback(async () => {
+    setUserObject(await fetchUser())
+  }, [])
+  const getProject = useCallback(async (projectID: string) => {
+    setProjectObject(await fetchProject(projectID))
+  }, [])
   return (
-    <ProjectContext.Provider value={{canvasRef, canvasLoading, setCanvasLoading, saveObjectData, objectData, hasInstance, htmlToImageConvert}}>
+    <ProjectContext.Provider value={{canvasRef, canvasLoading, setCanvasLoading, saveObjectData, objectData, hasInstance, htmlToImageConvert, userObject, getUser, projectObject, getProject}}>
       {children}
     </ProjectContext.Provider>
   )

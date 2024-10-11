@@ -44,8 +44,8 @@ export async function createCustomComponent(formData: FormData, category: string
             case "grinder":
                 url = "grinders"
                 break;
-            case "auxlliary":
-                url = "auxilliaries"
+            case "auxilliary":
+                url = "auxilliary"
                 break;
             default:
                 url = "crushers"
@@ -57,8 +57,8 @@ export async function createCustomComponent(formData: FormData, category: string
         // formData.forEach(function(value: string | File, key){
         //     objectData[key] = value;
         // });
-    
-        console.log(formData)
+
+        console.log("formData", formData)
         const response = await fetch(`${BASE_URL}/${url}/`, {
             method: "POST",
             body: formData,
