@@ -148,7 +148,7 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
                                 : <div onDragEnter={handleDragInto} onDragOver={handleDragInto} onDragLeave={handleDragAway} onDrop={handleDrop} className="border border-dashed rounded-md border-[#DFE1E6] h-32 w-full flex flex-col items-center justify-center transition-all gap-4" ref={dropArea}>
                             <input type="file" accept="image/jpeg, image/jpg, image/png" hidden id="custom-component-img" onChange={handleFileChange}/>
                             <Image src={dropIcon} height={24} width={24} alt="drop icon" quality={100} />
-                            <label htmlFor="custom-component-img" className="text-lg italic text-[#B3B3B3] font-normal cursor-pointer">Click or Drop Component Image here</label>
+                            <label htmlFor="custom-component-img" className="text-lg italic text-[#B3B3B3] font-normal cursor-pointer">Click to add or Drop Component Image here</label>
                         </div>
                         }
                         

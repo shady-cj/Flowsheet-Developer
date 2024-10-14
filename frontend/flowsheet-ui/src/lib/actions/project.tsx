@@ -33,7 +33,7 @@ export async function createProject(prevState: any, formData: FormData) {
 
         })
         const result = await response.json()
-        console.log(result)
+        // console.log(result)
         if (response.status === 201) {
             revalidatePath("/projects")
             return {success: "Created Successfully"}
@@ -76,7 +76,7 @@ export async function fetchProject(projectId: string) {
 
         })
         const result = await response.json()
-        console.log(response, response.text)
+        // console.log(response, response.text)
         if (response.status === 200) return result
         else {
             console.log(result);

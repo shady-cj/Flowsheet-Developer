@@ -53,7 +53,7 @@ export type formStateObjectType = {[index: string]: string}
 
 
 const Canvas = ({params}: {params: {id: string}}) => {
-    const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef} = useContext(ProjectContext)
+    const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed} = useContext(ProjectContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const currentObject = useRef<HTMLElement>(null!)
     const pointStore = useRef<pointStoreType>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
@@ -65,6 +65,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const objectFormType = useRef<objectType>("Shape")
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
+    
 
 
 
@@ -322,7 +323,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
           if (nextObject.properties.gape) {
             const gape = parseFloat(nextObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
-              nextObject.properties.maxOreSize = nextObject.properties.set
+              if (activeObject.properties.set && (parseFloat(activeObject.properties.set) <= parseFloat(nextObject.properties.set!)))
+                nextObject.properties.maxOreSize = activeObject.properties.set
+              else
+                nextObject.properties.maxOreSize = nextObject.properties.set
               return true
             }
             return false
@@ -349,7 +353,10 @@ const Canvas = ({params}: {params: {id: string}}) => {
           if (activeObject.properties.gape) {
             const gape = parseFloat(activeObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
-              activeObject.properties.maxOreSize = activeObject.properties.set
+              if (feedSize < parseFloat(activeObject.properties.set!))
+                activeObject.properties.maxOreSize = feedSize.toString()
+              else
+                activeObject.properties.maxOreSize = activeObject.properties.set
               return true
             }
             return false
@@ -1564,6 +1571,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
     }, [handleMouseUpGeneral, objectData])
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
+      console.log("called mouseup mouseup !!!")
       if (onMouseDown.current) {
         handleMouseUpUtil()
         console.log(objectData.current)
@@ -1574,8 +1582,21 @@ const Canvas = ({params}: {params: {id: string}}) => {
         
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
+
+      if (calculateBondsEnergy.current && obj){
+        if (["Grinder", "Crusher"].includes(objectData.current[obj.id].object_info.object_model_name)) {
+          communitionListForBondsEnergy.current.push(objectData.current[obj.id])
+          if (communitionListForBondsEnergy.current.length >= 2) {
+            console.log("calcuate bonds energy", communitionListForBondsEnergy.current)
+            calculateBondsEnergy.current = false
+            // Calculate it here
+            calculateEnergyUsed()
+          }
+        }
+      }
+
       
-    }, [handleMouseUpGeneral, handleMouseUpUtil, objectData])
+    }, [handleMouseUpGeneral, handleMouseUpUtil, objectData,calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed])
 
 
     const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
@@ -1721,7 +1742,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
   
         // console.log("element", element)
         const objectJSX = <ObjectCreator objectData={objectData.current} dataId={dataId}/>
-
+        
         const jsxToHTMLString= renderToStaticMarkup(objectJSX)
         const parser = new DOMParser()
         const temporaryDocument = parser.parseFromString(jsxToHTMLString, "text/html")
@@ -1963,7 +1984,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
         if (elementObjectName !== "Line") newEl.style.transform = `scale(${data.scale})`
         newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
-        newEl.addEventListener("mouseup", handleMouseUp);
+        newEl.addEventListener("mouseup", (e) => handleMouseUp(e, newEl));
         canvasRef.current.appendChild(newEl)
         objectLabels.current.add(data.label)
         if (data.properties.crusherType === "primary")
@@ -2255,7 +2276,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       if (elementObjectName !== "Line") newEl.style.transform = "scale(1.25)"
       LineConnector(newEl)
       newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
-      newEl.addEventListener("mouseup", handleMouseUp);
+      newEl.addEventListener("mouseup", (e) => handleMouseUp(e, newEl));
       canvasRef.current.appendChild(newEl)
 
       if (elementObjectName !== "Text") {
@@ -2288,8 +2309,12 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const CanvasContainer = canvasRef.current
       const CanvasParentContainer = document.getElementById("canvas-parent-container")!
       const objects = document.querySelectorAll(".objects")
+
+
       // console.log(objects)
       const invokeLoadObjects = async () => {
+      
+
         const loadedObj = await loadObjects(params.id)
         if (loadedObj.error) {
           alert(loadedObj.error)
@@ -2304,7 +2329,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         loadObjectToCanvas()
         setCanvasLoading(false)
       }
-      invokeLoadObjects()
+      if (!hasInstance.current) invokeLoadObjects()
     
       
       const handleMouseMove = (e: MouseEvent) => {
@@ -2414,10 +2439,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown,canvasRef, handleMouseUp, DrawPoint, createMultiplePoint, handleMouseUpGeneral, params, loadObjectToCanvas, objectData, handleShapeDelete, setCanvasLoading, hasInstance])
+    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params,handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas])
 
 
-    
   return (
     <>
       {

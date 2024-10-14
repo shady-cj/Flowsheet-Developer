@@ -8,7 +8,6 @@ import Auxilliary from "./Auxilliary"
 export const ObjectCreator = ({objectData, dataId}:{objectData: objectDataType, dataId: string}): JSX.Element => {
     const data = objectData[dataId]
     const elementObject = data.object!
-
     switch (elementObject.model_name) {
         case "Shape":
 

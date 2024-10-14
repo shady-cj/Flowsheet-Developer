@@ -23,7 +23,7 @@ import screenerImage from "@/assets/screener.svg"
 import crusherImage from "@/assets/crusher.svg"
 import grinderImage from "@/assets/grinder.svg"
 import auxilliaryImage from "@/assets/auxilliary.svg"
-import importComponent from "@/assets/import.svg"
+import importComponent from "@/assets/dropZone.svg"
 
 
 
@@ -151,19 +151,19 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                 </div>
                 <div className={`flex gap-2 flex-wrap overflow-hidden ${!componentOpen ? "hide-components": ""}`}>
                     {
-                        activeComponent.properties.length ? <section className="flex flex-col gap-y-4 overflow-hidden">
+                        activeComponent.properties.length ? <section className="flex flex-col gap-y-4 overflow-hidden w-full">
                             <h2 className="font-medium text-text-black text-base border-b py-2 flex gap-2 items-center mx-2">
                                 <span className="cursor-pointer text-text-black" onClick={()=> setActiveComponent({properties: [], type: ""})}>&laquo;</span>
 
                                 {activeComponent.type === "Auxilliaries" ? "Auxilliary Components" : activeComponent.type}</h2>
-                            <div className="flex flex-wrap gap-5 overflow-hidden p-2">
+                            <div className="flex flex-wrap gap-5 overflow-hidden p-2 w-full">
                             {
                                 activeComponent.properties.map(component => {
                         
-                                    const componentElement = activeComponent.type === "Crushers" ? <Crusher key={component.id} crusher={component} /> : 
-                                    activeComponent.type === "Grinders" ? <Grinder key={component.id} grinder={component}/> : 
-                                    activeComponent.type === "Screeners" ? <Screener key={component.id} screener={component}/> : 
-                                    activeComponent.type === "Auxilliaries" ? <Auxilliary key={component.id} auxilliary={component} /> : <></>
+                                    const componentElement = activeComponent.type === "Crushers" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Crusher crusher={component} /></div> : 
+                                    activeComponent.type === "Grinders" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Grinder grinder={component}/></div> : 
+                                    activeComponent.type === "Screeners" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Screener key={component.id} screener={component}/></div> : 
+                                    activeComponent.type === "Auxilliaries" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Auxilliary key={component.id} auxilliary={component} /></div> : <></>
                                     return componentElement
                                 }) 
                             }

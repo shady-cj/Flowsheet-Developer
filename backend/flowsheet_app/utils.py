@@ -26,7 +26,9 @@ def object_formatter(obj):
     default = {
         "id": obj.id,
         "name": obj.name,
-        "image_url": image_url, 
+        "image_url": image_url,
+        "image_width": obj.image_width if image_url else None,
+        "image_height": obj.image_height if image_url else None,
         "model_name": obj.__class__.__name__
     }
     # if isinstance(obj, Crusher) or isinstance(obj, Grinder):
@@ -47,6 +49,8 @@ def object_formatter(obj):
         })
     elif isinstance(obj, Shape):
         default.pop("image_url")
+        default.pop("image_height")
+        default.pop("image_width")
 
     return default
 

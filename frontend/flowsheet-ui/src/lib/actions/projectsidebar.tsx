@@ -58,7 +58,6 @@ export async function createCustomComponent(formData: FormData, category: string
         //     objectData[key] = value;
         // });
 
-        console.log("formData", formData)
         const response = await fetch(`${BASE_URL}/${url}/`, {
             method: "POST",
             body: formData,
@@ -69,7 +68,7 @@ export async function createCustomComponent(formData: FormData, category: string
         const result = await response.json()
         console.log(result)
         if (response.status === 201) {
-            return {success: "Custom compnent created succesfully"};
+            return {success: "Custom component created succesfully"};
 
         } else {
             return {error: "Error, could not create component"};

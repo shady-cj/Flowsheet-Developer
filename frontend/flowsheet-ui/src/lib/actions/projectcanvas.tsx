@@ -120,6 +120,7 @@ export async function loadObjects(projectId: string) {
             }
         })
         const result = await response.json()
+
         if (response.status === 200) {
             const objects: objectDataType = {}
             for (const entry of result) {
