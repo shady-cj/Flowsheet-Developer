@@ -5,9 +5,11 @@ import { uploadObject } from '@/lib/actions/projectcanvas'
 import { fetchUser } from '@/lib/actions/auth';
 import { fetchProject } from '@/lib/actions/project';
 // import { objectDataType } from '../ProjectLayout/Canvas'
+import { htmlToImageConvert } from '@/lib/utils/htmlConvertToImage';
 import Report, { createReport } from '@/lib/utils/report';
-import { toPng } from 'html-to-image';
+
 import generatePDF from 'react-to-pdf';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 
 
@@ -124,7 +126,7 @@ type contextType = {
   setCanvasLoading: Dispatch<SetStateAction<boolean>>,
   setWvalue: Dispatch<SetStateAction<string | null>>,
   saveObjectData: (paramsId: string)=>void,
-  htmlToImageConvert: () =>void,
+  htmlToImageConvert: (canvasRef: HTMLDivElement, objectData: objectDataType) =>void,
   getUser: () => void,
   getProject: (projectID: string) => void
   calculateEnergyUsed: () => void
@@ -189,24 +191,7 @@ const ProjectProvider = ({children}: {children: React.ReactNode}) => {
  * 
  * Test feature on saving html to image
  */
-  const htmlToImageConvert = () => {
-
-    // console.log(reportRef.current)
-    // generatePDF(reportRef, {filename: 'page.pdf'})
-    return 
-    toPng(canvasRef.current, { cacheBust: false, width: 700, height: 650, style: {background: "transparent"}})
-      .then((dataUrl) => {
-        const link = document.createElement("a");
-        link.download = "my-image-name.png";
-        link.href = dataUrl;
-        link.click();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-
-    
-  };
+ 
 
 
   const getUser = useCallback(async () => {

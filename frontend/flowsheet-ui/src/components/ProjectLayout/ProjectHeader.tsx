@@ -13,7 +13,7 @@ const ProjectHeader = ({params}: {params: {id: string}}) => {
   const [showDropDown, setShowDropDown] = useState(false)
   const [openBondsBox, setOpenBondsBox] = useState(false)
   
-  const {saveObjectData, hasInstance, canvasLoading, htmlToImageConvert, userObject, projectObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy} = useContext(ProjectContext)
+  const { canvasRef,objectData, saveObjectData, hasInstance, canvasLoading, htmlToImageConvert, userObject, projectObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy} = useContext(ProjectContext)
 
   return (
     <>
@@ -42,7 +42,7 @@ const ProjectHeader = ({params}: {params: {id: string}}) => {
             {userObject?.email.substring(0, 2).toLocaleUpperCase()}
             </div>
 
-            <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={htmlToImageConvert} disabled={canvasLoading}>
+            <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={()=> htmlToImageConvert(canvasRef.current, objectData.current)} disabled={canvasLoading}>
               <Image width={16} height={16} src={exportImage} alt="export" quality={100} />
               Export </button>
           </div>

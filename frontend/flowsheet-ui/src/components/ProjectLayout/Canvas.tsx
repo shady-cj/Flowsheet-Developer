@@ -1664,13 +1664,13 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const element = e.target as HTMLElement
       const parentElementContainer = element.closest(".text-object-container")!
       
-      if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
+      if (element.innerHTML!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
         element.remove()
         // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
         delete objectData.current[parentElementContainer.id]
       }
       
-      if (element.textContent!.length > 0) element.classList.remove("placeholder-style")
+      if (element.innerHTML!.length > 0) element.classList.remove("placeholder-style")
       else {
         element.innerHTML = ""
         element.classList.add("placeholder-style")
@@ -1694,7 +1694,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         element.querySelectorAll(".text-panel").forEach(el=>el.classList.remove("text-panel-show"))
         element.querySelector(".text-control-panel")?.classList.remove("text-control-panel-show")
         if (contentEditableDiv.textContent!.length > 0)
-          objectData.current[element.id].description = contentEditableDiv.textContent!
+          objectData.current[element.id].description = contentEditableDiv.innerHTML!
       }
     }, [objectData])
 
@@ -1839,8 +1839,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
           contentEditableDiv.setAttribute("data-variant", "text")
           contentEditableDiv.setAttribute("data-placeholder", "Text")
           contentEditableDiv.classList.add("shape-text-base-styles")
-          contentEditableDiv.textContent = objectData.current[dataId].description
-          if (contentEditableDiv.textContent!.length === 0)
+          contentEditableDiv.innerHTML = objectData.current[dataId].description
+          if (contentEditableDiv.innerHTML!.length === 0)
             contentEditableDiv.classList.add("placeholder-style")
 
 
@@ -1963,7 +1963,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
           
         }else {
-          newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
+          newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644")
           newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
           newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
         }
@@ -2231,7 +2231,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         pointStore.current[point2Uid] = [{prev: point1Uid, next: null}, ["L", 0]]
         
       }else {
-        newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
+        newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644")
         newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
       }
@@ -2425,9 +2425,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
         objects.forEach(object=> {
           (object as HTMLElement).removeEventListener("mousedown", (e) => handleMouseDown(e, object as HTMLElement));
           (object as HTMLElement).removeEventListener("mouseup", handleMouseUp);
-          (object as HTMLElement).addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06");
-          (object as HTMLElement).addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none");
-          (object as HTMLElement).addEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
+          (object as HTMLElement).removeEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644");
+          (object as HTMLElement).removeEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none");
+          (object as HTMLElement).removeEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
           // object.removeEventListener("mousemove", handleMouseMove)
         })
         document.querySelectorAll(".point-indicators").forEach(point => {

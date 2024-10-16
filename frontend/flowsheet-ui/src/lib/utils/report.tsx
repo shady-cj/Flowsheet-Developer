@@ -55,9 +55,9 @@ export const createReport = (objectData: objectDataType) => {
 }
 
 
-const Report = forwardRef<HTMLDivElement, {objectData: objectDataType}>(({objectData}, ref) => {
+const Report = ({objectData}: {objectData: objectDataType}) => {
   return (
-    <div className="fixed z-60 bg-white top-0 left-0 flex flex-col gap-y-6" ref={ref}>
+    <div className="fixed z-60 bg-white top-0 left-0 flex flex-col gap-y-6">
       {
         Object.keys(objectData).map(key=> {
             const currentNode = objectData[key]
@@ -135,6 +135,5 @@ const Report = forwardRef<HTMLDivElement, {objectData: objectDataType}>(({object
         }
     </div>
   )
-})
-
+}
 export default Report
