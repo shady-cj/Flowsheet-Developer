@@ -2,18 +2,24 @@
 
 import Link from "next/link"
 import { ProjectContext } from "../context/ProjectProvider"
-import { useContext, useState } from "react"
+import { useContext, useRef, useState } from "react"
 import Image from "next/image"
 import exportImage from "@/assets/export.svg"
 import arrowRight from "@/assets/arrow-right.svg"
 import arrowDown from "@/assets/arrow-down.svg"
+import { htmlToImageConvert } from '@/lib/utils/htmlConvertToImage';
+import Report from "@/lib/utils/report"
+import { BlobProvider } from "@react-pdf/renderer"
+
 
 
 const ProjectHeader = ({params}: {params: {id: string}}) => {
   const [showDropDown, setShowDropDown] = useState(false)
   const [openBondsBox, setOpenBondsBox] = useState(false)
+  const [preparePdf, setPreparePdf] = useState(false)
+  const pdfUrl = useRef<string | null>(null)
   
-  const { canvasRef,objectData, saveObjectData, hasInstance, canvasLoading, htmlToImageConvert, userObject, projectObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy} = useContext(ProjectContext)
+  const { canvasRef,objectData, saveObjectData, hasInstance, canvasLoading,userObject, projectObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy} = useContext(ProjectContext)
 
   return (
     <>
@@ -42,9 +48,20 @@ const ProjectHeader = ({params}: {params: {id: string}}) => {
             {userObject?.email.substring(0, 2).toLocaleUpperCase()}
             </div>
 
-            <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={()=> htmlToImageConvert(canvasRef.current, objectData.current)} disabled={canvasLoading}>
+            <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={()=> {
+              setPreparePdf(true)
+              }} disabled={canvasLoading}>
               <Image width={16} height={16} src={exportImage} alt="export" quality={100} />
               Export </button>
+
+              {preparePdf ? <BlobProvider document={<Report objectData={objectData.current}/>}>
+                {({ blob, url, loading, error }) => {
+                  // Do whatever you need with blob here
+                  htmlToImageConvert(canvasRef.current, objectData.current, url);
+                  setPreparePdf(false)
+                 return <></>
+                }}
+              </BlobProvider>: ""}
           </div>
 
           

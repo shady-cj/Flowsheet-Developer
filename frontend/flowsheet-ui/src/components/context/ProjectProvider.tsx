@@ -5,7 +5,7 @@ import { uploadObject } from '@/lib/actions/projectcanvas'
 import { fetchUser } from '@/lib/actions/auth';
 import { fetchProject } from '@/lib/actions/project';
 // import { objectDataType } from '../ProjectLayout/Canvas'
-import { htmlToImageConvert } from '@/lib/utils/htmlConvertToImage';
+
 import Report, { createReport } from '@/lib/utils/report';
 
 import generatePDF from 'react-to-pdf';
@@ -126,7 +126,6 @@ type contextType = {
   setCanvasLoading: Dispatch<SetStateAction<boolean>>,
   setWvalue: Dispatch<SetStateAction<string | null>>,
   saveObjectData: (paramsId: string)=>void,
-  htmlToImageConvert: (canvasRef: HTMLDivElement, objectData: objectDataType) =>void,
   getUser: () => void,
   getProject: (projectID: string) => void
   calculateEnergyUsed: () => void
@@ -204,7 +203,7 @@ const ProjectProvider = ({children}: {children: React.ReactNode}) => {
 
 
   return (
-    <ProjectContext.Provider value={{canvasRef, canvasLoading, setCanvasLoading, saveObjectData, objectData, hasInstance, htmlToImageConvert, userObject, getUser, projectObject, getProject, calculateBondsEnergy, communitionListForBondsEnergy, workIndex, calculateEnergyUsed, Wvalue, setWvalue}}>
+    <ProjectContext.Provider value={{canvasRef, canvasLoading, setCanvasLoading, saveObjectData, objectData, hasInstance, userObject, getUser, projectObject, getProject, calculateBondsEnergy, communitionListForBondsEnergy, workIndex, calculateEnergyUsed, Wvalue, setWvalue}}>
       {children}
       {/* {
           <Report objectData={objectData.current} ref={reportRef}/>

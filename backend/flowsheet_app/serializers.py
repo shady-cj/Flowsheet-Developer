@@ -71,8 +71,8 @@ class ConcentratorSerializer(ModelSerializer):
             "image_height",
             "image_width",
             "description",
-            # "recovery_rate",
-            # "dilution_gain",
+            "valuable_recoverable",
+            "gangue_recoverable",
             "creator",
         ]
 

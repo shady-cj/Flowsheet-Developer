@@ -269,6 +269,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
             }]
           })
           break
+        case "Concentrator":
+          formStateObject["oreQuantity"] = ""
+          setFormFields((prevFormField) => {
+            return [...prevFormField, {
+              type: "number",
+              name: "oreQuantity",
+              verboseName: "Quantity of Ore", 
+              htmlType: "input",
+              placeholder: "Quantity in metric tons"
+            }]
+          })
+          break;
+
         case "Auxilliary":
           if (auxilliaryType === "ORE") {
             formStateObject["maxOreSize"] = ""
@@ -2033,6 +2046,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       currentObject.current?.classList.remove('current-object')
       const elementObjectType = element.getAttribute("data-object-type")! as objectType // Shape, Grinder, Crusher
       const elementObjectName = element.getAttribute("data-object-name") || null //Circle, Text etc...
+  
       const newEl = element.cloneNode(true) as HTMLElement
       const canvasX = canvasRef.current.getBoundingClientRect().x
       const canvasY = canvasRef.current.getBoundingClientRect().y

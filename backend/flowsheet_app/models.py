@@ -67,6 +67,9 @@ class Concentrator(models.Model):
     image_height = models.IntegerField(default=60)
     description = models.TextField(null=True, blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="concentrators", null=True, blank=True)
+    # recovery criteria
+    valuable_recoverable = models.DecimalField(max_digits=4, decimal_places=1, default=20.0)
+    gangue_recoverable = models.DecimalField(max_digits=4, decimal_places=1, default=20.0)
     # recovery_rate = models.DecimalField(max_digits=10, decimal_places=4) # amount of valuable mineral in the concentrate / total amount of valuable mineral in the feed
     # dilution_gain = models.DecimalField(max_digits=10, decimal_places=4) # amount of waste in the concentrate / toatal amount of concentrate
 
@@ -75,10 +78,11 @@ class Concentrator(models.Model):
 class Auxilliary(models.Model):
     MISC_TYPE = {
         "ORE": "ore", 
-        "Facility": {
+        "Storage Facility": {
             "STOCKPILE": "stockpile",
             "BINS": "bins"
         },
+        "TAILING FACILITY": "tailing facility",
         "OTHERS": "others"
     }
     id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
@@ -106,6 +110,7 @@ class Project(models.Model):
     name = models.CharField(max_length=64)
     description = models.TextField()
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
+
 
 
 

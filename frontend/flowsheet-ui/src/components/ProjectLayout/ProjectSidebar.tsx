@@ -24,10 +24,12 @@ import crusherImage from "@/assets/crusher.svg"
 import grinderImage from "@/assets/grinder.svg"
 import auxilliaryImage from "@/assets/auxilliary.svg"
 import importComponent from "@/assets/dropZone.svg"
+import concentratorImage from "@/assets/concentrator.svg"
 
 
 
 import ConvertStringToShape from "../Shapes/ConvertStringToShape";
+import Concentrator from "../Objects/Concentrator";
 
 export type genericImageObjectType = {
     id: string, 
@@ -43,7 +45,14 @@ export interface AuxilliaryImageObjectType extends genericImageObjectType {
     type?: string
 
 }
-const components: {name: string, image: StaticImageData}[] = [{name: "Crushers", image: crusherImage}, {name: "Grinders",image: grinderImage}, {name: "Screeners", image: screenerImage}, {name: "Auxilliaries", image: auxilliaryImage}]
+
+export interface ConcentratorImageObjectType extends genericImageObjectType {
+    description?: string,
+    valuable_recoverable: number,
+    gangue_recoverable: number,
+}
+
+const components: {name: string, image: StaticImageData}[] = [{name: "Crushers", image: crusherImage}, {name: "Grinders",image: grinderImage}, {name: "Screeners", image: screenerImage}, {name: "Auxilliaries", image: auxilliaryImage}, {name: "Concentrators", image: concentratorImage}]
 
 
 
@@ -52,13 +61,14 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
     const [crushers, setCrushers] = useState<genericImageObjectType[]>([])
     const [screeners, setScreeners] = useState<genericImageObjectType[]>([])
     const [grinders, setGrinders] = useState<genericImageObjectType[]>([])
+    const [concentrators, setConcentrators] = useState<ConcentratorImageObjectType[]>([])
     const [auxilliaries, setAuxilliaries] = useState<AuxilliaryImageObjectType[]>([])
     const [addCustomComponent, setAddCustomComponent] = useState(false)
     const [loadComponent, setLoadComponent] = useState(true)
     const {userObject} = useContext(ProjectContext)
 
 
-    const [activeComponent, setActiveComponent] = useState<{properties: genericImageObjectType[] | AuxilliaryImageObjectType[],  type: string}>({properties: [], type: ""})
+    const [activeComponent, setActiveComponent] = useState<{properties: genericImageObjectType[] | AuxilliaryImageObjectType[] | ConcentratorImageObjectType[],  type: string}>({properties: [], type: ""})
 
     const [standardOpen, setStandardOpen] = useState<Boolean>(true)
     const [componentOpen, setComponentOpen] = useState<Boolean>(true)
@@ -69,7 +79,8 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
         const componentProperty =  element.ariaLabel === "Crushers" ? crushers :
         element.ariaLabel === "Screeners" ? screeners :
         element.ariaLabel === "Grinders" ? grinders:
-        element.ariaLabel === "Auxilliaries" ? auxilliaries : []
+        element.ariaLabel === "Auxilliaries" ? auxilliaries :
+        element.ariaLabel === "Concentrators" ? concentrators : []
         setActiveComponent({properties: componentProperty, type: element.ariaLabel || ""})
 
     }
@@ -91,6 +102,7 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
             setGrinders(await fetchObjects("grinders"))
             setScreeners(await fetchObjects("screeners"))
             setAuxilliaries(await fetchObjects("auxilliary"))
+            setConcentrators(await(fetchObjects("concentrators")))
         }
         if (loadComponent) {
             fetchObj()
@@ -163,7 +175,8 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                                     const componentElement = activeComponent.type === "Crushers" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Crusher crusher={component} /></div> : 
                                     activeComponent.type === "Grinders" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Grinder grinder={component}/></div> : 
                                     activeComponent.type === "Screeners" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Screener key={component.id} screener={component}/></div> : 
-                                    activeComponent.type === "Auxilliaries" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Auxilliary key={component.id} auxilliary={component} /></div> : <></>
+                                    activeComponent.type === "Auxilliaries" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Auxilliary key={component.id} auxilliary={component} /></div> : 
+                                    activeComponent.type === "Concentrators" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Concentrator key={component.id} concentrator={component as ConcentratorImageObjectType} /> </div>: <></>
                                     return componentElement
                                 }) 
                             }
@@ -177,49 +190,9 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                     }
                     
                 </div>
-                {/* <div className="flex gap-x-6 gap-y-2 flex-wrap mb-2">
-                    {
-                        crushers.length > 0 ? crushers.map(crusher=>{
-                            return (<Crusher key={crusher.id} crusher={crusher} />)
-                        }): "Loading"
-                    }
-                </div> */}
+                
             </div>
-            {/* <div className="border-b px-4 py-2">
-                <h1 className="text-xl font-bold mb-2">Grinders</h1>
-                <div className="flex gap-x-6 gap-y-2 flex-wrap mb-2">
-                    {
-                        grinders.length > 0 ? grinders.map(grinder=>{
-                            return (<Grinder key={grinder.id} grinder={grinder}/>)
-                        }): "Loading"
-                    }
-                </div>
-            </div>
-            <div className="border-b px-4 py-2">
-                <h1 className="text-xl font-bold mb-2">Screeners</h1>
-                <div className="flex gap-x-6 gap-y-2 flex-wrap mb-2">
-                    {
-                        screeners.length > 0 ? screeners.map(screener=>{
-                            return ( <Screener key={screener.id} screener={screener}/>
-                            )
-                        }): "Loading"
-                    }
-                </div>
-            </div>
-            <div className="border-b px-4 py-2">
-                <h1 className="text-xl font-bold">Concentration Technniques</h1>
-            </div>
-            <div className="border-b px-4 py-2">
-                <h1 className="text-xl font-bold mb-2">Auxilliary Facilities and Materials</h1>
-                <div className="flex gap-x-6 gap-y-2 flex-wrap mb-2">
-                    {
-                        auxilliaries.length > 0 ? auxilliaries.map(auxilliary=>{
-                            return ( <Auxilliary key={auxilliary.id} auxilliary={auxilliary}/>
-                            )
-                        }): "Loading"
-                    }
-                </div>
-            </div> */}
+            
             <div className="flex flex-col gap-y-5 pt-4">
                 <div className="flex justify-between items-center">
                         <div className="flex gap-x-2">
@@ -255,6 +228,12 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
                             auxilliaries.length > 0 && auxilliaries.map(auxilliary=>{
                                 if (auxilliary.creator === userObject?.id)
                                     return (<div key={auxilliary.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"> <Auxilliary auxilliary={auxilliary}/></div>)
+                            })
+                        }
+                        {
+                            concentrators.length > 0 && concentrators.map(concentrator=>{
+                                if (concentrator.creator === userObject?.id)
+                                    return (<div key={concentrator.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"> <Concentrator concentrator={concentrator}/></div>)
                             })
                         }
                     </div>

@@ -1,8 +1,10 @@
 import { toPng } from 'html-to-image';
 import { objectDataType } from '@/components/context/ProjectProvider';
+// import Report from './report';
+// import { renderToStaticMarkup } from 'react-dom/server';
+// import { BlobProvider, PDFDownloadLink } from '@react-pdf/renderer'
 
-export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: objectDataType) => {
-
+export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: objectDataType, pdfUrl: string | null) => {
     // console.log(reportRef.current)
     // generatePDF(reportRef, {filename: 'page.pdf'})
     const [maxWidth, maxHeight] = getMaxWidthAndHeight(objectData) 
@@ -17,18 +19,7 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
       .catch((err) => {
         console.log(err);
       });
-
-  
-      // // console.log("element", element)
-      // const reportJSX = <Report objectData={objectData.current}/>
-      
-      // const jsxToHTMLString= renderToStaticMarkup(reportJSX)
-      // const parser = new DOMParser()
-      // const temporaryDocument = parser.parseFromString(jsxToHTMLString, "text/html")
-      // const reportEl = temporaryDocument.querySelector("div") as HTMLDivElement
-      
-      // generatePDF(() =>reportEl, {filename: 'page.pdf'})
-    
+    console.log("pdf url", pdfUrl)
   };
 
 const getMaxWidthAndHeight = (objectData: objectDataType): [number, number] => {

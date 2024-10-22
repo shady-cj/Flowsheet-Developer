@@ -27,7 +27,6 @@ class ListCreateScreener(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIV
     def get_queryset(self):
         return get_queryset_util(self, Screener)
     
-
     
     
 class RetrieveUpdateDestroyScreener(ObjectPermissionMixin,RetrieveUpdateDestroyAPIView):

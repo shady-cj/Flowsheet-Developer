@@ -110,7 +110,7 @@ export async function loadObjects(projectId: string) {
     const refreshToken = cookies().get("refresh")?.value
     if (!accessToken && !refreshToken)
         return redirect("/login")
-
+    const start = performance.now()
     try {
         
         const response = await fetch(`${BASE_URL}/project_objects/${projectId}`, {
@@ -119,8 +119,12 @@ export async function loadObjects(projectId: string) {
                 "Authorization": `Bearer ${accessToken}`
             }
         })
-        const result = await response.json()
 
+        const result = await response.json()
+        // const end = performance.now()
+        // const responseTime = end - start;
+        // console.log(`API Response time: ${responseTime} milliseconds`);
+    
         if (response.status === 200) {
             const objects: objectDataType = {}
             for (const entry of result) {
