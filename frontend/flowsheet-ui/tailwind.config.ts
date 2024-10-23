@@ -27,7 +27,9 @@ const config: Config = {
         "text-black": "#17181A",
         "text-black-2": "#333333",
         "text-gray": "#DFE1E6",
-        "text-gray-2": "#F4F5F7"
+        "text-gray-2": "#F4F5F7",
+        "text-gray-3": "#666666",
+        "text-blue-variant": "#0052CC"
       }
     },
   },

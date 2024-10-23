@@ -2453,7 +2453,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params,handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas])
+    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params,handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas, objectData, hasInstance])
 
 
   return (

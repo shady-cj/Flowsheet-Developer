@@ -4,7 +4,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
 
 html, body {
-  font-family: "Instrument Sans", sans-serif;
+  font-family: "Instrument Sans", sans-serif !important;
   font-optical-sizing: auto;
 }
 
@@ -25,7 +25,7 @@ body {
 
 
 .landing-page-main {
-  height: clamp(50rem, 70vh, 200rem)
+  height: clamp(55rem, 70vh, 200rem)
 }
 
 .canvas-bg {
