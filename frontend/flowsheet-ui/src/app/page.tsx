@@ -1,18 +1,11 @@
 import HomeHeader from "@/components/HomeLayout/HomeHeader";
-import Image from "next/image";
 
+import Hero from "@/components/HomeLayout/Hero";
 export default function Home() {
   return (
     <>
       <HomeHeader />
-      <div className="bg-[#F5F7FA] flex-auto">
-        <main className="w-full h-[55rem] landing-page-main flex">
-          <div className="flex ml-[]">
-
-          </div>
-          
-        </main>
-      </div>
+      <Hero />
     </>
 
 
@@ -20,3 +13,5 @@ export default function Home() {
 }
 // 64 
 // 104
+
+// background: #172B4D;

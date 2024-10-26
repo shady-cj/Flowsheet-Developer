@@ -30,6 +30,11 @@ const config: Config = {
         "text-gray-2": "#F4F5F7",
         "text-gray-3": "#666666",
         "text-blue-variant": "#0052CC"
+      },
+      screens: { 
+
+        "xl": "1440px",
+        "2xl": "1700px"
       }
     },
   },
