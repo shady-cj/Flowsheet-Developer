@@ -1,8 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Alumni+Sans:ital,wght@0,100..900;1,100..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 html, body {
   font-family: "Instrument Sans", sans-serif !important;
@@ -11,14 +10,30 @@ html, body {
 
 
 
-
 body {
-  background-color: #f0f8ff;
+  background-color: #FAFBFC;
  
   /* color: #99cbf7f7; */
 } 
 
+.logo-text {
+  font-family: "Alumni Sans", sans-serif;
+  color: #16191C;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
 
+.hero-text {
+  line-height: 68px;
+}
+@media (min-width: 1440px) {
+  .hero-text {
+    line-height: 83px !important;
+  }
+
+}
 
 .font-size-default {
   font-size: clamp(0.7vw, 1rem, 4vw);
@@ -26,10 +41,10 @@ body {
 
 
 .font-inter {
-  font-family: "Inter", sans-serif;;
+  font-family: "Inter", sans-serif;
 }
 .landing-page-main {
-  height: clamp(40rem, 70vh, 200rem);
+  height: clamp(40rem, 100vh, 50rem);
   padding-bottom: 1rem;
 }
 

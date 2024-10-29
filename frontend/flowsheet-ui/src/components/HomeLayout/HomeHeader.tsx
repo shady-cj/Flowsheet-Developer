@@ -1,12 +1,13 @@
 import Link from "next/link"
-import logo from "@/assets/logo.png"
+import logoIcon from "@/assets/logo-icon.svg"
 import Image from "next/image"
 const HomeHeader = () => {
   return (
     <header className=" w-full shadow-sm sticky bg-[#FFFFFF] border-b-[#E9ECF0] border-b-[0.5px] top-0 drop-shadow-sm z-10 flex-initial">
         <div className="flex py-5 px-24 justify-between items-center">
-            <Link href={"/"} className="font-bold font-size-default">
-                <Image src={logo} alt="logo" width={88} height={29} />
+            <Link href={"/"} className="flex items-center gap-2">
+                <Image src={logoIcon} alt="logo" width={24} height={24.75} />
+                <span className="logo-text">MineFlo</span>
             </Link>
             <nav className="flex items-center gap-x-10">
                 <Link href={"/"} className="font-normal text-base text-gray-3">Documentation</Link>
