@@ -16,6 +16,7 @@ body {
   /* color: #99cbf7f7; */
 } 
 
+
 .logo-text {
   font-family: "Alumni Sans", sans-serif;
   color: #16191C;
@@ -53,6 +54,16 @@ body {
   background-color: #F9FAFC;
   background-position:  center;
   background-repeat: repeat;
+}
+
+.bg-auth-image {
+  background: linear-gradient(144deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.40) 100%), url('../assets/auth-page-image.jpeg') lightgray -738.428px 0px / 194.891% 100% no-repeat;
+  background-position: 0 0 ;
+  background-size: cover;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+}
+.bg-auth-image-overlay {
 }
 @media (min-width: 2000px) {
   .font-size-default {

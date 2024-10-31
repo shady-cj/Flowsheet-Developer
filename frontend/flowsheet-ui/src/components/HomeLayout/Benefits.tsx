@@ -18,7 +18,7 @@ const Benefits = () => {
           <div className="pt-32 basis-[40%]">
             <div className="flex flex-col gap-y-5">
 
-              <h2 className="text-[2.5rem] leading-[50px] xl:text-[3rem] font-semibold text-[#C7CFD6]">
+              <h2 className="text-[2.5rem] leading-[60px] xl:text-[3rem] font-semibold text-[#C7CFD6]">
                 Intuitive Flowsheet Creation
               </h2>
               <p className="text-base xl:text-lg font-normal text-white">
@@ -44,7 +44,7 @@ const Benefits = () => {
           <Image src={component2} width={300} height={560} alt="component image 1" className="h-auto absolute left-[240px] top-[80px]" quality={100} priority/>
           <div className="absolute right-32 top-[8.5rem]">
             <div className="flex flex-col gap-5 max-w-[300px] xl:max-w-[520px]">
-              <h2 className="text-[2.5rem] leading-[50px] xl:text-[3rem] font-semibold text-black">
+              <h2 className="text-[2.5rem] leading-[60px] xl:text-[3rem] font-semibold text-black">
                 Extensive Library of Unit Operation Models
               </h2>
               <p className="text-base xl:text-lg font-normal text-[#242526]">
@@ -88,7 +88,7 @@ const Benefits = () => {
           </div>
           <div className="basis-1/2 grow-0 shrink-0 flex h-[30rem] items-center">
             <div className="flex flex-col gap-5 max-w-[350px] xl:max-w-[520px]">
-                <h2 className="text-[2.5rem] leading-[50px] xl:text-[3rem] font-semibold text-[#DFE1E6]">
+                <h2 className="text-[2.5rem] leading-[60px] xl:text-[3rem] font-semibold text-[#DFE1E6]">
                   Simulate and optimize process
                 </h2>
                 <p className="text-base xl:text-lg font-normal text-white">
