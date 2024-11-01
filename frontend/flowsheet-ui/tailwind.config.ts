@@ -21,6 +21,7 @@ const config: Config = {
         "blueVariant": "#3c41c2",
         "darkBlueVariant": "#1e2179",
         "grayVariant": "#F4F5F7",
+        "grayVariant2": "#DFE1E6",
         "normalBlueVariant": "#0052CC"
       },
       colors: {

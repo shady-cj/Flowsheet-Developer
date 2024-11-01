@@ -2,8 +2,10 @@ from django.db import models
 from authentication.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.utils import timezone
 import uuid
 from cloudinary.models import CloudinaryField
+from django.utils.timesince import timesince
 # Create your models here.
 
 
@@ -102,8 +104,7 @@ class Auxilliary(models.Model):
 
 
 
-# Defines each project of the user, that contains multiple object mapper
-# This model would be extended overtime as more information arises
+# A project can contain multiple flowsheets
 
 class Project(models.Model):
     id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
@@ -111,10 +112,25 @@ class Project(models.Model):
     description = models.TextField()
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
 
+# Defines each flowsheet for a project, that contains multiple object mapper
+# This model would be extended overtime as more information arises
+
+
+class Flowsheet(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=64)
+    description = models.TextField()
+    preview_url = models.URLField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="flowsheets")
+    last_edited = models.DateTimeField(auto_now=True)
+
+    def get_mins_ago(self):
+        return timesince(self.last_edited, timezone.now())
 
 
 
-class ProjectObject(models.Model):
+
+class FlowsheetObject(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.UUIDField(null=True, blank=True)
     # object_id = models.PositiveIntegerField(null=True, blank=True)
@@ -126,7 +142,7 @@ class ProjectObject(models.Model):
     scale = models.DecimalField(max_digits=5, decimal_places=2) # the scale of the object? how big or how small
     font_size = models.DecimalField(max_digits=10, decimal_places=2) # the font size in pixels
     description = models.TextField(blank=True, null=True) # The description of the object Mapper
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="project_objects")
+    flowsheet = models.ForeignKey(Flowsheet, on_delete=models.CASCADE, related_name="flowsheet_objects")
     properties = models.JSONField(blank=True, null=True) # property of the objects
 
 

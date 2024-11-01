@@ -43,7 +43,7 @@ const Benefits = () => {
           <Image src={component1} width={251} height={560} alt="component image 1" className="h-auto absolute left-[61px] -top-[10px]" quality={100} priority/>
           <Image src={component2} width={300} height={560} alt="component image 1" className="h-auto absolute left-[240px] top-[80px]" quality={100} priority/>
           <div className="absolute right-32 top-[8.5rem]">
-            <div className="flex flex-col gap-5 max-w-[300px] xl:max-w-[520px]">
+            <div className="flex flex-col gap-5 max-w-[350px] xl:max-w-[520px]">
               <h2 className="text-[2.5rem] leading-[60px] xl:text-[3rem] font-semibold text-black">
                 Extensive Library of Unit Operation Models
               </h2>

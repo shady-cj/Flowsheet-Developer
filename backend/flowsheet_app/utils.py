@@ -2,7 +2,7 @@ from .models import Shape, Screener, Crusher, Grinder, Concentrator, Auxilliary,
 from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
-from .models import ProjectObject
+from .models import FlowsheetObject
 from PIL import Image, ImageEnhance
 from io import BytesIO
 from rembg import remove
@@ -85,7 +85,7 @@ def update_object_util(self, index, data):
         # if it has an id then it's already created in the database
         # we might not need to make this additional query.
         id = data.get("id")
-        return ProjectObject.objects.get(id=id).object
+        return FlowsheetObject.objects.get(id=id).object
 
 
     # else we create the project Object

@@ -2,7 +2,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 # from rest_framework.exceptions import PermissionDenied
 
-from .models import Shape, Screener, Crusher, Grinder, Concentrator, Auxilliary, Project, ProjectObject
+from .models import Shape, Screener, Crusher, Grinder, Concentrator, Auxilliary, Project, FlowsheetObject, Flowsheet
 
 from .utils import object_formatter
 # Shapes Serializers
@@ -110,10 +110,24 @@ class ProjectSerializer(ModelSerializer):
         read_only_fields = ["id", "creator"]
 
 
-class ProjectObjectSerializer(ModelSerializer):
+class FlowsheetSerializer(ModelSerializer):
+    class Meta:
+        model = Flowsheet
+        fields = [
+            "id",
+            "name",
+            "description",
+            "preview_url",
+            "get_mins_ago",
+            "project"
+        ]
+        read_only_fields = ["id", "creator", "get_mins_ago"]
+
+
+class FlowsheetObjectSerializer(ModelSerializer):
     object = serializers.SerializerMethodField()
     class Meta:
-        model = ProjectObject
+        model = FlowsheetObject
 
         fields = [
             "id",
@@ -125,7 +139,7 @@ class ProjectObjectSerializer(ModelSerializer):
             "scale",
             "font_size",
             "description",
-            # "project",
+            "flowsheet",
             "properties"
         ]
         read_only_fields = ["id"]

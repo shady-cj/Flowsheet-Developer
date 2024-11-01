@@ -4,12 +4,12 @@ from rest_framework.decorators import api_view
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, GenericAPIView
 from rest_framework import serializers, status
 
-from .serializers import ShapeSerializer, ScreenerSerializer, CrusherSerializer, GrinderSerializer, ConcentratorSerializer, AuxilliarySerializer, ProjectSerializer, ProjectObjectSerializer
-from .models import Shape, Screener, Crusher,Grinder, Concentrator, Auxilliary, Project, ProjectObject
+from .serializers import ShapeSerializer, ScreenerSerializer, CrusherSerializer, GrinderSerializer, ConcentratorSerializer, AuxilliarySerializer, ProjectSerializer, FlowsheetObjectSerializer,FlowsheetSerializer
+from .models import Shape, Screener, Crusher,Grinder, Concentrator, Auxilliary, Project, FlowsheetObject, Flowsheet
 from authentication.models import User
 from .utils import get_queryset_util, create_object_util, update_object_util
 from .mixins import ObjectPermissionMixin,UpdateCreatorMixin, handleCreationMixin
-from .permissions import ProjectObjectPermission
+from .permissions import FlowsheetObjectPermission, FlowsheetInstancePermission
 from rest_framework.exceptions import PermissionDenied
 
 
@@ -95,6 +95,32 @@ class RetrieveUpdateDestroyAuxilliary(ObjectPermissionMixin,RetrieveUpdateDestro
         return get_queryset_util(self, Auxilliary)
     
 
+
+
+class ListCreateFlowsheet(ListCreateAPIView):
+    serializer_class = FlowsheetSerializer
+    permission_classes = (FlowsheetInstancePermission, )
+    queryset = Flowsheet.objects.all()
+    def get_queryset(self):
+        project_id = self.request.parser_context.get("kwargs").get("project_id")
+        return Flowsheet.objects.filter(project__id = project_id)
+    def perform_create(self, serializer):
+        project_id = self.request.parser_context.get("kwargs").get("project_id")
+        project_instance = Project.objects.get(id=project_id)
+        serializer.save(project=project_instance)
+
+
+class RetrieveUpdateDestroyFlowsheet(RetrieveUpdateDestroyAPIView):
+    serializer_class = FlowsheetSerializer
+    lookup_field = "id"
+    permission_classes = (FlowsheetInstancePermission, )
+    lookup_url_kwarg = "flowsheet_id"
+    queryset = Flowsheet.objects.all()
+    def get_queryset(self):
+        project_id = self.request.parser_context.get("kwargs").get("project_id")
+        return Flowsheet.objects.filter(project__id = project_id)
+
+
 class ListCreateProject(UpdateCreatorMixin,ListCreateAPIView):
     serializer_class = ProjectSerializer
     queryset = Project.objects.all()
@@ -144,14 +170,14 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin,RetrieveUpdateDestroyAP
 
 
 # It should be able to handle list of objects
-class ListCreateProjectObject(ListCreateAPIView):
-    permission_classes = (ProjectObjectPermission, )
+class ListCreateFlowsheetObject(ListCreateAPIView):
+    permission_classes = (FlowsheetObjectPermission, )
     # permission_classes = (permissions.AllowAny, )
-    serializer_class = ProjectObjectSerializer
-    queryset = ProjectObject.objects.all()
+    serializer_class = FlowsheetObjectSerializer
+    queryset = FlowsheetObject.objects.all()
     def get_queryset(self):
-        project_id = self.request.parser_context.get("kwargs").get("project_id")
-        return ProjectObject.objects.filter(project__id=project_id)
+        flowsheet_id = self.request.parser_context.get("kwargs").get("flowsheet_id")
+        return FlowsheetObject.objects.filter(flowsheet__id=flowsheet_id)
     
 
    # Override the create() method in order to allow saving of multiple data
@@ -170,8 +196,8 @@ class ListCreateProjectObject(ListCreateAPIView):
 
         
     def perform_create(self, serializer):
-        project_id = self.request.parser_context.get("kwargs").get("project_id")
-        project_instance = Project.objects.get(id=project_id)
+        flowsheet_id = self.request.parser_context.get("kwargs").get("flowsheet_id")
+        flowsheet_instance = Flowsheet.objects.get(id=flowsheet_id)
 
         data = self.request.data
 
@@ -181,52 +207,52 @@ class ListCreateProjectObject(ListCreateAPIView):
                 raise serializers.ValidationError({"detail": "Error with validating json data"})
             for index in range(length_of_data):
                 object_instance = create_object_util(self, index, data)
-                serializer.validated_data[index]['project'] = project_instance
+                serializer.validated_data[index]['flowsheet'] = flowsheet_instance
                 serializer.validated_data[index]['object'] = object_instance  
    
             return serializer.save()
         object_instance = create_object_util(self, None, data)
-        return serializer.save(project=project_instance, object=object_instance)
+        return serializer.save(flowsheet=flowsheet_instance, object=object_instance)
     
 
 
-class UpdateDestroyProjectObject(GenericAPIView):
-    permission_classes = (ProjectObjectPermission, )
-    serializer_class = ProjectObjectSerializer
-    queryset = ProjectObject.objects.all()
+class UpdateDestroyFlowsheetObject(GenericAPIView):
+    permission_classes = (FlowsheetObjectPermission, )
+    serializer_class = FlowsheetObjectSerializer
+    queryset = FlowsheetObject.objects.all()
     
 
     def get_queryset(self):
-        project_id = self.request.parser_context.get("kwargs").get("project_id")
-        return ProjectObject.objects.filter(project__id=project_id)
+        flowsheet_id = self.request.parser_context.get("kwargs").get("flowsheet_id")
+        return FlowsheetObject.objects.filter(flowsheet__id=flowsheet_id)
 
     
     def put(self, request, *args, **kwargs):
         data = request.data
-        project_id = request.parser_context.get("kwargs").get("project_id")
-        project_instance = Project.objects.get(id=project_id)
+        flowsheet_id = request.parser_context.get("kwargs").get("flowsheet_id")
+        flowsheet_instance = Flowsheet.objects.get(id=flowsheet_id)
         serializers = []
         if isinstance(data, list):
             for entry in data:
                 if "id" in entry:
                     entry_id = entry.get("id")
-                    project_object_instance = ProjectObject.objects.get(id=entry_id)
-                    serializer = self.get_serializer(project_object_instance, data=entry)
+                    flowsheet_object_instance = FlowsheetObject.objects.get(id=entry_id)
+                    serializer = self.get_serializer(flowsheet_object_instance, data=entry)
                     serializer.is_valid(raise_exception=True)
                 else:
                     serializer = self.get_serializer(data=entry)
                     serializer.is_valid(raise_exception=True)
                 serializers.append(serializer)
 
-            self.custom_perform_update(serializers)
-            queryset_serializer = self.get_serializer(project_instance.project_objects.all(), many=True)
+            self.perform_custom_update(serializers) # updates or creates new flowsheet objects
+            queryset_serializer = self.get_serializer(flowsheet_instance.flowsheet_objects.all(), many=True)
             return Response(queryset_serializer.data)
         return Response({"detail": "Expecting a list"}, status=status.HTTP_400_BAD_REQUEST)
     
 
-    def custom_perform_update(self, serializers):
-        project_id = self.request.parser_context.get("kwargs").get("project_id")
-        project_instance = Project.objects.get(id=project_id)
+    def perform_custom_update(self, serializers):
+        flowsheet_id = self.request.parser_context.get("kwargs").get("flowsheet_id")
+        flowsheet_instance = Project.objects.get(id=flowsheet_id)
         data = self.request.data
 
         length_of_data = len(data) if len(data) == len(serializers) else None
@@ -240,21 +266,21 @@ class UpdateDestroyProjectObject(GenericAPIView):
         for entry in serializers:
             data_oids.add(entry.validated_data["oid"])
             
-        existing_project_objects = project_instance.project_objects.all()
-        for project_object in existing_project_objects:
-            if project_object.oid not in data_oids:
+        existing_flowsheet_objects = flowsheet_instance.flowsheet_objects.all()
+        for flowsheet_object in existing_flowsheet_objects:
+            if flowsheet_object.oid not in data_oids:
                 # Means it has been deleted in the frontend
-                project_object.delete()
+                flowsheet_object.delete()
         for index in range(length_of_data):
             object_instance = update_object_util(self, index, data)
-            serializers[index].save(project=project_instance, object=object_instance) # Adding object=object_instance here is not needed for those objects that just needs update but it's important for the objects that were being created, hence why it's being added here, it would be improved later to prevent unnecessary query to the database.
+            serializers[index].save(flowsheet=flowsheet_instance, object=object_instance) # Adding object=object_instance here is not needed for those objects that just needs update but it's important for the objects that were being created, hence why it's being added here, it would be improved later to prevent unnecessary query to the database.
         return None
 
 
 
 
 
-# class RetrieveUpdateDestroyProjectObject(RetrieveUpdateDestroyAPIView):
+# class RetrieveUpdateDestroyFlowsheetObject(RetrieveUpdateDestroyAPIView):
 #     permission_classes = (ProjectObjectPermission, )
 #     # permission_classes = (permissions.AllowAny, )
 #     serializer_class = ProjectObjectSerializer

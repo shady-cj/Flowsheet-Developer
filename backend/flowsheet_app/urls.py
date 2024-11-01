@@ -1,5 +1,14 @@
 from django.urls import path
-from .views import ListCreateShapes, ListCreateScreener, RetrieveUpdateDestroyScreener, ListCreateCrusher, RetrieveUpdateDestroyCrusher, ListCreateGrinder, RetrieveUpdateDestroyGrinder, ListCreateConcentrator, RetrieveUpdateDestroyConcentrator, ListCreateAuxilliary, RetrieveUpdateDestroyAuxilliary, ListCreateProject, RetrieveUpdateDestroyProject, ListCreateProjectObject, UpdateDestroyProjectObject
+from .views import (
+                    ListCreateShapes, ListCreateScreener, RetrieveUpdateDestroyScreener, 
+                    ListCreateCrusher, RetrieveUpdateDestroyCrusher, 
+                    ListCreateGrinder, RetrieveUpdateDestroyGrinder, 
+                    ListCreateConcentrator, RetrieveUpdateDestroyConcentrator, 
+                    ListCreateAuxilliary, RetrieveUpdateDestroyAuxilliary, 
+                    ListCreateProject, RetrieveUpdateDestroyProject, 
+                    ListCreateFlowsheetObject, UpdateDestroyFlowsheetObject,
+                    ListCreateFlowsheet, RetrieveUpdateDestroyFlowsheet
+                    )
 
 urlpatterns = [
         path("shapes/", ListCreateShapes.as_view()),
@@ -13,9 +22,11 @@ urlpatterns = [
         path("concentrators/<str:id>", RetrieveUpdateDestroyConcentrator.as_view()),
         path("auxilliary/", ListCreateAuxilliary.as_view()),
         path("auxilliary/<str:id>", RetrieveUpdateDestroyAuxilliary.as_view()),
+        path("flowsheets/<str:project_id>", ListCreateFlowsheet.as_view()),
+        path("flowsheets/<str:project_id>/update/<str:flowsheet_id>", RetrieveUpdateDestroyFlowsheet.as_view()),
         path("projects/", ListCreateProject.as_view()), 
         path("projects/<str:id>", RetrieveUpdateDestroyProject.as_view()),
-        path("project_objects/<str:project_id>", ListCreateProjectObject.as_view()),
-        path("project_objects/<str:project_id>/update", UpdateDestroyProjectObject.as_view())
+        path("flowsheet_objects/<str:flowsheet_id>", ListCreateFlowsheetObject.as_view()),
+        path("flowsheet_objects/<str:flowsheet_id>/update", UpdateDestroyFlowsheetObject.as_view())
     ]
 
