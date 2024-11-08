@@ -1,10 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { redirect} from "next/navigation"
-import { resolve } from "path"
-import { objectDataType, objectCoords } from "@/components/context/ProjectProvider"
+import { objectDataType, objectCoords } from "@/components/context/FlowsheetProvider"
 
 
 export type objectCompatibleTypes = {
@@ -12,6 +10,7 @@ export type objectCompatibleTypes = {
       id?: number,
       oid: string,
       label: string,
+      flowsheet: string,
       x_coordinate: number,
       y_coordinate: number,
       scale: number,
@@ -21,7 +20,6 @@ export type objectCompatibleTypes = {
         object_model_name: string,
         object_id: string
       } | string,
-    
       properties: {
         nextObject: string[],
         prevObject: string[],
@@ -35,7 +33,7 @@ const BASE_URL = "http://localhost:8000"
 
 
 
-export async function uploadObject(object: objectDataType, projectId: string, update: boolean) {
+export async function uploadObject(object: objectDataType, flowsheetID: string, update: boolean) {
         const listObjects = []
         const accessToken = cookies().get("access")?.value
         const refreshToken = cookies().get("refresh")?.value
@@ -53,7 +51,7 @@ export async function uploadObject(object: objectDataType, projectId: string, up
                 return {}
             let response
             if (update) {
-                response = await fetch(`${BASE_URL}/project_objects/${projectId}/update`, {
+                response = await fetch(`${BASE_URL}/flowsheet_objects/${flowsheetID}/update`, {
                     method: "PUT",
                     body: JSON.stringify(listObjects),
                     headers: {
@@ -62,7 +60,7 @@ export async function uploadObject(object: objectDataType, projectId: string, up
                     }
                 })
             } else {
-                response = await fetch(`${BASE_URL}/project_objects/${projectId}`, {
+                response = await fetch(`${BASE_URL}/flowsheet_objects/${flowsheetID}`, {
                     method: "POST",
                     body: JSON.stringify(listObjects),
                     headers: {
@@ -92,20 +90,18 @@ export async function uploadObject(object: objectDataType, projectId: string, up
                 }
                 // console.log("objects", objects)
                 return objects
-            }  else if (response.status === 404) {
-                return redirect("/projects")
-            }else {
-                console.log(result)
+            } else {
                 return {}
             }
         } catch (err) {
             console.log(err)
             return {}
         }
+        return {}
 
 }
 
-export async function loadObjects(projectId: string) {
+export async function loadObjects(flowsheetID: string) {
     const accessToken = cookies().get("access")?.value
     const refreshToken = cookies().get("refresh")?.value
     if (!accessToken && !refreshToken)
@@ -113,7 +109,7 @@ export async function loadObjects(projectId: string) {
     const start = performance.now()
     try {
         
-        const response = await fetch(`${BASE_URL}/project_objects/${projectId}`, {
+        const response = await fetch(`${BASE_URL}/flowsheet_objects/${flowsheetID}`, {
             cache: "no-store",
             headers: {
                 "Authorization": `Bearer ${accessToken}`
@@ -143,9 +139,9 @@ export async function loadObjects(projectId: string) {
             }
             return objects
         } else if (response.status === 404) {
-            return {notfound: "not found error"}
+            return {notFound: "error"}
         }else {
-            console.log(result)
+            console.log("console.log", result)
             return {error: "error occured while loading data"}
 
         }
@@ -154,6 +150,8 @@ export async function loadObjects(projectId: string) {
         console.log(err)
         return {error: "error occured while loading data"}
     }
+
+    return {}
 }
 
 

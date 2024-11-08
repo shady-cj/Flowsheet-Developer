@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { genericImageObjectType } from "../ProjectLayout/ProjectSidebar";
+import { genericImageObjectType } from "../FlowsheetLayout/FlowsheetSidebar";
 
 const Screener = ({screener}: {screener: genericImageObjectType}) => {
   return (

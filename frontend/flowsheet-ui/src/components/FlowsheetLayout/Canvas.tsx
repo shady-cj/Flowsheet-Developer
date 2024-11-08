@@ -1,14 +1,13 @@
 "use client";
 import { useEffect, useState, useRef, useCallback, DragEvent, ChangeEvent, FormEvent, useContext } from "react";
-import { uploadObject, loadObjects } from "@/lib/actions/projectcanvas";
+import { uploadObject, loadObjects } from "@/lib/actions/flowsheetcanvas";
 import ObjectForm from "./ObjectForm";
-import { ProjectContext } from "../context/ProjectProvider";
-import { objectDataType, lineCordsType,  objectCoords} from "../context/ProjectProvider";
+import { FlowsheetContext } from "../context/FlowsheetProvider";
+import { objectDataType, lineCordsType,  objectCoords} from "../context/FlowsheetProvider";
 import { ObjectCreator } from "../Objects/ObjectCreator";
 import { renderToStaticMarkup } from "react-dom/server"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
-import { notFound } from "next/navigation";
 
 
 export type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
@@ -52,8 +51,8 @@ const defaultFormField: formFieldsType = [
 export type formStateObjectType = {[index: string]: string}
 
 
-const Canvas = ({params}: {params: {id: string}}) => {
-    const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed} = useContext(ProjectContext)
+const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
+    const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const currentObject = useRef<HTMLElement>(null!)
     const pointStore = useRef<pointStoreType>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
@@ -65,12 +64,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const objectFormType = useRef<objectType>("Shape")
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
-    
-
-
-
-
-
 
 
 
@@ -91,7 +84,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
       objectData.current[object.id].label = formState!.label.trim().toLowerCase()
       objectLabels.current.add(formState!.label.trim().toLowerCase())
       objectData.current[object.id].description = formState!.description
-
       if (formState!.gape)
         objectData.current[object.id].properties.gape = formState!.gape
       if (formState!.set)
@@ -113,12 +105,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
       }
     }
 
+
     const handleFormState = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       if (formState !== null)
         setFormState((prevState) => {
           return {...prevState, [e.target.name]: e.target.value}
         })
     }
+
+
 
     const handleFormSave = (e: FormEvent) => {
       e.preventDefault()
@@ -2323,29 +2318,27 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const CanvasContainer = canvasRef.current
       const CanvasParentContainer = document.getElementById("canvas-parent-container")!
       const objects = document.querySelectorAll(".objects")
-
-
+      if (pageNotFound) return;
       // console.log(objects)
       const invokeLoadObjects = async () => {
-      
-
-        const loadedObj = await loadObjects(params.id)
-        if (loadedObj.error) {
-          alert(loadedObj.error)
+        const loadedObj = await loadObjects(params.flowsheet_id)
+        if (!loadedObj || loadedObj.error) {
           // window.reload()
+          alert("Something went wrong, try reloading the page")
           return;
-        } else if (loadedObj.notfound) {
-          notFound();
         }
-    
+        else if(loadedObj.notFound) {
+          setPageNotFound(true)
+          setCanvasLoading(false)
+          return;
+        }
         objectData.current = loadedObj as objectDataType
         hasInstance.current = true
         loadObjectToCanvas()
         setCanvasLoading(false)
       }
       if (!hasInstance.current) invokeLoadObjects()
-    
-      
+          
       const handleMouseMove = (e: MouseEvent) => {
         // console.log(e.clientY - CanvasContainer.offsetTop)
         if (onMouseDown.current) {
@@ -2453,7 +2446,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params,handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas, objectData, hasInstance])
+    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas, objectData, hasInstance])
 
 
   return (
@@ -2461,12 +2454,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
       {
         canvasLoading && (<div className="relative w-full h-full bg-[#00000080] z-20 flex justify-center items-center"> Loading... </div>) 
       }
+      {
+        pageNotFound ? <div className="relative w-full h-full z-10 flex justify-center items-center">
+          Page not found
+        </div> :  (<div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
+                  { 
+                    isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
+                  }
+                </div>
+        )
+      }
       
-      <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
-        { 
-          isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
-        }
-      </div>
+     
     
     </>
   )

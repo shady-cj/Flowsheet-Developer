@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ProjectContext } from "../context/ProjectProvider"
+import { FlowsheetContext } from "../context/FlowsheetProvider"
 import { useContext, useRef, useState } from "react"
 import Image from "next/image"
 import exportImage from "@/assets/export.svg"
@@ -13,13 +13,13 @@ import { BlobProvider } from "@react-pdf/renderer"
 
 
 
-const ProjectHeader = ({params}: {params: {id: string}}) => {
+const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
   const [showDropDown, setShowDropDown] = useState(false)
   const [openBondsBox, setOpenBondsBox] = useState(false)
   const [preparePdf, setPreparePdf] = useState(false)
   const pdfUrl = useRef<string | null>(null)
   
-  const { canvasRef,objectData, saveObjectData, hasInstance, canvasLoading,userObject, projectObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy} = useContext(ProjectContext)
+  const { canvasRef,objectData, saveObjectData, hasInstance, canvasLoading,userObject, flowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
 
   return (
     <>
@@ -27,12 +27,19 @@ const ProjectHeader = ({params}: {params: {id: string}}) => {
           <nav className="flex gap-2 items-center">
               <Link href={"/"} className="text-base text-[#666666] font-normal">home</Link>
               <Image src={arrowRight} width={10} height={10} alt="arrow right" />
-                <p>{projectObject?.name}</p>
-              <button onClick={()=> saveObjectData(params.id)} className="m-2 bg-gray-100 p-2" disabled={canvasLoading}>
+                <p>{flowsheetObject?.name}</p>
+              <button onClick={()=> saveObjectData(params.flowsheet_id)} className="m-2 bg-gray-100 p-2" disabled={canvasLoading}>
                 {canvasLoading ? "Loading..." : (hasInstance.current ? "Update" : "Save")}
               </button>
               <div className="flex gap-2 relative">
-                <span>Utility</span> <Image src={arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> setShowDropDown(!showDropDown)}/>
+                <span>Utility</span> <Image src={arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> {
+                  if (pageNotFound) {
+                    setShowDropDown(false)
+                    return;
+                  }
+                  setShowDropDown(!showDropDown)}
+
+                }/>
                 <div className={`z-40 flex py-3 shadow-lg rounded-md flex-col bg-white transition-all absolute top-[200%] -left-[50%] ${showDropDown ? "opacity-100 visible" : "invisible opacity-0"}`}>
                   <span className="px-3 py-2 whitespace-nowrap cursor-pointer hover:bg-[#DFE1E6]" onClick={()=> {
                     setShowDropDown(false);
@@ -49,6 +56,7 @@ const ProjectHeader = ({params}: {params: {id: string}}) => {
             </div>
 
             <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={()=> {
+              if (pageNotFound) return;
               setPreparePdf(true)
               }} disabled={canvasLoading}>
               <Image width={16} height={16} src={exportImage} alt="export" quality={100} />
@@ -124,4 +132,4 @@ const ProjectHeader = ({params}: {params: {id: string}}) => {
   )
 }
 
-export default ProjectHeader
+export default FlowsheetHeader

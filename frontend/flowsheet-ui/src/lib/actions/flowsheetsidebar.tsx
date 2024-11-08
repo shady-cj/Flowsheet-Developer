@@ -3,6 +3,8 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation";
 
 const BASE_URL = "http://localhost:8000"
+
+
 export async function fetchObjects(objectEndpoint: string) {
     const accessToken = cookies().get("access")?.value
     const refreshToken = cookies().get("refresh")?.value

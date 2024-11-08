@@ -2,8 +2,8 @@
 import Link from "next/link"
 import {useState, useEffect, MouseEvent, useContext} from 'react'
 import CustomComponentForm from "./CustomComponentForm";
-import { ProjectContext } from "../context/ProjectProvider"
-import { fetchObjects } from "@/lib/actions/projectsidebar";
+import { FlowsheetContext } from "../context/FlowsheetProvider"
+import { fetchObjects } from "@/lib/actions/flowsheetsidebar";
 import Image, { StaticImageData } from "next/image";
 import Crusher from "../Objects/Crusher";
 import Grinder from "../Objects/Grinder";
@@ -56,7 +56,7 @@ const components: {name: string, image: StaticImageData}[] = [{name: "Crushers",
 
 
 
-const ProjectSidebar = ({params}: {params: {id: string}}) => {
+const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
     const [shapes, setShapes] = useState<{name: string, id: string}[]>([])
     const [crushers, setCrushers] = useState<genericImageObjectType[]>([])
     const [screeners, setScreeners] = useState<genericImageObjectType[]>([])
@@ -65,7 +65,7 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
     const [auxilliaries, setAuxilliaries] = useState<AuxilliaryImageObjectType[]>([])
     const [addCustomComponent, setAddCustomComponent] = useState(false)
     const [loadComponent, setLoadComponent] = useState(true)
-    const {userObject} = useContext(ProjectContext)
+    const {userObject} = useContext(FlowsheetContext)
 
 
     const [activeComponent, setActiveComponent] = useState<{properties: genericImageObjectType[] | AuxilliaryImageObjectType[] | ConcentratorImageObjectType[],  type: string}>({properties: [], type: ""})
@@ -254,4 +254,4 @@ const ProjectSidebar = ({params}: {params: {id: string}}) => {
   )
 }
 
-export default ProjectSidebar
+export default FlowsheetSidebar

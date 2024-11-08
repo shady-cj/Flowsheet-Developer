@@ -2,7 +2,7 @@
 import Image from 'next/image'
 import React, { DragEvent, FormEvent,useState, useEffect, useRef } from 'react'
 import dropIcon from "@/assets/dropIcon.svg"
-import { createCustomComponent } from '@/lib/actions/projectsidebar'
+import { createCustomComponent } from '@/lib/actions/flowsheetsidebar'
 import StatusBox from '../utils/StatusBox'
 
 

@@ -1,5 +1,5 @@
 import { toPng } from 'html-to-image';
-import { objectDataType } from '@/components/context/ProjectProvider';
+import { objectDataType } from '@/components/context/FlowsheetProvider';
 // import Report from './report';
 // import { renderToStaticMarkup } from 'react-dom/server';
 // import { BlobProvider, PDFDownloadLink } from '@react-pdf/renderer'
@@ -11,6 +11,7 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
 
     toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200, style: {background: "white"}})
       .then((dataUrl) => {
+        console.log("dataURl", dataUrl)
         const link = document.createElement("a");
         link.download = "my-image-name.png";
         link.href = dataUrl;
@@ -27,7 +28,10 @@ const getMaxWidthAndHeight = (objectData: objectDataType): [number, number] => {
     for (const key in objectData) {
         let projectedHeight = 0;
         const ALLOWANCE = 20
-        const elementType = objectData[key].object!.name
+        // console.log("object data", objectData[key])
+        // console.log(objectData[key].object)
+
+        const elementType = objectData[key].object?.name
         if (elementType === "Text") {
             let numberOfLines = objectData[key].description.match(/<br>/g)?.length
             numberOfLines = numberOfLines === 0 ? 1 : numberOfLines
@@ -39,4 +43,23 @@ const getMaxWidthAndHeight = (objectData: objectDataType): [number, number] => {
 
     }
     return [maxWidth, maxHeight]
+}
+
+
+export const previewImageGenerator = (canvasRef: HTMLDivElement, objectData: objectDataType) => {
+  let [maxWidth, maxHeight] = getMaxWidthAndHeight(objectData)
+  let url = null;
+  maxHeight = maxHeight < 280 ? 280 : maxHeight
+  maxWidth = maxWidth < 850 ? 850 : maxWidth
+  
+  toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200})
+      .then((dataUrl) => {
+        console.log("data url", dataUrl)
+        url = dataUrl
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  console.log(url)
+  // return url
 }

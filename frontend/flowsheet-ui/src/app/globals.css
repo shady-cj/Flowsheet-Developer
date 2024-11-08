@@ -63,8 +63,7 @@ body {
   background-position: 50% 50%;
   background-repeat: no-repeat;
 }
-.bg-auth-image-overlay {
-}
+
 @media (min-width: 2000px) {
   .font-size-default {
     padding: 1rem;

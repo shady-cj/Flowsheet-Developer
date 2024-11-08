@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { AuxilliaryImageObjectType } from "../ProjectLayout/ProjectSidebar";
+import { AuxilliaryImageObjectType } from "../FlowsheetLayout/FlowsheetSidebar";
 
 
 const Auxilliary = ({auxilliary}: {auxilliary: AuxilliaryImageObjectType}) => {

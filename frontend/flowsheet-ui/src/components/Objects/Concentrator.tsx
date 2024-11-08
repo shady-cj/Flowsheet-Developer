@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ConcentratorImageObjectType } from "../ProjectLayout/ProjectSidebar";
+import { ConcentratorImageObjectType } from "../FlowsheetLayout/FlowsheetSidebar";
 
 const Concentrator = ({concentrator}: {concentrator: ConcentratorImageObjectType}) => {
   return (

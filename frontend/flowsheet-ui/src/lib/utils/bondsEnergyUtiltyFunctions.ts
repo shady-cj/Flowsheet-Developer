@@ -1,4 +1,4 @@
-import { singleObjectDataType, objectDataType } from "@/components/context/ProjectProvider"
+import { singleObjectDataType, objectDataType } from "@/components/context/FlowsheetProvider"
 export const validateCommunitionPaths = (communitionList: singleObjectDataType[], objectData: objectDataType): boolean => {
     // Implementing DFS (Depth first search)
     const start = communitionList[0]
