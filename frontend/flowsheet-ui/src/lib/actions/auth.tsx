@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { MouseEvent } from 'react'
+import { getAccessToken } from '../utils/requestAccessToken'
 // import { NextResponse } from 'next/server'
 
 const BASE_URL = "http://localhost:8000"
@@ -112,10 +113,7 @@ export async function logout() {
 
 
 export async function fetchUser() {
-    const accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
-    if (!accessToken && !refreshToken)
-        return redirect("/login")
+    const accessToken = await getAccessToken()
 
     
     try {

@@ -1,11 +1,24 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from rest_framework import serializers
+
 # from rest_framework.exceptions import PermissionDenied
 
-from .models import Shape, Screener, Crusher, Grinder, Concentrator, Auxilliary, Project, ProjectObject
+from .models import (
+    Shape,
+    Screener,
+    Crusher,
+    Grinder,
+    Concentrator,
+    Auxilliary,
+    Project,
+    FlowsheetObject,
+    Flowsheet,
+)
 
 from .utils import object_formatter
+
 # Shapes Serializers
+
 
 class ShapeSerializer(ModelSerializer):
     class Meta:
@@ -20,44 +33,22 @@ class ShapeSerializer(ModelSerializer):
 class ScreenerSerializer(ModelSerializer):
     class Meta:
         model = Screener
-        fields = [
-            "id", 
-            "name",
-            "image_url",
-            "image_height",
-            "image_width",
-            "creator"
-        ]
+        fields = ["id", "name", "image_url", "image_height", "image_width", "creator"]
         read_only_fields = ["id"]
-
 
 
 class CrusherSerializer(ModelSerializer):
 
     class Meta:
         model = Crusher
-        fields = [
-            "id",
-            "name",
-            "image_url",
-            "image_height",
-            "image_width",
-            "creator"
-        ]
+        fields = ["id", "name", "image_url", "image_height", "image_width", "creator"]
         read_only_fields = ["id"]
 
 
 class GrinderSerializer(ModelSerializer):
     class Meta:
         model = Grinder
-        fields = [
-            "id",
-            "name",
-            "image_url",
-            "image_height",
-            "image_width",
-            "creator"
-        ]
+        fields = ["id", "name", "image_url", "image_height", "image_width", "creator"]
         read_only_fields = ["id"]
 
 
@@ -65,14 +56,14 @@ class ConcentratorSerializer(ModelSerializer):
     class Meta:
         model = Concentrator
         fields = [
-            "id", 
+            "id",
             "name",
             "image_url",
             "image_height",
             "image_width",
             "description",
-            # "recovery_rate",
-            # "dilution_gain",
+            "valuable_recoverable",
+            "gangue_recoverable",
             "creator",
         ]
 
@@ -83,14 +74,15 @@ class AuxilliarySerializer(ModelSerializer):
         fields = [
             "id",
             "name",
-            "image_url", 
+            "image_url",
             "image_height",
             "image_width",
             "description",
             "type",
-            "creator"
+            "creator",
         ]
         read_only_fields = ["id"]
+
 
 # class ProjectInlineSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
@@ -99,21 +91,83 @@ class AuxilliarySerializer(ModelSerializer):
 
 
 class ProjectSerializer(ModelSerializer):
+    preview_url = SerializerMethodField(read_only=True)
+    link = SerializerMethodField(read_only=True)
+
     class Meta:
         model = Project
         fields = [
             "id",
+            "get_mins_ago",
             "name",
+            "preview_url",
+            "starred",
             "creator",
-            "description"
+            "last_edited",
+            "description",
+            "link",
         ]
-        read_only_fields = ["id", "creator"]
+        read_only_fields = ["id", "link", "creator", "get_mins_ago", "preview_url"]
+
+    def get_preview_url(self, instance):
+        preview_url = None
+        flowsheets = instance.flowsheets
+        if flowsheets.exists():
+            latest_flowsheet = instance.flowsheets.order_by("-last_edited")[0]
+            preview_url = latest_flowsheet.preview_url
+        if not preview_url:
+            # Remember to change this...
+            preview_url = "https://res.cloudinary.com/dpykexpss/image/upload/v1737482485/grid_je7dz4.png"
+
+        return preview_url
+
+    def get_link(self, instance):
+        return f"project/{instance.id}"
 
 
-class ProjectObjectSerializer(ModelSerializer):
-    object = serializers.SerializerMethodField()
+class ProjectDetailSerializer(ModelSerializer):
+    project = SerializerMethodField(read_only=True)
+    flowsheets = SerializerMethodField(read_only=True)
+
     class Meta:
-        model = ProjectObject
+        model = Project
+        fields = ["project", "flowsheets"]
+
+    def get_project(self, instance):
+        return ProjectSerializer(instance).data
+
+    def get_flowsheets(self, instance):
+        flowsheets = instance.flowsheets.order_by("-last_edited")
+        return FlowsheetSerializer(flowsheets, many=True).data
+
+
+class FlowsheetSerializer(ModelSerializer):
+    link = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Flowsheet
+        fields = [
+            "id",
+            "name",
+            "description",
+            "preview_url",
+            "get_mins_ago",
+            "project",
+            "starred",
+            "link",
+            "last_edited",
+        ]
+        read_only_fields = ["id", "link", "creator", "get_mins_ago", "project"]
+
+    def get_link(self, instance):
+        return f"project/{instance.project.id}/flowsheet/{instance.id}"
+
+
+class FlowsheetObjectSerializer(ModelSerializer):
+    object = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FlowsheetObject
 
         fields = [
             "id",
@@ -125,8 +179,8 @@ class ProjectObjectSerializer(ModelSerializer):
             "scale",
             "font_size",
             "description",
-            # "project",
-            "properties"
+            "flowsheet",
+            "properties",
         ]
         read_only_fields = ["id"]
 
@@ -134,8 +188,6 @@ class ProjectObjectSerializer(ModelSerializer):
         if instance.object:
             return object_formatter(instance.object)
         return instance.object
-
-
 
     # def validate(self, attrs):
     #     """
@@ -146,5 +198,3 @@ class ProjectObjectSerializer(ModelSerializer):
     #     if project.creator.id == request.user.id or request.user.is_superuser:
     #         return super().validate(attrs)
     #     raise PermissionDenied("This user is not authorized to view or make changes")
-
-        

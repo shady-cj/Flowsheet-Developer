@@ -1,13 +1,14 @@
 "use server";
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation";
+import { getAccessToken } from "../utils/requestAccessToken";
 
 const BASE_URL = "http://localhost:8000"
+
+
 export async function fetchObjects(objectEndpoint: string) {
-    const accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
-    if (!accessToken && !refreshToken)
-        return redirect("/login")
+    const accessToken = await getAccessToken()
+
 
     try {
         const response = await fetch(`${BASE_URL}/${objectEndpoint}/`, {
@@ -15,8 +16,16 @@ export async function fetchObjects(objectEndpoint: string) {
                 "Authorization": `Bearer ${accessToken}`
             }
         })
-        if (response.status === 200)
-            return await response.json()
+  
+        if (response.status === 200){
+            const result = await response.json()
+            // const end = performance.now()
+            // const responseTime = end - start;
+            // console.log(`Response time: ${responseTime} milliseconds`);
+            return result
+           
+        }
+         
         else return []
         
     } catch(err) {
@@ -26,11 +35,10 @@ export async function fetchObjects(objectEndpoint: string) {
 }
 
 export async function createCustomComponent(formData: FormData, category: string) {
-    const accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
-    if (!accessToken && !refreshToken)
-        return redirect("/login")
+    const accessToken = await getAccessToken()
 
+    
+    console.log(formData, "formData")
     
     try {
         let url = ""
@@ -46,6 +54,9 @@ export async function createCustomComponent(formData: FormData, category: string
                 break;
             case "auxilliary":
                 url = "auxilliary"
+                break;
+            case "concentrator":
+                url = "concentrators"
                 break;
             default:
                 url = "crushers"

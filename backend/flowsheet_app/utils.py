@@ -2,7 +2,7 @@ from .models import Shape, Screener, Crusher, Grinder, Concentrator, Auxilliary,
 from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
-from .models import ProjectObject
+from .models import FlowsheetObject
 from PIL import Image, ImageEnhance
 from io import BytesIO
 from rembg import remove
@@ -12,11 +12,15 @@ from cloudinary.uploader import upload
 # =================================
 # Defining a simple `get_queryset_util` function that would be used for filtering the get_queryset for each api view for Screener, Crusher,Grinder, Concentrator, Auxilliary
 
+
 def get_queryset_util(self, obj_class):
     user = self.request.user
     if user.is_superuser:
         return obj_class.objects.all()
-    return obj_class.objects.filter(Q(creator = user) | Q(creator__is_superuser = True)).distinct()
+    return obj_class.objects.filter(
+        Q(creator=user) | Q(creator__is_superuser=True)
+    ).distinct()
+
 
 # ==================================
 
@@ -29,7 +33,7 @@ def object_formatter(obj):
         "image_url": image_url,
         "image_width": obj.image_width if image_url else None,
         "image_height": obj.image_height if image_url else None,
-        "model_name": obj.__class__.__name__
+        "model_name": obj.__class__.__name__,
     }
     # if isinstance(obj, Crusher) or isinstance(obj, Grinder):
     #     default.update({
@@ -39,14 +43,13 @@ def object_formatter(obj):
     #     })
 
     if isinstance(obj, Concentrator):
-        default.update({
-            "description": obj.description,
-        })
+        default.update(
+            {
+                "description": obj.description,
+            }
+        )
     elif isinstance(obj, Auxilliary):
-        default.update({
-            "type": obj.type,
-            "description": obj.description
-        })
+        default.update({"type": obj.type, "description": obj.description})
     elif isinstance(obj, Shape):
         default.pop("image_url")
         default.pop("image_height")
@@ -55,19 +58,35 @@ def object_formatter(obj):
     return default
 
 
+EXPECTED_OBJECT_NAMES = (
+    "Shape",
+    "Crusher",
+    "Screener",
+    "Grinder",
+    "Concentrator",
+    "Auxilliary",
+)
 
-EXPECTED_OBJECT_NAMES = ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
+
 def create_object_util(self, index, data):
     data = data[index] if index is not None else data
     object_info = eval(data.get("object_info"))
-    object_name = object_info.get("object_model_name") # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
-    object_model_id = object_info.get("object_id") # The id of the object being referenced (Shape, Crusher, Screener, Grinder, Concentrator Auxilliary)
+    object_name = object_info.get(
+        "object_model_name"
+    )  # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
+    object_model_id = object_info.get(
+        "object_id"
+    )  # The id of the object being referenced (Shape, Crusher, Screener, Grinder, Concentrator Auxilliary)
     if object_name not in EXPECTED_OBJECT_NAMES:
-        raise serializers.ValidationError({"object_model_name": "Invalid object project name provided"})
+        raise serializers.ValidationError(
+            {"object_model_name": "Invalid object project name provided"}
+        )
     object_model = eval(object_name)
     object_instance = object_model.objects.get(id=object_model_id)
     if not object_instance:
-        raise serializers.ValidationError({"object_id": "Given id is not associated to any object in the database"})
+        raise serializers.ValidationError(
+            {"object_id": "Given id is not associated to any object in the database"}
+        )
     # quick check if the current user has access to the object
     user = self.request.user
     if hasattr(object_instance, "creator"):
@@ -85,19 +104,26 @@ def update_object_util(self, index, data):
         # if it has an id then it's already created in the database
         # we might not need to make this additional query.
         id = data.get("id")
-        return ProjectObject.objects.get(id=id).object
-
+        return FlowsheetObject.objects.get(id=id).object
 
     # else we create the project Object
     object_info = eval(data.get("object_info"))
-    object_name = object_info.get("object_model_name") # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
-    object_model_id = object_info.get("object_id") # The id of the object being referenced (Shape, Crusher, Screener, Grinder, Concentrator Auxilliary)
+    object_name = object_info.get(
+        "object_model_name"
+    )  # object_model expected values ("Shape", "Crusher", "Screener", "Grinder", "Concentrator", "Auxilliary")
+    object_model_id = object_info.get(
+        "object_id"
+    )  # The id of the object being referenced (Shape, Crusher, Screener, Grinder, Concentrator Auxilliary)
     if object_name not in EXPECTED_OBJECT_NAMES:
-        raise serializers.ValidationError({"object_model_name": "Invalid object project name provided"})
+        raise serializers.ValidationError(
+            {"object_model_name": "Invalid object project name provided"}
+        )
     object_model = eval(object_name)
     object_instance = object_model.objects.get(id=object_model_id)
     if not object_instance:
-        raise serializers.ValidationError({"object_id": "Given id is not associated to any object in the database"})
+        raise serializers.ValidationError(
+            {"object_id": "Given id is not associated to any object in the database"}
+        )
     # quick check if the current user has access to the object
     user = self.request.user
     if hasattr(object_instance, "creator"):
@@ -108,27 +134,21 @@ def update_object_util(self, index, data):
     return object_instance
 
 
-
-
-
 def process_component_image(data):
-    image = data['image']
-   
+    image = data["image"]
+
     if not image:
         return None
     input = Image.open(image)
-    output = remove(input)
-    output.thumbnail((60, 60), Image.LANCZOS)
-    enhanced_img = ImageEnhance.Brightness(output)
-    data["image_width"], data["image_height"] = output.size
+    # input = remove(input)
+    input.thumbnail((100, 100))
+    # enhanced_img = ImageEnhance.Brightness(input)
+    data["image_width"], data["image_height"] = input.size
     imageBuffer = BytesIO()
-    enhanced_img.enhance(1.25).save(imageBuffer, format="PNG", optimize=True)
+    input.save(imageBuffer, format="PNG", optimize=True)
     imageBuffer.seek(0)
     upload_result = upload(
-        imageBuffer.getvalue(), 
-        folder=data["folder"], 
-        resource_type="image"
+        imageBuffer.getvalue(), folder=data["folder"], resource_type="image"
     )
-    data["image_url"] = upload_result['secure_url']
+    data["image_url"] = upload_result["secure_url"]
     return data
-    

@@ -2,7 +2,7 @@
 import Image from 'next/image'
 import React, { DragEvent, FormEvent,useState, useEffect, useRef } from 'react'
 import dropIcon from "@/assets/dropIcon.svg"
-import { createCustomComponent } from '@/lib/actions/projectsidebar'
+import { createCustomComponent } from '@/lib/actions/flowsheetsidebar'
 import StatusBox from '../utils/StatusBox'
 
 
@@ -13,11 +13,14 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
     const [status, setStatus] = useState<{error: string} | {success: string} | null>(null)
     const [showDescription, setShowDescription] = useState(false)
     const [isAuxilliary, setIsAuxilliary] = useState(false)
+    const [isConcentration, setIsConcentration] = useState(false)
     const dropArea = useRef<HTMLDivElement>(null!)
     const labelInput = useRef<HTMLInputElement>(null!)
     const categoryInput = useRef<HTMLSelectElement>(null!)
     const descriptionInput = useRef<HTMLInputElement | null>(null)
     const auxilliaryType = useRef<HTMLSelectElement | null>(null)
+    const gangueCriteria = useRef<HTMLInputElement | null>(null)
+    const valuableCriteria = useRef<HTMLInputElement | null>(null)
 
 
     const checkSelectedCategory = () => {
@@ -27,6 +30,9 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
 
         if (category === "auxilliary") setIsAuxilliary(true)
         else setIsAuxilliary(false)
+
+        if (category === "concentrator") setIsConcentration(true)
+        else setIsConcentration(false)
     }
 
     if (!uploadingComponent && status) {
@@ -58,12 +64,34 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
         if (isAuxilliary && !auxilliaryType.current?.value) {
             alert("Add a type for the auxilliary component")
             return;
+        } 
+        if (isConcentration){
+            if (!gangueCriteria.current?.value || !valuableCriteria.current?.value) {
+                alert("Specify the recovery criteria for the concentration technique")
+                return;
+            }
+            if (isNaN(Number(gangueCriteria.current?.value)) || isNaN(Number(valuableCriteria.current?.value))) {
+                alert("gangue and valuable recovery criteria must be valid numbers")
+                return;
+            }
+            if (Number(gangueCriteria.current?.value) < 0 || Number(gangueCriteria.current?.value) > 100) {
+                alert("gangue criteria must be within 0-100%")
+                return;
+            }
+            if (Number(valuableCriteria.current?.value) < 0 || Number(valuableCriteria.current?.value) > 100) {
+                alert("valuable criteria must be within 0-100%")
+                return;
+            }
         }
         
         formData.append("name", labelInput.current.value)
         formData.append("image", file)
         if (auxilliaryType.current?.value) formData.append("type", auxilliaryType.current?.value)
         if (descriptionInput.current?.value) formData.append("description", descriptionInput.current?.value)
+        if (isConcentration) {
+            formData.append("gangue_recoverable", Number(gangueCriteria.current!.value).toFixed(1))
+            formData.append("valuable_recoverable", Number(valuableCriteria.current!.value).toFixed(1))
+        }
         
         const result = await createCustomComponent(formData, categoryInput.current.value)
         setUploadingComponent(false)
@@ -132,12 +160,23 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
                         {
                             isAuxilliary && <select name="type" id="type" className="border border-[#DFE1E6] p-2 w-full rounded-sm text-sm" ref={auxilliaryType}>
                                 <option value="ORE">ore</option>
-                                <optgroup label="FACILITY" >
+                                <optgroup label="STORAGE FACILITY" >
                                     <option value="STOCKPILE">stockpile</option>
                                     <option value="BINS">bins</option>
                                 </optgroup>
+                                <option value="TAILING FACILITY">Tailing Facility</option>
                                 <option value="OTHERS">others</option>
                             </select>
+                        }
+                        {
+                            isConcentration ? <section className='flex flex-col gap-2'>
+                                <h2 className='font-semibold'>Recovery Criteria</h2>
+                                <div className='w-full flex gap-4'>
+                                    <input type="number" placeholder="valuable (%)" className="border border-[#DFE1E6] p-2 flex-1 rounded-sm text-sm " ref={valuableCriteria} min={1} max={100}/>
+                                    <input type="number" placeholder="gangue (%)" className="border border-[#DFE1E6] p-2 flex-1 rounded-sm text-sm " ref={gangueCriteria} min={1} max={100}/>
+                                </div>
+                                
+                            </section>: ""
                         }
                         
                         {

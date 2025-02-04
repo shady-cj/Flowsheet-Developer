@@ -4,16 +4,14 @@ import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { resolve } from "path"
+import { getAccessToken } from "../utils/requestAccessToken"
 
 const BASE_URL = "http://localhost:8000"
 
 export async function createProject(prevState: any, formData: FormData) {
+    const accessToken = await getAccessToken()
     const projectName: string = (formData.get('name') as string).trim()
     const projectDescription: string = (formData.get('description') as string).trim()
-    const accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
-    if (!accessToken && !refreshToken)
-        return redirect("/login")
     if (projectName.length === 0 || projectDescription.length === 0 ) 
         return {detail: "Project Name and Description are required"}
     const data = {
@@ -33,10 +31,10 @@ export async function createProject(prevState: any, formData: FormData) {
 
         })
         const result = await response.json()
-        // console.log(result)
+        console.log("created result", result)
         if (response.status === 201) {
             revalidatePath("/projects")
-            return {success: "Created Successfully"}
+            return {success: "Created Successfully", result}
         } else if(response.status === 401) {
             cookies().delete("refresh")
             cookies().delete("access")
@@ -59,10 +57,8 @@ export async function createProject(prevState: any, formData: FormData) {
 
 
 export async function fetchProject(projectId: string) {
-    const accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
-    if (!accessToken && !refreshToken)
-        return redirect("/login")
+    const accessToken = await getAccessToken()
+
 
     
     try {

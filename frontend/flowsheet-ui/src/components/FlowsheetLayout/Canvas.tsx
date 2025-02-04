@@ -1,14 +1,13 @@
 "use client";
 import { useEffect, useState, useRef, useCallback, DragEvent, ChangeEvent, FormEvent, useContext } from "react";
-import { uploadObject, loadObjects } from "@/lib/actions/projectcanvas";
+import { uploadObject, loadObjects } from "@/lib/actions/flowsheetcanvas";
 import ObjectForm from "./ObjectForm";
-import { ProjectContext } from "../context/ProjectProvider";
-import { objectDataType, lineCordsType,  objectCoords} from "../context/ProjectProvider";
+import { FlowsheetContext } from "../context/FlowsheetProvider";
+import { objectDataType, lineCordsType,  objectCoords} from "../context/FlowsheetProvider";
 import { ObjectCreator } from "../Objects/ObjectCreator";
 import { renderToStaticMarkup } from "react-dom/server"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
-import { notFound } from "next/navigation";
 
 
 export type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
@@ -52,8 +51,8 @@ const defaultFormField: formFieldsType = [
 export type formStateObjectType = {[index: string]: string}
 
 
-const Canvas = ({params}: {params: {id: string}}) => {
-    const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed} = useContext(ProjectContext)
+const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
+    const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const currentObject = useRef<HTMLElement>(null!)
     const pointStore = useRef<pointStoreType>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
@@ -65,12 +64,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
     const objectFormType = useRef<objectType>("Shape")
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
-    
-
-
-
-
-
 
 
 
@@ -91,7 +84,6 @@ const Canvas = ({params}: {params: {id: string}}) => {
       objectData.current[object.id].label = formState!.label.trim().toLowerCase()
       objectLabels.current.add(formState!.label.trim().toLowerCase())
       objectData.current[object.id].description = formState!.description
-
       if (formState!.gape)
         objectData.current[object.id].properties.gape = formState!.gape
       if (formState!.set)
@@ -113,12 +105,15 @@ const Canvas = ({params}: {params: {id: string}}) => {
       }
     }
 
+
     const handleFormState = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       if (formState !== null)
         setFormState((prevState) => {
           return {...prevState, [e.target.name]: e.target.value}
         })
     }
+
+
 
     const handleFormSave = (e: FormEvent) => {
       e.preventDefault()
@@ -269,6 +264,19 @@ const Canvas = ({params}: {params: {id: string}}) => {
             }]
           })
           break
+        case "Concentrator":
+          formStateObject["oreQuantity"] = ""
+          setFormFields((prevFormField) => {
+            return [...prevFormField, {
+              type: "number",
+              name: "oreQuantity",
+              verboseName: "Quantity of Ore", 
+              htmlType: "input",
+              placeholder: "Quantity in metric tons"
+            }]
+          })
+          break;
+
         case "Auxilliary":
           if (auxilliaryType === "ORE") {
             formStateObject["maxOreSize"] = ""
@@ -313,13 +321,23 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
 
       if (type === "from") {
+        console.log("from here")
         const nextObjectId = line.properties.nextObject[0]
         if (!nextObjectId) return true
         const nextObject = objectData.current[nextObjectId]
 
+        
         if (nextObject?.properties.gape || nextObject?.properties.aperture) {
-          if (!activeObject.properties.maxOreSize) return false
-          const feedSize = parseFloat(activeObject.properties.maxOreSize)
+          // console.log("here")
+          if (!activeObject.properties.gape && !activeObject.properties.aperture) return true
+          if (activeObject.properties.aperture)
+            activeObject.properties.maxOreSize = activeObject.properties.aperture
+          else if (activeObject.properties.gape) 
+            activeObject.properties.maxOreSize = activeObject.properties.set
+          else
+            return false
+
+          const feedSize = parseFloat(activeObject.properties.maxOreSize!)
           if (nextObject.properties.gape) {
             const gape = parseFloat(nextObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
@@ -342,14 +360,32 @@ const Canvas = ({params}: {params: {id: string}}) => {
         return true
       }
       if (type === "to") {
+        console.log("to here")
         const prevObjectId = line.properties.prevObject[0]
+
+    
+
         if (!prevObjectId) return true
         const prevObject = objectData.current[prevObjectId]
+        // console.log("active object", activeObject)
+        // console.log("prev objectId", prevObject)
+    
         if (!prevObject) return true
         if (activeObject.properties.gape || activeObject.properties.aperture) {
-          if (!prevObject.properties.maxOreSize) return false
           
-          const feedSize = parseFloat(prevObject.properties.maxOreSize)
+          if (!prevObject.properties.gape && !prevObject.properties.aperture) return true // review
+    
+          // if (!prevObject.properties.maxOreSize) {
+          if (prevObject.properties.aperture)
+            prevObject.properties.maxOreSize = prevObject.properties.aperture
+          else if (prevObject.properties.gape) 
+            prevObject.properties.maxOreSize = prevObject.properties.set
+          else
+            return false
+
+          // } 
+    
+          const feedSize = parseFloat(prevObject.properties.maxOreSize!) 
           if (activeObject.properties.gape) {
             const gape = parseFloat(activeObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
@@ -1215,6 +1251,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
                 }
             }
           }
+          // console.log("dragging from the right", objectOffsetX, lXAxis)
+
           if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
             // Dragging the object in from the right (for L coordinates)
             if ((lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id)) {
@@ -1664,13 +1702,13 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const element = e.target as HTMLElement
       const parentElementContainer = element.closest(".text-object-container")!
       
-      if (element.textContent!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
+      if (element.innerHTML!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
         element.remove()
         // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
         delete objectData.current[parentElementContainer.id]
       }
       
-      if (element.textContent!.length > 0) element.classList.remove("placeholder-style")
+      if (element.innerHTML!.length > 0) element.classList.remove("placeholder-style")
       else {
         element.innerHTML = ""
         element.classList.add("placeholder-style")
@@ -1694,7 +1732,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         element.querySelectorAll(".text-panel").forEach(el=>el.classList.remove("text-panel-show"))
         element.querySelector(".text-control-panel")?.classList.remove("text-control-panel-show")
         if (contentEditableDiv.textContent!.length > 0)
-          objectData.current[element.id].description = contentEditableDiv.textContent!
+          objectData.current[element.id].description = contentEditableDiv.innerHTML!
       }
     }, [objectData])
 
@@ -1839,8 +1877,8 @@ const Canvas = ({params}: {params: {id: string}}) => {
           contentEditableDiv.setAttribute("data-variant", "text")
           contentEditableDiv.setAttribute("data-placeholder", "Text")
           contentEditableDiv.classList.add("shape-text-base-styles")
-          contentEditableDiv.textContent = objectData.current[dataId].description
-          if (contentEditableDiv.textContent!.length === 0)
+          contentEditableDiv.innerHTML = objectData.current[dataId].description
+          if (contentEditableDiv.innerHTML!.length === 0)
             contentEditableDiv.classList.add("placeholder-style")
 
 
@@ -1963,7 +2001,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
 
           
         }else {
-          newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
+          newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644")
           newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
           newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
         }
@@ -2033,6 +2071,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
       currentObject.current?.classList.remove('current-object')
       const elementObjectType = element.getAttribute("data-object-type")! as objectType // Shape, Grinder, Crusher
       const elementObjectName = element.getAttribute("data-object-name") || null //Circle, Text etc...
+  
       const newEl = element.cloneNode(true) as HTMLElement
       const canvasX = canvasRef.current.getBoundingClientRect().x
       const canvasY = canvasRef.current.getBoundingClientRect().y
@@ -2231,7 +2270,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         pointStore.current[point2Uid] = [{prev: point1Uid, next: null}, ["L", 0]]
         
       }else {
-        newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06")
+        newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644")
         newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
       }
@@ -2309,29 +2348,27 @@ const Canvas = ({params}: {params: {id: string}}) => {
       const CanvasContainer = canvasRef.current
       const CanvasParentContainer = document.getElementById("canvas-parent-container")!
       const objects = document.querySelectorAll(".objects")
-
-
+      if (pageNotFound) return;
       // console.log(objects)
       const invokeLoadObjects = async () => {
-      
-
-        const loadedObj = await loadObjects(params.id)
-        if (loadedObj.error) {
-          alert(loadedObj.error)
+        const loadedObj = await loadObjects(params.flowsheet_id)
+        if (!loadedObj || loadedObj.error) {
           // window.reload()
+          alert("Something went wrong, try reloading the page")
           return;
-        } else if (loadedObj.notfound) {
-          notFound();
         }
-    
+        else if(loadedObj.notFound) {
+          setPageNotFound(true)
+          setCanvasLoading(false)
+          return;
+        }
         objectData.current = loadedObj as objectDataType
         hasInstance.current = true
         loadObjectToCanvas()
         setCanvasLoading(false)
       }
       if (!hasInstance.current) invokeLoadObjects()
-    
-      
+          
       const handleMouseMove = (e: MouseEvent) => {
         // console.log(e.clientY - CanvasContainer.offsetTop)
         if (onMouseDown.current) {
@@ -2425,9 +2462,9 @@ const Canvas = ({params}: {params: {id: string}}) => {
         objects.forEach(object=> {
           (object as HTMLElement).removeEventListener("mousedown", (e) => handleMouseDown(e, object as HTMLElement));
           (object as HTMLElement).removeEventListener("mouseup", handleMouseUp);
-          (object as HTMLElement).addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #7c7c06");
-          (object as HTMLElement).addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none");
-          (object as HTMLElement).addEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
+          (object as HTMLElement).removeEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644");
+          (object as HTMLElement).removeEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none");
+          (object as HTMLElement).removeEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
           // object.removeEventListener("mousemove", handleMouseMove)
         })
         document.querySelectorAll(".point-indicators").forEach(point => {
@@ -2439,7 +2476,7 @@ const Canvas = ({params}: {params: {id: string}}) => {
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         
       }
-    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params,handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas])
+    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas, objectData, hasInstance])
 
 
   return (
@@ -2447,12 +2484,18 @@ const Canvas = ({params}: {params: {id: string}}) => {
       {
         canvasLoading && (<div className="relative w-full h-full bg-[#00000080] z-20 flex justify-center items-center"> Loading... </div>) 
       }
+      {
+        pageNotFound ? <div className="relative w-full h-full z-10 flex justify-center items-center">
+          Page not found
+        </div> :  (<div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
+                  { 
+                    isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
+                  }
+                </div>
+        )
+      }
       
-      <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
-        { 
-          isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
-        }
-      </div>
+     
     
     </>
   )

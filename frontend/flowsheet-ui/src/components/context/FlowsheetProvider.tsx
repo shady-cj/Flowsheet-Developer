@@ -1,13 +1,15 @@
 "use client"
 import {createContext, useState, useRef, Dispatch, SetStateAction, MutableRefObject, useCallback, RefObject} from 'react'
 import { validateCommunitionPaths } from '@/lib/utils/bondsEnergyUtiltyFunctions';
-import { uploadObject } from '@/lib/actions/projectcanvas'
+import { uploadObject } from '@/lib/actions/flowsheetcanvas'
 import { fetchUser } from '@/lib/actions/auth';
-import { fetchProject } from '@/lib/actions/project';
+import { fetchFlowsheet } from '@/lib/actions/flowsheet';
 // import { objectDataType } from '../ProjectLayout/Canvas'
+
 import Report, { createReport } from '@/lib/utils/report';
-import { toPng } from 'html-to-image';
+
 import generatePDF from 'react-to-pdf';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 
 
@@ -108,7 +110,7 @@ export type userType = {
   projects: {id: string, name: string, description: string, creator: string}[]
 } | null
 
-export type projectType = {id: string, name: string, description: string, creator: string} | null
+export type flowsheetType = {id: string, name: string, description: string, get_mins_ago: string, project: string} | null
 
 type contextType = {
   canvasLoading: boolean,
@@ -117,37 +119,40 @@ type contextType = {
   canvasRef: MutableRefObject<HTMLDivElement>,
   calculateBondsEnergy: MutableRefObject<Boolean>,
   userObject: userType,
-  projectObject: projectType,
+  flowsheetObject: flowsheetType,
   Wvalue: string | null,
   communitionListForBondsEnergy: MutableRefObject<singleObjectDataType[]>,
   workIndex: RefObject<HTMLInputElement>,
+  pageNotFound: boolean,
+  setPageNotFound: Dispatch<SetStateAction<boolean>>,
   setCanvasLoading: Dispatch<SetStateAction<boolean>>,
   setWvalue: Dispatch<SetStateAction<string | null>>,
   saveObjectData: (paramsId: string)=>void,
-  htmlToImageConvert: () =>void,
   getUser: () => void,
-  getProject: (projectID: string) => void
+  getFlowsheet: (projectID: string, flowsheetID: string) => void
   calculateEnergyUsed: () => void
 }
 
 
 
-export const ProjectContext = createContext<contextType>(null!)
+export const FlowsheetContext = createContext<contextType>(null!)
 
 
-const ProjectProvider = ({children}: {children: React.ReactNode}) => {
+const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
   const canvasRef = useRef<HTMLDivElement>(null!)
   const objectData = useRef<objectDataType>({})
+  const [pageNotFound, setPageNotFound] = useState(false)
   const [canvasLoading, setCanvasLoading] = useState(true)
   const hasInstance = useRef(false) // To check if the objectData has initially been created so it'll be updated instead of being recreated
   const [userObject, setUserObject] = useState<userType>(null)
-  const [projectObject, setProjectObject] = useState<projectType>(null)
+  const [flowsheetObject, setFlowsheetObject] = useState<flowsheetType>(null)
   const calculateBondsEnergy = useRef<Boolean>(false)
   const communitionListForBondsEnergy = useRef<singleObjectDataType[]>([])
   const workIndex = useRef<HTMLInputElement>(null)
   const [Wvalue, setWvalue] = useState<string | null>(null)
 
   const reportRef = useRef<HTMLDivElement>(null)
+
 
   const saveObjectData = async (paramsId: string) => {
     const objects = await uploadObject(objectData.current, paramsId, hasInstance.current)
@@ -189,44 +194,39 @@ const ProjectProvider = ({children}: {children: React.ReactNode}) => {
  * 
  * Test feature on saving html to image
  */
-  const htmlToImageConvert = () => {
-
-    // console.log(reportRef.current)
-    // generatePDF(reportRef, {filename: 'page.pdf'})
-    return 
-    toPng(canvasRef.current, { cacheBust: false, width: 700, height: 650, style: {background: "transparent"}})
-      .then((dataUrl) => {
-        const link = document.createElement("a");
-        link.download = "my-image-name.png";
-        link.href = dataUrl;
-        link.click();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-
-    
-  };
+ 
 
 
   const getUser = useCallback(async () => {
     setUserObject(await fetchUser())
   }, [])
-  const getProject = useCallback(async (projectID: string) => {
-    setProjectObject(await fetchProject(projectID))
+
+
+  const getFlowsheet = useCallback(async (projectID: string, flowsheetID: string) => {
+    const flowsheetData = await fetchFlowsheet(projectID, flowsheetID)
+    setFlowsheetObject(flowsheetData)
   }, [])
 
 
 
   return (
-    <ProjectContext.Provider value={{canvasRef, canvasLoading, setCanvasLoading, saveObjectData, objectData, hasInstance, htmlToImageConvert, userObject, getUser, projectObject, getProject, calculateBondsEnergy, communitionListForBondsEnergy, workIndex, calculateEnergyUsed, Wvalue, setWvalue}}>
+    <FlowsheetContext.Provider value={{
+      canvasRef, canvasLoading, 
+      setCanvasLoading, saveObjectData, 
+      objectData, hasInstance, userObject, 
+      getUser, flowsheetObject, 
+      getFlowsheet, calculateBondsEnergy, 
+    communitionListForBondsEnergy, workIndex, 
+    calculateEnergyUsed, Wvalue, setWvalue,
+    pageNotFound, setPageNotFound
+    }}>
       {children}
       {/* {
           <Report objectData={objectData.current} ref={reportRef}/>
       } */}
 
-    </ProjectContext.Provider>
+    </FlowsheetContext.Provider>
   )
 }
 
-export default ProjectProvider
+export default FlowsheetProvider
