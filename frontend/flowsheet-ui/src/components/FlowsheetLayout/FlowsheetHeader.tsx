@@ -9,14 +9,14 @@ import arrowRight from "@/assets/arrow-right.svg"
 import arrowDown from "@/assets/arrow-down.svg"
 import { htmlToImageConvert } from '@/lib/utils/htmlConvertToImage';
 import Report from "@/lib/utils/report"
-import { BlobProvider } from "@react-pdf/renderer"
+import { PDFDownloadLink } from "@react-pdf/renderer"
 
 
 
 const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
   const [showDropDown, setShowDropDown] = useState(false)
   const [openBondsBox, setOpenBondsBox] = useState(false)
-  const [preparePdf, setPreparePdf] = useState(false)
+  const [exportCanvas, setExportCanvas] = useState(false)
   const pdfUrl = useRef<string | null>(null)
   
   const { canvasRef,objectData, saveObjectData, hasInstance, canvasLoading,userObject, flowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
@@ -57,23 +57,33 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
 
             <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={()=> {
               if (pageNotFound) return;
-              setPreparePdf(true)
+              htmlToImageConvert(canvasRef.current, objectData.current);
+              setExportCanvas(true)
               }} disabled={canvasLoading}>
               <Image width={16} height={16} src={exportImage} alt="export" quality={100} />
               Export </button>
-
-              {preparePdf ? <BlobProvider document={<Report objectData={objectData.current}/>}>
-                {({ blob, url, loading, error }) => {
-                  // Do whatever you need with blob here
-                  htmlToImageConvert(canvasRef.current, objectData.current, url);
-                  setPreparePdf(false)
-                 return <></>
-                }}
-              </BlobProvider>: ""}
           </div>
 
           
       </header>
+      
+      <div className={`transition-all w-screen h-screen left-0 top-0 fixed bg-[#00000080] z-50 flex justify-center items-center ${exportCanvas ? "visible opacity-100": "invisible opacity-0"}`}>
+        {exportCanvas ? <div className="bg-white w-[30%] h-[30%] bg-white shadow-lg rounded-sm py-5 px-6">
+          <p>Do you want to download an additional report of your design</p>
+
+          <div className='flex justify-end gap-4 mt-3'>
+            <button className='bg-red-400 rounded-lg py-2 px-4 text-white' onClick={() => setExportCanvas(false)}>No</button>
+
+            <PDFDownloadLink document={<Report objectData={objectData.current}/>} onClick={()=> setExportCanvas(false)} className='bg-[#006644] rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' fileName="somename.pdf">
+              {({ blob, url, loading, error }) =>
+                loading ? 'Loading document...' : 'Yes'
+              }
+            </PDFDownloadLink>
+
+          </div>
+        </div>: ""}
+      </div>
+      
 
 
 

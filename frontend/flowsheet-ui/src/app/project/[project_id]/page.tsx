@@ -1,12 +1,69 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import DashboardHeader from "@/components/DashboardLayout/DashboardHeader"
+import DashboardSidebar from "@/components/DashboardLayout/DashboardSidebar"
+import { CardRenderer, fetchedFlowsheetsType, fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer";
+import Image from "next/image";
+import ProjectDetailFlowsheets from "@/components/DashboardLayout/ProjectDetail";
+const BASE_URL = 'http://localhost:8000'
 const ProjectPage = async ({params}: {params: {project_id: string}}) => {
-  // const projects = await fetch()
+      let result: {project: fetchedProjectType, flowsheets: fetchedFlowsheetsType[]}
+      const accessToken = cookies().get("access")?.value
+      if (!accessToken)
+          redirect("/")
+      try {
+          const response = await fetch(`${BASE_URL}/projects/${params.project_id}`, {
+              headers: {"Authorization": `Bearer ${accessToken}`},
+              next: {revalidate: 60} // validate atmost every minute
+          })
+          result = await response.json()
+          console.log(result.project)
+
+      } catch (err) {
+          throw err
+      }
+
   return (
-    <div>
-      Project {params.project_id}
+    
+    <div className="w-screen h-screen">
+      <DashboardHeader />
+      <section className="py-5">
+        {
+          result ? <div className="w-full">
+            <div className="px-4 pb-8 border-b border-solid border-[#E6E6E6]">
+              <div className="h-[75vh] flex gap-x-14">
+                  <Image height={200} width={560} className="w-auto h-full bg-grayVariant" src={result.project.preview_url} alt={result.project.name} />
+                  <div className="flex flex-col gap-4 justify-center">
+                    <h2 className="text-4xl text-text-black font-bold">{result.project.name}</h2>
+                    <p className="text-lg text-text-black-2 italic">
+                      {result.project.description}
+
+                    </p>
+                    <p className="text-lg text-text-black-2">last edited on <em>{new Date(result.project.last_edited).toDateString()}</em></p>
+                    <p className="text-lg text-text-black-2">flowsheets <em>{result.flowsheets.length}</em></p>
+                  
+                  </div>
+              </div>
+            </div>
+            <div className="py-10 px-4">
+              <div className="flex justify-between pr-4">
+                <h1 className="text-4xl font-bold mb-6">Flowsheets</h1>
+                <Link href={`/project/${params.project_id}/flowsheet/create`} className="text-text-blue-variant">Add new flowsheet</Link>
+              </div>
+
+              {result.flowsheets.length ? <ProjectDetailFlowsheets flowsheets={result.flowsheets}/>: <div />}
+            </div>
+
+
+        </div> : <div />
+        }
+        
+      </section>
+
     </div>
+    
+   
       // <Project params={params}/>
   )
 }

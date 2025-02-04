@@ -4,14 +4,16 @@ import { objectDataType } from '@/components/context/FlowsheetProvider';
 // import { renderToStaticMarkup } from 'react-dom/server';
 // import { BlobProvider, PDFDownloadLink } from '@react-pdf/renderer'
 
-export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: objectDataType, pdfUrl: string | null) => {
+export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: objectDataType) => {
     // console.log(reportRef.current)
     // generatePDF(reportRef, {filename: 'page.pdf'})
     const [maxWidth, maxHeight] = getMaxWidthAndHeight(objectData) 
+    console.log(canvasRef)
+
 
     toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200, style: {background: "white"}})
       .then((dataUrl) => {
-        console.log("dataURl", dataUrl)
+        // console.log("dataURl", dataUrl)
         const link = document.createElement("a");
         link.download = "my-image-name.png";
         link.href = dataUrl;
@@ -20,7 +22,7 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
       .catch((err) => {
         console.log(err);
       });
-    console.log("pdf url", pdfUrl)
+    // console.log("pdf url", pdfUrl)
   };
 
 const getMaxWidthAndHeight = (objectData: objectDataType): [number, number] => {

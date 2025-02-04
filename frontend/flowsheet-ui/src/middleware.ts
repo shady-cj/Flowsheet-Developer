@@ -7,8 +7,8 @@ const unauthenticated_routes = ["/", "/login", "/register"]
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
-    let accessToken: string = request.cookies.get("access")?.value as string
-    const refreshToken: string = request.cookies.get("refresh")?.value as string
+    let accessToken = request.cookies.get("access")?.value as string
+    const refreshToken  = request.cookies.get("refresh")?.value as string
     const serverResponse = NextResponse.next()
     if (!accessToken && refreshToken) {
         try {

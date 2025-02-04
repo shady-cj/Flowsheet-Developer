@@ -80,6 +80,7 @@ const Report = ({objectData}: {objectData: objectDataType}) => {
         {
             Object.keys(objectData).map(key=> {
                 const currentNode = objectData[key]
+                console.log("current node ", currentNode)
                 return <View style={styles.section} key={key}>
                             {
                                 currentNode.object_info.object_model_name === "Crusher" ? (
@@ -134,15 +135,15 @@ const Report = ({objectData}: {objectData: objectDataType}) => {
                                             <Text>Description: {currentNode.description}</Text>
                                             {
                                                 currentNode.object!.name === "Line" ? <>
-                                                    { currentNode.properties.prevObject.length ? <Text>
+                                                    { currentNode.properties.prevObject.length && objectData[currentNode.properties.prevObject[0]] ? <Text>
                                                         From: <br/> &nbsp; &nbsp; &nbsp; 
                                                         Label: {objectData[currentNode.properties.prevObject[0]].label}
                                                         Name: {objectData[currentNode.properties.prevObject[0]].object_info.object_model_name}
                                                     </Text> : ""}
-                                                    { currentNode.properties.nextObject.length ? <Text>
+                                                    { currentNode.properties.nextObject.length && objectData[currentNode.properties.nextObject[0]] ? <Text>
                                                         To: <br/> &nbsp; &nbsp; &nbsp; 
-                                                        Label: {objectData[currentNode.properties.nextObject[0]].label}
-                                                        Name: {objectData[currentNode.properties.nextObject[0]].object_info.object_model_name}
+                                                        Label: {objectData[currentNode.properties.nextObject[0]]?.label}
+                                                        Name: {objectData[currentNode.properties.nextObject[0]]?.object_info.object_model_name}
                                                     </Text> : ""}
                                                 </>: ""
                                             }

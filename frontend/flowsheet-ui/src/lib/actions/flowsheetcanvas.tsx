@@ -3,6 +3,7 @@
 import { cookies } from "next/headers"
 import { redirect} from "next/navigation"
 import { objectDataType, objectCoords } from "@/components/context/FlowsheetProvider"
+import { getAccessToken } from "../utils/requestAccessToken"
 
 
 export type objectCompatibleTypes = {
@@ -35,10 +36,8 @@ const BASE_URL = "http://localhost:8000"
 
 export async function uploadObject(object: objectDataType, flowsheetID: string, update: boolean) {
         const listObjects = []
-        const accessToken = cookies().get("access")?.value
-        const refreshToken = cookies().get("refresh")?.value
-        if (!accessToken && !refreshToken)
-            return redirect("/login")
+        const accessToken = await getAccessToken()
+
 
         try {
             const newObject: objectCompatibleTypes = JSON.parse(JSON.stringify(object))
@@ -91,22 +90,21 @@ export async function uploadObject(object: objectDataType, flowsheetID: string, 
                 // console.log("objects", objects)
                 return objects
             } else {
+                console.log("result", result)
                 return {}
             }
         } catch (err) {
             console.log(err)
             return {}
         }
-        return {}
+        // return {}
 
 }
 
 export async function loadObjects(flowsheetID: string) {
-    const accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
-    if (!accessToken && !refreshToken)
-        return redirect("/login")
-    const start = performance.now()
+    const accessToken = await getAccessToken()
+
+    // const start = performance.now()
     try {
         
         const response = await fetch(`${BASE_URL}/flowsheet_objects/${flowsheetID}`, {
@@ -151,7 +149,7 @@ export async function loadObjects(flowsheetID: string) {
         return {error: "error occured while loading data"}
     }
 
-    return {}
+    // return {}
 }
 
 

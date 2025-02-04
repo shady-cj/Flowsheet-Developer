@@ -1,18 +1,20 @@
 "use client";
 import Link from "next/link"
 import { logout } from "@/lib/actions/auth"
-import { MouseEvent, useState } from "react";
+import { MouseEvent, useState, useContext } from "react";
 import Logo from "../Logo";
 import logoIcon from "@/assets/logo-icon-2.svg"
 import searchIcon from "@/assets/search-project.svg"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
 import Image from "next/image";
+import { UserContext } from "../context/UserProvider";
 
 
 
 const DashboardHeader = () => {
   const [showDropDown, setShowDropDown] = useState(false)
+  const {user} = useContext(UserContext)
   const Logout = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     logout()
@@ -28,12 +30,17 @@ const DashboardHeader = () => {
 
             </div>
             <nav className="flex items-center pl-4 gap-x-2 ml-auto">
-              <div className="bg-[#E381E3] font-semibold text-[#261A26] text-base w-10 h-10 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
-                TE
-              </div>
-              <p className="text-base font-normal text-black">
-                testtest@gmail.com
-              </p>
+              {
+                user ? <>
+                  <div className="bg-[#E381E3] font-semibold text-[#261A26] text-base w-10 h-10 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
+                    {user.email.substring(0, 2).toUpperCase()}
+                  </div>
+                  <p className="text-base font-normal text-black">
+                    {user?.email}
+                  </p>
+                </> : ""
+              }
+              
               <div className="relative">
                 <Image src={showDropDown? arrowUp : arrowDown} width={10} height={10} alt="arrow Down" className="cursor-pointer" onClick={() => setShowDropDown((prev)=> !prev)}/>
                 <div className={`z-10 absolute shadow-sm rounded-md flex-col bg-white transition-all top-[200%] -left-[500%] ${showDropDown ? "opacity-100 visible" : "invisible opacity-0"}`}>

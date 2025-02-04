@@ -321,13 +321,23 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
       if (type === "from") {
+        console.log("from here")
         const nextObjectId = line.properties.nextObject[0]
         if (!nextObjectId) return true
         const nextObject = objectData.current[nextObjectId]
 
+        
         if (nextObject?.properties.gape || nextObject?.properties.aperture) {
-          if (!activeObject.properties.maxOreSize) return false
-          const feedSize = parseFloat(activeObject.properties.maxOreSize)
+          // console.log("here")
+          if (!activeObject.properties.gape && !activeObject.properties.aperture) return true
+          if (activeObject.properties.aperture)
+            activeObject.properties.maxOreSize = activeObject.properties.aperture
+          else if (activeObject.properties.gape) 
+            activeObject.properties.maxOreSize = activeObject.properties.set
+          else
+            return false
+
+          const feedSize = parseFloat(activeObject.properties.maxOreSize!)
           if (nextObject.properties.gape) {
             const gape = parseFloat(nextObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
@@ -350,14 +360,32 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         return true
       }
       if (type === "to") {
+        console.log("to here")
         const prevObjectId = line.properties.prevObject[0]
+
+    
+
         if (!prevObjectId) return true
         const prevObject = objectData.current[prevObjectId]
+        // console.log("active object", activeObject)
+        // console.log("prev objectId", prevObject)
+    
         if (!prevObject) return true
         if (activeObject.properties.gape || activeObject.properties.aperture) {
-          if (!prevObject.properties.maxOreSize) return false
           
-          const feedSize = parseFloat(prevObject.properties.maxOreSize)
+          if (!prevObject.properties.gape && !prevObject.properties.aperture) return true // review
+    
+          // if (!prevObject.properties.maxOreSize) {
+          if (prevObject.properties.aperture)
+            prevObject.properties.maxOreSize = prevObject.properties.aperture
+          else if (prevObject.properties.gape) 
+            prevObject.properties.maxOreSize = prevObject.properties.set
+          else
+            return false
+
+          // } 
+    
+          const feedSize = parseFloat(prevObject.properties.maxOreSize!) 
           if (activeObject.properties.gape) {
             const gape = parseFloat(activeObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
@@ -1223,6 +1251,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
                 }
             }
           }
+          // console.log("dragging from the right", objectOffsetX, lXAxis)
+
           if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
             // Dragging the object in from the right (for L coordinates)
             if ((lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id)) {

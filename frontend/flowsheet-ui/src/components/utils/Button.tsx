@@ -4,8 +4,8 @@ import { useFormStatus } from 'react-dom'
 const Button = ({title}: {title: string}) => {
     const {pending} = useFormStatus()
     return (
-        <button type='submit' className={`rounded-xl p-4 w-full bg-[#2570BB]
-            text-[#F5F7FA] font-medium text-base ${pending ? "": "hover:bg-default hover:text-[#282c33]"} 
+        <button type='submit' className={`rounded-xl p-4 w-2/3 bg-blueVariant
+            text-[#F5F7FA] text-lg font-bold transition ${pending ? "": "hover:bg-darkBlueVariant"} 
             font-bold transition-colors mt-4`}
             disabled={pending}>
             {pending ? 

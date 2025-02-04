@@ -1,10 +1,9 @@
+import DashboardMain from "@/components/DashboardLayout/DashboardMain"
 
-const Dashboard = () => {
+const Dashboard = ({searchParams}:{searchParams: {f: string}}) => {
+  console.log("dashboard", searchParams)
   return (
-    
-      <div className="flex-auto bg-white p-4">
-        Home
-       </div>
+      <DashboardMain searchParams={searchParams}/>
   )
 }
 

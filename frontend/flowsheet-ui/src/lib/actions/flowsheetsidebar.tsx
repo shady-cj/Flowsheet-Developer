@@ -1,17 +1,14 @@
 "use server";
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation";
+import { getAccessToken } from "../utils/requestAccessToken";
 
 const BASE_URL = "http://localhost:8000"
 
 
 export async function fetchObjects(objectEndpoint: string) {
-    const accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
-    
-    const start = performance.now()
-    if (!accessToken && !refreshToken)
-        return redirect("/login")
+    const accessToken = await getAccessToken()
+
 
     try {
         const response = await fetch(`${BASE_URL}/${objectEndpoint}/`, {
@@ -38,10 +35,8 @@ export async function fetchObjects(objectEndpoint: string) {
 }
 
 export async function createCustomComponent(formData: FormData, category: string) {
-    const accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
-    if (!accessToken && !refreshToken)
-        return redirect("/login")
+    const accessToken = await getAccessToken()
+
     
     console.log(formData, "formData")
     
