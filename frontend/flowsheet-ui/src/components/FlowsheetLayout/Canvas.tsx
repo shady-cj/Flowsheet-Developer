@@ -321,7 +321,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
       if (type === "from") {
-        console.log("from here")
+        // console.log("from here")
         const nextObjectId = line.properties.nextObject[0]
         if (!nextObjectId) return true
         const nextObject = objectData.current[nextObjectId]
@@ -360,7 +360,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         return true
       }
       if (type === "to") {
-        console.log("to here")
+        // console.log("to here")
         const prevObjectId = line.properties.prevObject[0]
 
     
@@ -412,17 +412,19 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
     const DrawLineToShape = useCallback((obj: HTMLElement, point: HTMLSpanElement) => {
       for (const shapeId in objectData.current) {
+        // if the obj is the same as the current shape iteration then continue (i.e not supporting line joining to itself)
         if (obj.id === shapeId)
           continue
         const shape = document.getElementById(shapeId) as HTMLElement;
         if (!shape) continue
+
+        // if the shape is a text or line we skip, (line to line or line to text connection is not supported for now)
         if (shape.getAttribute("data-variant") === "text"  || shape.getAttribute("data-variant") === "line")
           continue
         
         const pointMetadata = pointStore.current[point.id]
         if (pointMetadata[1][0] === "M") continue // Not likely possible but we still check
-        if (pointMetadata.length > 2) continue // Must be the last point
-
+        if (pointMetadata[1].length > 2) continue // Must be the last point
 
         let isConnected = false
         const shapeOffsetX = shape.offsetLeft
@@ -1480,6 +1482,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
       point.style.left = `${pointX}px`
       point.style.top = `${pointY}px`
+
       const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
       const path = object.querySelector("svg.line-svg path")
       path?.setAttribute("d", coordString)
@@ -1565,7 +1568,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       if (onMouseDown.current) {
         // currentObject.current.classList.remove("current-object")
         const obj = currentObject.current
-
           if (currentActivePoint.current) {
             currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
             LineConnector(obj, currentActivePoint.current)
