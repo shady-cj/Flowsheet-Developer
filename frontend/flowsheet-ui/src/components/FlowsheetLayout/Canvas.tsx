@@ -1668,6 +1668,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // create a new pointStore.current for  newPoint
         pointStore.current[newPointUid] = [{prev: point.id, next: null}, ["L", pointStore.current[point.id][1][2]!]]
 
+
+        // console.log("coordinate update")
         // update line coordinates
         const newPointDetails = pointStore.current[newPointUid][1]
         const objectDetails = objectData.current[object.id].properties.coordinates
