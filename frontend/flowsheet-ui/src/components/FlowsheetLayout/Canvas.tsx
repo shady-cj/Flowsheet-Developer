@@ -460,18 +460,20 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
         // scenario 1: Drawing from the top:
-        if (lYAxis === shapeOffsetY || Math.abs(lYAxis - shapeOffsetY) <= 10) {
+        if (lYAxis === shapeOffsetY || ((lYAxis - shapeOffsetY) >= -10 && (lYAxis < shapeOffsetYBottom) )) {
 
           if ((lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId)) {
             
             isConnected = true
             // Ensure the point is within the box range on x axis
-            const pointGap = shapeOffsetY - lYAxis           
-            coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap - (extrasY/2)).toFixed(6))
-            const pathDString = LineCoordinateToPathString(coordinates)
-            point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
-            arrowContainer.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
-            path?.setAttribute("d", pathDString)
+            if (lYAxis < shapeOffsetY) {
+              const pointGap = shapeOffsetY - lYAxis           
+              coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap - (extrasY/2)).toFixed(6))
+              const pathDString = LineCoordinateToPathString(coordinates)
+              point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
+              arrowContainer.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
+              path?.setAttribute("d", pathDString)
+            }
 
 
             
@@ -502,17 +504,19 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         
         // scenario 2: Drawing from the bottom
-
-        if (lYAxis === shapeOffsetYBottom || Math.abs(lYAxis - shapeOffsetYBottom) <= 10) {
+        if (lYAxis === shapeOffsetYBottom ||  ((lYAxis - shapeOffsetYBottom) <= 10 && (lYAxis > shapeOffsetY) )) {
           if ((lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId)) {
             isConnected = true
-            // Ensure the point is within the box range on x axis
-            const pointGap = shapeOffsetYBottom - lYAxis
-            coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap).toFixed(6))
-            const pathDString = LineCoordinateToPathString(coordinates)
-            point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
-            arrowContainer.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
-            path?.setAttribute("d", pathDString)
+            if (lYAxis > shapeOffsetYBottom) {
+
+              // Ensure the point is within the box range on x axis
+              const pointGap = shapeOffsetYBottom - lYAxis
+              coordinates.L[coordinates.L.length - 1][1] = parseFloat((L[1] + pointGap).toFixed(6))
+              const pathDString = LineCoordinateToPathString(coordinates)
+              point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
+              arrowContainer.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
+              path?.setAttribute("d", pathDString)
+            }
 
 
             objectData.current[obj.id].properties.nextObject[0] = shapeId
@@ -541,17 +545,21 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         // scenario 3: Drawing from the right
 
-        if (lXAxis === shapeOffsetXRight || Math.abs(lXAxis - shapeOffsetXRight) <= 10) {
+        if (lXAxis === shapeOffsetXRight || ((lXAxis - shapeOffsetXRight) <= 10 && (lXAxis > shapeOffsetX) )) {
           if ((lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId)) {
             isConnected = true
-            // Ensure the point is within the box range on y axis
-            const pointGap = shapeOffsetXRight - lXAxis
-            coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap).toFixed(6))
-            const pathDString = LineCoordinateToPathString(coordinates)
-            
-            point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
-            arrowContainer.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
-            path?.setAttribute("d", pathDString)
+
+            if (lXAxis > shapeOffsetXRight) {
+
+              // Ensure the point is within the box range on y axis
+              const pointGap = shapeOffsetXRight - lXAxis
+              coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap).toFixed(6))
+              const pathDString = LineCoordinateToPathString(coordinates)
+              
+              point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
+              arrowContainer.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
+              path?.setAttribute("d", pathDString)
+            }
 
 
             objectData.current[obj.id].properties.nextObject[0] = shapeId
@@ -580,16 +588,20 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         // scenario 4: Drawing from the left
 
-        if (lXAxis === shapeOffsetX || Math.abs(lXAxis - shapeOffsetX) <= 10) {
+        if (lXAxis === shapeOffsetX || ((lXAxis - shapeOffsetX) >= -10 && (lXAxis < shapeOffsetXRight) )) {
           if ((lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId)) {
             isConnected = true
-            // Ensure the point is within the box range on y axis
-            const pointGap = shapeOffsetX - lXAxis
-            coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap - (extrasX / 2)).toFixed(6))
-            const pathDString = LineCoordinateToPathString(coordinates)
-            point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
-            arrowContainer.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
-            path?.setAttribute("d", pathDString)
+
+            if (lXAxis < shapeOffsetX) {
+
+              // Ensure the point is within the box range on y axis
+              const pointGap = shapeOffsetX - lXAxis
+              coordinates.L[coordinates.L.length - 1][0] = parseFloat((L[0] + pointGap - (extrasX / 2)).toFixed(6))
+              const pathDString = LineCoordinateToPathString(coordinates)
+              point.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
+              arrowContainer.style.left = `${coordinates.L[coordinates.L.length - 1][0]}px`
+              path?.setAttribute("d", pathDString)
+            }
 
 
             objectData.current[obj.id].properties.nextObject[0] = shapeId
@@ -617,8 +629,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
 
         if (!isConnected) {
-
-
             const getObjNextObject = objectData.current[obj.id].properties.nextObject[0];
             
             if (!objectData.current[getObjNextObject]) {
@@ -640,6 +650,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         }
 
+        console.log('is connected', isConnected)
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
           path!.setAttribute("stroke", "#4D4D4D")
           arrow.setAttribute("fill", "#4D4D4D")
@@ -692,20 +703,25 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         
 
-        if (shapeOffsetYBottom === mYAxis || Math.abs(shapeOffsetYBottom - mYAxis) < 10) {
+        if (shapeOffsetYBottom === mYAxis || ((mYAxis - shapeOffsetYBottom) <= 10 && (mYAxis > shapeOffsetY) )) {
           // Dragging the line in from the bottom (M coordinates)
           if ((mXAxis >= shapeOffsetX && mXAxis <= shapeOffsetXRight) && checkAndSetConnection("from", obj.id, shapeId)) {
             // console.log("Dragging the line in from the bottom (M coordinates)")
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
             // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - M[0] - (extrasX/2)
-       
-            const newLineOffsetY = parseFloat((shapeOffsetYBottom - M[1]).toFixed(6))
-           
-            obj.style.top = `${newLineOffsetY}px`;
+            if (mYAxis > shapeOffsetYBottom) {
+
+              const newLineOffsetY = parseFloat((shapeOffsetYBottom - M[1]).toFixed(6))
+             
+              obj.style.top = `${newLineOffsetY}px`;
+              objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
+
+            }
             // obj.style.left = `${newLineOffsetX}px`;
             // objectData.current[obj.id].lastX = newLineOffsetX
-            objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
+
+
 
 
             // Setting the line previous attribute
@@ -729,20 +745,23 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
         }
 
-        if (shapeOffsetY === lYAxis || Math.abs(shapeOffsetY - lYAxis) < 10) {
+        if (shapeOffsetY === lYAxis || ((lYAxis - shapeOffsetY) >= -10 && (lYAxis < shapeOffsetYBottom) )) {
           // Dragging the line in from the top (L coordinates)
           if ((lXAxis >= shapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId)) {
             // console.log("Dragging the line in from the top (L coordinates)")
             isConnected = true
             // const shapeWidthMidpoint = shapeWidth / 2
             // const newLineOffsetX = shapeOffsetX + shapeWidthMidpoint - L[0] - (extrasX/2)
-            const newLineOffsetY = parseFloat((shapeOffsetY - L[1] - extrasY/2).toFixed(6))
-            if (newLineOffsetY < 6)
-              return
-            obj.style.top = `${newLineOffsetY}px`;
-            // obj.style.left = `${newLineOffsetX}px`;
-            // objectData.current[obj.id].lastX = newLineOffsetX
-            objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
+            if (lYAxis < shapeOffsetY) {
+
+              const newLineOffsetY = parseFloat((shapeOffsetY - L[1] - extrasY/2).toFixed(6))
+              if (newLineOffsetY < 6)
+                return
+              obj.style.top = `${newLineOffsetY}px`;
+              // obj.style.left = `${newLineOffsetX}px`;
+              // objectData.current[obj.id].lastX = newLineOffsetX
+              objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
+            }
 
 
 
@@ -773,19 +792,22 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
 
 
-        if (shapeOffsetX === mXAxis || Math.abs(shapeOffsetX - mXAxis) < 10) {
+        if (shapeOffsetX === mXAxis || ((mXAxis - shapeOffsetX) >= -10 && (mXAxis < shapeOffsetXRight)) ) {
           // Dragging the line in from the left (for M coordinates)
           if ((mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) && checkAndSetConnection("from", obj.id, shapeId)) {
             // console.log("Dragging the line in from the left (for M coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
-            const newLineOffsetX = parseFloat((shapeOffsetX - M[0] - (extrasX/2)).toFixed(6))
-            // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
-            if (newLineOffsetX < 6)
-              return
-            // obj.style.top = `${newLineOffsetY}px`;
-            obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
+            if (mXAxis < shapeOffsetX) {
+              
+              const newLineOffsetX = parseFloat((shapeOffsetX - M[0] - (extrasX/2)).toFixed(6))
+              // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
+              if (newLineOffsetX < 6)
+                return
+              // obj.style.top = `${newLineOffsetY}px`;
+              obj.style.left = `${newLineOffsetX}px`;
+              objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
+            }
             // objectData.current[obj.id].lastY = newLineOffsetY
 
 
@@ -811,19 +833,22 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
         }
 
-        if (shapeOffsetXRight === mXAxis || Math.abs(shapeOffsetXRight - mXAxis) < 10) {
+        if (shapeOffsetXRight === mXAxis || ((mXAxis - shapeOffsetXRight) <= 10 && (mXAxis > shapeOffsetX) )) {
           // Dragging the line in from the right (for M coordinates)
           if ((mYAxis >= shapeOffsetY && mYAxis <= shapeOffsetYBottom) && checkAndSetConnection("from", obj.id, shapeId)) {
             // console.log("Dragging the line in from the right (for M coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
-            const newLineOffsetX = parseFloat((shapeOffsetXRight - M[0]).toFixed(6))
-        
-            // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
-            // obj.style.top = `${newLineOffsetY}px`;
-            obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
-            // objectData.current[obj.id].lastY = newLineOffsetY
+            if (mXAxis > shapeOffsetXRight) {
+
+              const newLineOffsetX = parseFloat((shapeOffsetXRight - M[0]).toFixed(6))
+          
+              // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
+              // obj.style.top = `${newLineOffsetY}px`;
+              obj.style.left = `${newLineOffsetX}px`;
+              objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
+              // objectData.current[obj.id].lastY = newLineOffsetY
+            }
 
 
             
@@ -847,20 +872,23 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
         }
 
-        if (shapeOffsetX === lXAxis || Math.abs(shapeOffsetX - lXAxis) < 10) {
+        if (shapeOffsetX === lXAxis || ((lXAxis - shapeOffsetX) >= -10 && (lXAxis < shapeOffsetXRight) )) {
           // Dragging the line in from the left (for L coordinates)
           if ((lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId)) {
             // console.log("Dragging the line in from the left (for L coordinates)")
             isConnected = true
             // const shapeHeightMidpoint = shapeHeight / 2
-            const newLineOffsetX = parseFloat((shapeOffsetX - L[0] - (extrasX/2)).toFixed(6))
-            // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
-            if (newLineOffsetX < 6)
-              return
-            // obj.style.top = `${newLineOffsetY}px`;
-            obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
-            // objectData.current[obj.id].lastY = newLineOffsetY
+            if (lXAxis < shapeOffsetX) {
+             
+              const newLineOffsetX = parseFloat((shapeOffsetX - L[0] - (extrasX/2)).toFixed(6))
+              // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
+              if (newLineOffsetX < 6)
+                return
+              // obj.style.top = `${newLineOffsetY}px`;
+              obj.style.left = `${newLineOffsetX}px`;
+              objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
+              // objectData.current[obj.id].lastY = newLineOffsetY
+            }
 
 
 
@@ -887,18 +915,23 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
         }
 
-        if (shapeOffsetXRight === lXAxis || Math.abs(shapeOffsetXRight - lXAxis) < 10) {
+        if (shapeOffsetXRight === lXAxis || ((lXAxis - shapeOffsetXRight) <= 10 && (lXAxis > shapeOffsetX) )) {
           // Dragging the line in from the right (for L coordinates)
           if ((lYAxis >= shapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId)) {
             // console.log("Dragging the line in from the right (for L coordinates)")
             isConnected = true
-            // const shapeHeightMidpoint = shapeHeight / 2
+
+
+            if (lXAxis > shapeOffsetXRight) {
+              // const shapeHeightMidpoint = shapeHeight / 2
             const newLineOffsetX = parseFloat((shapeOffsetXRight - L[0]).toFixed(6))
             // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
             // obj.style.top = `${newLineOffsetY}px`;
             obj.style.left = `${newLineOffsetX}px`;
             objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
             // objectData.current[obj.id].lastY = newLineOffsetY
+            
+            }
             
 
 
@@ -1013,6 +1046,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
         }
 
+        console.log('is connected', isConnected)
+
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
           path!.setAttribute("stroke", "#4D4D4D")
           arrow.setAttribute("fill", "#4D4D4D")
@@ -1057,22 +1092,26 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const extrasX = objectWidth - (objectWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
           const extrasY = objectHeight - (objectHeight / scale)
          
-          if (objectOffsetYBottom === mYAxis || Math.abs(objectOffsetYBottom - mYAxis) < 10) {
+          if (objectOffsetYBottom === mYAxis || ((mYAxis - objectOffsetYBottom) <= 10 && (mYAxis > objectOffsetY) )) {
             // Dragging the object in from the top (M coordinates)
             if ((mXAxis >= objectOffsetX && mXAxis <= objectOffsetXRight) && checkAndSetConnection("from", line.id, obj.id)) {
               isConnected = true
+
               if (objectData.current[line.id].properties.prevObject[0])
                 return
               // const objWidthMidpoint = objectWidth / 2
               // const newObjectOffsetX = mXAxis - objWidthMidpoint + (extrasX/2)
-              const newObjectOffsetY = parseFloat((mYAxis - objectHeight + (extrasY/2)).toFixed(6))
-              // console.log(mYAxis, "myaxis")
-              if (newObjectOffsetY < 6)
-                return
-              obj.style.top = `${newObjectOffsetY}px`;
-              // obj.style.left = `${newObjectOffsetX}px`;
-              // objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+              if (mYAxis > objectOffsetYBottom) {
+
+                const newObjectOffsetY = parseFloat((mYAxis - objectHeight + (extrasY/2)).toFixed(6))
+                // console.log(mYAxis, "myaxis")
+                if (newObjectOffsetY < 6)
+                  return
+                obj.style.top = `${newObjectOffsetY}px`;
+                // obj.style.left = `${newObjectOffsetX}px`;
+                // objectData.current[obj.id].lastX = newObjectOffsetX
+                objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+              }
 
 
 
@@ -1097,7 +1136,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
           }
 
-          if (objectOffsetY === lYAxis || Math.abs(objectOffsetY - lYAxis) < 10) {
+          if (objectOffsetY === lYAxis || ((lYAxis - objectOffsetY) >= -10 && (lYAxis < objectOffsetYBottom) )) {
             // Dragging the object in from bottom (L coordinates)
             if ((lXAxis >= objectOffsetX && lXAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id)) {
               isConnected = true
@@ -1105,13 +1144,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
                 return
               // const objWidthMidpoint = objectWidth / 2
               // const newObjectOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
-              const newObjectOffsetY = parseFloat((lYAxis + (extrasY/2)).toFixed(6))
-              // console.log(mYAxis, "myaxis")
+              if (lYAxis < objectOffsetY) {
 
-              obj.style.top = `${newObjectOffsetY}px`;
-              // obj.style.left = `${newObjectOffsetX}px`;
-              // objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+                const newObjectOffsetY = parseFloat((lYAxis + (extrasY/2)).toFixed(6))
+                // console.log(mYAxis, "myaxis")
+  
+                obj.style.top = `${newObjectOffsetY}px`;
+                // obj.style.left = `${newObjectOffsetX}px`;
+                // objectData.current[obj.id].lastX = newObjectOffsetX
+                objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+              }
 
 
 
@@ -1139,22 +1181,25 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
           }
          
-          if (objectOffsetXRight === mXAxis || Math.abs(objectOffsetXRight - mXAxis) < 10) {
+          if (objectOffsetXRight === mXAxis || ((mXAxis - objectOffsetXRight) <= 10  && (mXAxis > objectOffsetX) )) {
             // Dragging the object in from the left (for M coordinates)
             if ((mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) && checkAndSetConnection("from", line.id, obj.id)) {
               isConnected = true
               if (objectData.current[line.id].properties.prevObject[0])
                 return
 
-              // const objHeightMidpoint = objectHeight / 2
-              const newObjectOffsetX = parseFloat((mXAxis - objectWidth + (extrasX/2)).toFixed(6))
-              // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
-              if (newObjectOffsetX < 6)
-                return
-              // obj.style.top = `${newObjectOffsetY}px`;
-              obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
-              // objectData.current[obj.id].lastY = newObjectOffsetY
+              if (mXAxis > objectOffsetXRight) {
+
+                // const objHeightMidpoint = objectHeight / 2
+                const newObjectOffsetX = parseFloat((mXAxis - objectWidth + (extrasX/2)).toFixed(6))
+                // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
+                if (newObjectOffsetX < 6)
+                  return
+                // obj.style.top = `${newObjectOffsetY}px`;
+                obj.style.left = `${newObjectOffsetX}px`;
+                objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
+                // objectData.current[obj.id].lastY = newObjectOffsetY
+              }
 
 
               // setting the line previous object attribute
@@ -1178,7 +1223,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
           }
           
-          if (objectOffsetX === mXAxis || Math.abs(objectOffsetX - mXAxis) < 10) {
+          if (objectOffsetX === mXAxis || ((mXAxis - objectOffsetX) >= -10 && (mXAxis < objectOffsetXRight) )) {
             // Dragging the object in from the right (for M coordinates)
             if ((mYAxis >= objectOffsetY && mYAxis <= objectOffsetYBottom) && checkAndSetConnection("from", line.id, obj.id)) {
 
@@ -1186,12 +1231,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               if (objectData.current[line.id].properties.prevObject[0])
                 return
               // const objHeightMidpoint = objectHeight / 2
-              const newObjectOffsetX = parseFloat((mXAxis + (extrasX/2)).toFixed(6))
-              // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
-              // obj.style.top = `${newObjectOffsetY}px`;
-              obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
-              // objectData.current[obj.id].lastY = newObjectOffsetY
+
+              if (mXAxis < objectOffsetX) {
+
+                const newObjectOffsetX = parseFloat((mXAxis + (extrasX/2)).toFixed(6))
+                // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
+                // obj.style.top = `${newObjectOffsetY}px`;
+                obj.style.left = `${newObjectOffsetX}px`;
+                objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
+                // objectData.current[obj.id].lastY = newObjectOffsetY
+              }
 
 
                
@@ -1216,21 +1265,24 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
           }
 
-          if (objectOffsetXRight === lXAxis || Math.abs(objectOffsetXRight - lXAxis) < 10) {
+          if (objectOffsetXRight === lXAxis || ((lXAxis - objectOffsetXRight) <= 10 && (lXAxis > objectOffsetX) )) {
             // Dragging the object in from the left (for L coordinates)
             if ((lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id)) {
               isConnected = true
               if (objectData.current[line.id].properties.nextObject[0])
                 return
               // const objHeightMidpoint = objectHeight / 2
-              const newObjectOffsetX = parseFloat((lXAxis - objectWidth + (extrasX/2)).toFixed(6))
-              // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
-              if (newObjectOffsetX < 6)
-                return
-              // obj.style.top = `${newObjectOffsetY}px`;
-              obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
-              // objectData.current[obj.id].lastY = newObjectOffsetY
+
+              if (lYAxis > objectOffsetXRight) {
+                const newObjectOffsetX = parseFloat((lXAxis - objectWidth + (extrasX/2)).toFixed(6))
+                // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
+                if (newObjectOffsetX < 6)
+                  return
+                // obj.style.top = `${newObjectOffsetY}px`;
+                obj.style.left = `${newObjectOffsetX}px`;
+                objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
+                // objectData.current[obj.id].lastY = newObjectOffsetY
+              }
 
 
              // setting the line next object attribute
@@ -1255,19 +1307,23 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
           // console.log("dragging from the right", objectOffsetX, lXAxis)
 
-          if (objectOffsetX === lXAxis || Math.abs(objectOffsetX - lXAxis) < 10) {
+          if (objectOffsetX === lXAxis || ((lXAxis - objectOffsetX) >= -10 && (lXAxis < objectOffsetXRight) )) {
             // Dragging the object in from the right (for L coordinates)
             if ((lYAxis >= objectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id)) {
               isConnected = true
               if (objectData.current[line.id].properties.nextObject[0])
                 return
               // const objHeightMidpoint = objectHeight / 2
-              const newObjectOffsetX = parseFloat((lXAxis + (extrasX/2)).toFixed(6))
-              // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
-              // obj.style.top = `${newObjectOffsetY}px`;
-              obj.style.left = `${newObjectOffsetX}px`;
-              objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
-              // objectData.current[obj.id].lastY = newObjectOffsetY
+
+              if (lXAxis < objectOffsetX) {
+
+                const newObjectOffsetX = parseFloat((lXAxis + (extrasX/2)).toFixed(6))
+                // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
+                // obj.style.top = `${newObjectOffsetY}px`;
+                obj.style.left = `${newObjectOffsetX}px`;
+                objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
+                // objectData.current[obj.id].lastY = newObjectOffsetY
+              }
 
 
 
@@ -1387,6 +1443,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             
           }
 
+          console.log('is connected', isConnected)
           if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
             path!.setAttribute("stroke", "#4D4D4D")
             arrow.setAttribute("fill", "#4D4D4D")
