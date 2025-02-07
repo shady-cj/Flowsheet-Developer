@@ -54,6 +54,10 @@ export type formStateObjectType = {[index: string]: string}
 const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
     const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
+    const onPanelResize = useRef(false)
+    const panelCoordinateXMarker = useRef<number | null>(null)
+    const panelCoordinateYMarker = useRef<number | null>(null)
+    const currentPanel = useRef<HTMLSpanElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
     const pointStore = useRef<pointStoreType>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
     const currentActivePoint = useRef<HTMLSpanElement | null>(null)
@@ -1622,6 +1626,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
     const handleMouseUpUtil = useCallback(() => {
+
+      if (onPanelResize.current) {
+        onPanelResize.current = false
+        panelCoordinateXMarker.current = null
+        panelCoordinateYMarker.current = null
+      }
       if (onMouseDown.current) {
         // currentObject.current.classList.remove("current-object")
         const obj = currentObject.current
@@ -1668,7 +1678,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     }, [handleMouseUpGeneral, objectData])
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
-      console.log("called mouseup mouseup !!!")
+      // console.log("called mouseup mouseup !!!")
+      if (onPanelResize.current) {
+        onPanelResize.current = false
+        panelCoordinateXMarker.current = null
+        panelCoordinateYMarker.current = null
+      }
       if (onMouseDown.current) {
         handleMouseUpUtil()
         console.log(objectData.current)
@@ -2062,8 +2077,35 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           
         }else {
-          newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644")
-          newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
+          newEl.insertAdjacentHTML(
+            'beforeend',`
+            <span class="resize-panel resize-panel-tl"></span>
+            <span class="resize-panel resize-panel-tr"></span>
+            <span class="resize-panel resize-panel-br"></span>
+            <span class="resize-panel resize-panel-bl"></span>
+          `
+          )
+          const resizePanels = newEl.querySelectorAll(".resize-panel");
+          resizePanels.forEach((panel) => {
+            panel.addEventListener('mousedown', (e)=> {
+              console.log(e, 'mousedown')
+              onPanelResize.current = true
+              currentPanel.current = panel as HTMLSpanElement
+            })
+
+          })
+          newEl.addEventListener("focus", (e) => {
+            (e.target as HTMLElement).style.outline = "2px solid #006644";
+            resizePanels.forEach(panel=> {
+              panel.classList.add('resize-panel-show')
+            })
+          })
+          newEl.addEventListener("focusout", (e)=> {
+            (e.target as HTMLElement).style.outline = "none";
+            resizePanels.forEach(panel=> {
+              panel.classList.remove('resize-panel-show')
+            })
+          })
           newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
         }
 
@@ -2331,8 +2373,34 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         pointStore.current[point2Uid] = [{prev: point1Uid, next: null}, ["L", 0]]
         
       }else {
-        newEl.addEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644")
-        newEl.addEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none")
+        newEl.insertAdjacentHTML(
+          'beforeend',`
+          <span class="resize-panel resize-panel-tl"></span>
+          <span class="resize-panel resize-panel-tr"></span>
+          <span class="resize-panel resize-panel-br"></span>
+          <span class="resize-panel resize-panel-bl"></span>
+        `
+        )
+        const resizePanels = newEl.querySelectorAll(".resize-panel");
+        resizePanels.forEach((panel) => {
+          panel.addEventListener('mousedown', (e)=> {
+            console.log(e, 'mousedown')
+            onPanelResize.current = true;
+            currentPanel.current = panel as HTMLSpanElement
+          })
+        })
+        newEl.addEventListener("focus", (e) => {
+          (e.target as HTMLElement).style.outline = "2px solid #006644";
+          resizePanels.forEach(panel=> {
+            panel.classList.add('resize-panel-show')
+          })
+        })
+        newEl.addEventListener("focusout", (e)=> {
+          (e.target as HTMLElement).style.outline = "none";
+          resizePanels.forEach(panel=> {
+            panel.classList.remove('resize-panel-show')
+          })
+        })
         newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
       }
       const uuid4 = crypto.randomUUID()
@@ -2432,6 +2500,80 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
       const handleMouseMove = (e: MouseEvent) => {
         // console.log(e.clientY - CanvasContainer.offsetTop)
+
+        if (onPanelResize.current) {
+          const panel = currentPanel.current
+          const obj = currentObject.current
+          const objData = objectData.current[obj.id]
+          let currentScale = objData.scale
+          let scaleOut = true;
+
+          // const objectOffsetX = obj.offsetLeft
+          // const objectOffsetY = obj.offsetTop
+          // const objectOffsetYBottom = obj.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
+          // const objectOffsetXRight = obj.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
+          const cursorX = e.clientX - canvasRef.current.getBoundingClientRect().x
+          const cursorY = e.clientY - canvasRef.current.getBoundingClientRect().y
+
+          // console.log("cursor X", cursorX, panelCoordinateXMarker.current)
+          // console.log("cursor Y", cursorY, panelCoordinateYMarker.current)
+          if (panelCoordinateXMarker.current === null || panelCoordinateYMarker.current === null){
+            panelCoordinateXMarker.current = cursorX
+            panelCoordinateYMarker.current = cursorY
+            return
+          }
+
+
+
+        
+
+          // console.log("current scale", currentScale)
+          if (panel.classList.contains('resize-panel-bl')) {
+            if ((cursorX < panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = true 
+            else if ((cursorX > panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = false
+            else return
+          }
+          if (panel.classList.contains('resize-panel-br')) {
+            if ((cursorX > panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = true 
+            else if ((cursorX < panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = false
+            else return
+          }
+          if (panel.classList.contains('resize-panel-tl')){
+            if ((cursorX < panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = true 
+            else if ((cursorX > panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = false
+            else return
+          }
+          if (panel.classList.contains('resize-panel-tr')) {
+            if ((cursorX > panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = true 
+            else if ((cursorX < panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = false
+            else return
+          }
+
+
+          // console.log('scale out', scaleOut)
+          if (scaleOut) {
+            if (currentScale < 2) 
+              currentScale += 0.01
+            else
+              currentScale = 2
+            
+            obj.style.transform = `scale(${currentScale})`
+            objData.scale = currentScale
+
+          } else {
+            if (currentScale > 1) 
+              currentScale -= 0.01
+            else 
+              currentScale = 1
+            
+            obj.style.transform = `scale(${currentScale})`
+            objData.scale = currentScale
+          }
+
+
+          return;
+        }
+
         if (onMouseDown.current) {
           if (currentActivePoint.current !== null) {
             DrawPoint(e, currentActivePoint.current)

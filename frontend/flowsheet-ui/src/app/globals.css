@@ -167,7 +167,7 @@ body {
 
 
 /* Styles for highlighting the text box when focused on */
-.text-panel {
+.text-panel, .resize-panel {
   position: absolute;
   height: 0.5rem;
   width: 0.5rem;
@@ -175,25 +175,39 @@ body {
   display: none
 }
 
-.text-panel-show {
+.text-panel-show, .resize-panel-show {
   display: inline-block;
 }
-.text-panel-tl {
+.text-panel-tl, .resize-panel-tl {
+  top: 0;
   transform: translate(-4px, -4px);
 }
-.text-panel-tr {
+.text-panel-tr, .resize-panel-tr {
+  top: 0;
   left: 100%;
   transform: translate(-4px, -4px);
 }
-.text-panel-br {
+.text-panel-br, .resize-panel-br {
   left: 100%;
   top: 100%;
   transform: translate(-4px, -4px);
 }
-.text-panel-bl {
+.text-panel-bl, .resize-panel-bl {
   top: 100%;
   transform: translate(-4px, -4px);
 }
+
+
+
+
+/* element resize  */
+ .resize-panel-bl, .resize-panel-tr {
+  cursor: nesw-resize
+ }
+
+ .resize-panel-br, .resize-panel-tl {
+  cursor: nwse-resize;
+ }
 
 
 
