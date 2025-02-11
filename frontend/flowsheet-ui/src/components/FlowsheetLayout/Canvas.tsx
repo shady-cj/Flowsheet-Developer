@@ -2502,6 +2502,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // console.log(e.clientY - CanvasContainer.offsetTop)
 
         if (onPanelResize.current) {
+          const MAXSCALE = 3
           const panel = currentPanel.current
           const obj = currentObject.current
           const objData = objectData.current[obj.id]
@@ -2533,17 +2534,17 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             else if ((cursorX > panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = false
             else return
           }
-          if (panel.classList.contains('resize-panel-br')) {
+          else if (panel.classList.contains('resize-panel-br')) {
             if ((cursorX > panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = true 
             else if ((cursorX < panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = false
             else return
           }
-          if (panel.classList.contains('resize-panel-tl')){
+          else if (panel.classList.contains('resize-panel-tl')){
             if ((cursorX < panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = true 
             else if ((cursorX > panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = false
             else return
           }
-          if (panel.classList.contains('resize-panel-tr')) {
+          else if (panel.classList.contains('resize-panel-tr')) {
             if ((cursorX > panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = true 
             else if ((cursorX < panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = false
             else return
@@ -2552,11 +2553,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           // console.log('scale out', scaleOut)
           if (scaleOut) {
-            if (currentScale < 2) 
+            if (currentScale < MAXSCALE) 
               currentScale += 0.01
             else
-              currentScale = 2
+              currentScale = MAXSCALE
             
+            currentScale = parseFloat(currentScale.toFixed(3))
             obj.style.transform = `scale(${currentScale})`
             objData.scale = currentScale
 
@@ -2565,6 +2567,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               currentScale -= 0.01
             else 
               currentScale = 1
+
+            currentScale = parseFloat(currentScale.toFixed(3))
             
             obj.style.transform = `scale(${currentScale})`
             objData.scale = currentScale

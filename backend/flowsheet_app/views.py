@@ -405,6 +405,7 @@ class UpdateDestroyFlowsheetObject(GenericAPIView):
 
     def put(self, request, *args, **kwargs):
         data = request.data
+        # print("data", data)
         flowsheet_id = request.parser_context.get("kwargs").get("flowsheet_id")
         flowsheet_instance = Flowsheet.objects.get(id=flowsheet_id)
         serializers = []

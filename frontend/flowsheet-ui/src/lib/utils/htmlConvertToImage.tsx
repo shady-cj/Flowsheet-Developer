@@ -1,5 +1,6 @@
 import { toPng } from 'html-to-image';
 import { objectDataType } from '@/components/context/FlowsheetProvider';
+// import logoIcon from "@/assets/logo-icon.svg"
 // import Report from './report';
 // import { renderToStaticMarkup } from 'react-dom/server';
 // import { BlobProvider, PDFDownloadLink } from '@react-pdf/renderer'
@@ -7,20 +8,37 @@ import { objectDataType } from '@/components/context/FlowsheetProvider';
 export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: objectDataType) => {
     // console.log(reportRef.current)
     // generatePDF(reportRef, {filename: 'page.pdf'})
+    
     const [maxWidth, maxHeight] = getMaxWidthAndHeight(objectData) 
-    console.log(canvasRef)
+    // console.log(canvasRef)
+    // console.log(logo)
+    const logo = `
+      <div id="watermark-logo" style="position: absolute; opacity: 0.8; z-index: -1; left: ${maxWidth - 50}px; top: 50px; display: flex; align-items: center; gap: 8px;">
+        <svg width="24" height="24.75" viewBox="0 0 24 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g id="Group 1">
+          <rect id="Rectangle 1" y="0.625" width="24" height="24" rx="8" fill="#16191C"/>
+          <rect id="Rectangle 2" x="4" y="5.375" width="20" height="20" rx="4" fill="white"/>
+          </g>
+        </svg>
+        <span class="logo-text">ProFlo</span>
+      </div>
+    `
+    canvasRef.insertAdjacentHTML("beforeend", logo)
 
 
-    toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200, style: {background: "white"}})
+    toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200, style: {background: "white", zIndex: "-2"}})
       .then((dataUrl) => {
         // console.log("dataURl", dataUrl)
         const link = document.createElement("a");
         link.download = "my-image-name.png";
         link.href = dataUrl;
         link.click();
+
       })
       .catch((err) => {
         console.log(err);
+      }).finally(()=> {
+        canvasRef.querySelector("#watermark-logo")?.remove()
       });
     // console.log("pdf url", pdfUrl)
   };

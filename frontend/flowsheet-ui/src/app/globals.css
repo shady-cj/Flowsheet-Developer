@@ -70,9 +70,12 @@ body {
   }
 
 }
+.objects {
+  z-index: 2;
+}
 
 .current-object {
-  z-index: 20;
+  z-index: 20 !important;
 }
 
 .placeholder-style:after {
