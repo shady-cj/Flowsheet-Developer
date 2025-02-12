@@ -1653,6 +1653,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     }, [LineConnector, objectData])
 
     const handleMouseUpGeneral = useCallback((e: MouseEvent) => {
+      console.log('mouse up called')
       handleMouseUpUtil()
     },[handleMouseUpUtil])
     
@@ -2092,6 +2093,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               onPanelResize.current = true
               currentPanel.current = panel as HTMLSpanElement
             })
+      
 
           })
           newEl.addEventListener("focus", (e) => {
@@ -2388,6 +2390,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             onPanelResize.current = true;
             currentPanel.current = panel as HTMLSpanElement
           })
+       
         })
         newEl.addEventListener("focus", (e) => {
           (e.target as HTMLElement).style.outline = "2px solid #006644";
@@ -2652,9 +2655,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
           
           
-          document.addEventListener("mouseup", handleMouseUpGeneral)
+          
         }
-
+        document.addEventListener("mouseup", handleMouseUpGeneral)
+        // fix this 
+        // document.addEventListener("click", ()=> console.log("document clicked"))
         // console.log(e)
       }
       // Main Project Canvas
