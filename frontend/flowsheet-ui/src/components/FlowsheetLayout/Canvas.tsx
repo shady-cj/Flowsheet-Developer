@@ -1633,8 +1633,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         panelCoordinateYMarker.current = null
       }
       if (onMouseDown.current) {
-        // currentObject.current.classList.remove("current-object")
-        const obj = currentObject.current
+          // currentObject.current.classList.remove("current-object")
+          const obj = currentObject.current
           if (currentActivePoint.current) {
             currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
             LineConnector(obj, currentActivePoint.current)
@@ -1647,13 +1647,19 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             objectData.current[obj.id].y_coordinate = parseFloat((obj?.offsetTop as number).toFixed(6))
             LineConnector(obj)
           }
+          console.log(objectData.current)
+          const tooltip = obj?.querySelector(".object-details-tooltip")
+
+          tooltip?.classList.remove("show-tooltip")
+          tooltip?.classList.add("hide-tooltip")
+          
           
       }
       onMouseDown.current = false
     }, [LineConnector, objectData])
 
     const handleMouseUpGeneral = useCallback((e: MouseEvent) => {
-      console.log('mouse up called')
+      // console.log('mouse up called in general ', onPanelResize.current, "mouse down", onMouseDown.current)
       handleMouseUpUtil()
     },[handleMouseUpUtil])
     
@@ -1679,20 +1685,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     }, [handleMouseUpGeneral, objectData])
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
-      // console.log("called mouseup mouseup !!!")
-      if (onPanelResize.current) {
-        onPanelResize.current = false
-        panelCoordinateXMarker.current = null
-        panelCoordinateYMarker.current = null
-      }
-      if (onMouseDown.current) {
-        handleMouseUpUtil()
-        console.log(objectData.current)
-        const tooltip = currentObject.current?.querySelector(".object-details-tooltip")
-
-        tooltip?.classList.remove("show-tooltip")
-        tooltip?.classList.add("hide-tooltip")
-        
+      // console.log("called mouseup in mouseup !!!", onPanelResize.current, "mouse down", onMouseDown.current)
+      handleMouseUpUtil()
+      if (onMouseDown.current || onPanelResize.current) {
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
 
@@ -2665,6 +2660,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       // Main Project Canvas
       CanvasContainer.addEventListener("mousemove", handleMouseMove);
       CanvasContainer.addEventListener("mouseleave", handleMouseUp);
+      CanvasContainer.addEventListener("mouseup", handleMouseUp)
 
       // Sidebar Canvas
       // SidebarCanvas.addEventListener("mousemove",)
@@ -2686,6 +2682,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         })
         CanvasContainer.removeEventListener("mousemove", handleMouseMove);
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
+        CanvasContainer.removeEventListener("mouseup", handleMouseUp)
         
       }
     }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas, objectData, hasInstance])
