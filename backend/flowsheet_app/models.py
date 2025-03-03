@@ -8,6 +8,10 @@ import unicodedata
 from cloudinary.models import CloudinaryField
 from django.utils.timesince import timesince
 
+
+DEFAULT_PREVIEW_URL = (
+    "https://res.cloudinary.com/dpykexpss/image/upload/v1737482485/grid_je7dz4.png"
+)
 # Create your models here.
 
 
@@ -162,9 +166,8 @@ class Flowsheet(models.Model):
     )
     name = models.CharField(max_length=64)
     description = models.TextField()
-    preview_url = models.URLField(
-        default="https://res.cloudinary.com/dpykexpss/image/upload/v1737482485/grid_je7dz4.png"
-    )
+    background_preview_url = models.URLField(default=DEFAULT_PREVIEW_URL)
+    preview_url = models.URLField(null=True, blank=True)
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="flowsheets"
     )

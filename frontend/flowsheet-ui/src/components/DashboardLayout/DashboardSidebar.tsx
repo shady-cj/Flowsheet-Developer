@@ -70,7 +70,7 @@ const DashboardSidebar = () => {
               </div>
 
               <div className="py-5 px-3 flex flex-col gap-5">
-                {data.length ? data.map((item)=>{
+                {data?.length ? data.map((item)=>{
                   const link = selectType.current.value === "projects" ? `/project/${item.id}` : `/project/${(item as fetchedFlowsheetsType).project}/flowsheet/${item.id}`
                   return (<Link href={link} key={item.id} className="flex justify-between text-[#4D4D4D]">
                     <h2>{item.name}</h2>

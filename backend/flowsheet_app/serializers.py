@@ -2,6 +2,7 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from rest_framework import serializers
 
 # from rest_framework.exceptions import PermissionDenied
+from .models import DEFAULT_PREVIEW_URL
 
 from .models import (
     Shape,
@@ -14,6 +15,7 @@ from .models import (
     FlowsheetObject,
     Flowsheet,
 )
+
 
 from .utils import object_formatter
 
@@ -92,6 +94,7 @@ class AuxilliarySerializer(ModelSerializer):
 
 class ProjectSerializer(ModelSerializer):
     preview_url = SerializerMethodField(read_only=True)
+    background_preview_url = SerializerMethodField(read_only=True)
     link = SerializerMethodField(read_only=True)
 
     class Meta:
@@ -101,13 +104,21 @@ class ProjectSerializer(ModelSerializer):
             "get_mins_ago",
             "name",
             "preview_url",
+            "background_preview_url",
             "starred",
             "creator",
             "last_edited",
             "description",
             "link",
         ]
-        read_only_fields = ["id", "link", "creator", "get_mins_ago", "preview_url"]
+        read_only_fields = [
+            "id",
+            "link",
+            "creator",
+            "get_mins_ago",
+            "preview_url",
+            "background_preview_url",
+        ]
 
     def get_preview_url(self, instance):
         preview_url = None
@@ -115,11 +126,14 @@ class ProjectSerializer(ModelSerializer):
         if flowsheets.exists():
             latest_flowsheet = instance.flowsheets.order_by("-last_edited")[0]
             preview_url = latest_flowsheet.preview_url
-        if not preview_url:
-            # Remember to change this...
-            preview_url = "https://res.cloudinary.com/dpykexpss/image/upload/v1737482485/grid_je7dz4.png"
+        # if not preview_url:
+        #     # Remember to change this...
+        #     preview_url = "https://res.cloudinary.com/dpykexpss/image/upload/v1737482485/grid_je7dz4.png"
 
         return preview_url
+
+    def get_background_preview_url(self, instance):
+        return DEFAULT_PREVIEW_URL
 
     def get_link(self, instance):
         return f"project/{instance.id}"
@@ -151,13 +165,21 @@ class FlowsheetSerializer(ModelSerializer):
             "name",
             "description",
             "preview_url",
+            "background_preview_url",
             "get_mins_ago",
             "project",
             "starred",
             "link",
             "last_edited",
         ]
-        read_only_fields = ["id", "link", "creator", "get_mins_ago", "project"]
+        read_only_fields = [
+            "id",
+            "link",
+            "creator",
+            "get_mins_ago",
+            "project",
+            "background_preview_url",
+        ]
 
     def get_link(self, instance):
         return f"project/{instance.project.id}/flowsheet/{instance.id}"

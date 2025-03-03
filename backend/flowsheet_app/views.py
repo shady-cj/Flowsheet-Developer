@@ -34,7 +34,12 @@ from .models import (
     Flowsheet,
 )
 from authentication.models import User
-from .utils import get_queryset_util, create_object_util, update_object_util
+from .utils import (
+    get_queryset_util,
+    create_object_util,
+    update_object_util,
+    upload_preview_image,
+)
 from .mixins import ObjectPermissionMixin, UpdateCreatorMixin, handleCreationMixin
 from .permissions import FlowsheetObjectPermission, FlowsheetInstancePermission
 from rest_framework.exceptions import PermissionDenied
@@ -147,6 +152,21 @@ class DashboardSearch(APIView):
 
         # We'll improve search functionality later
         # project_match =
+
+
+class UpdateFlowsheetPreview(APIView):
+    def put(self, request, format=None, flowsheet_id=None):
+        data = request.data
+        url = upload_preview_image(data.get("preview"), flowsheet_id)
+        if not url:
+            Response(
+                "Couldn't process preview image", status=status.HTTP_400_BAD_REQUEST
+            )
+        flowsheet = Flowsheet.objects.get(id=flowsheet_id)
+        flowsheet.preview_url = url
+        flowsheet.save()
+        flowsheet.project.save()
+        return Response("OK", status=status.HTTP_200_OK)
 
 
 class FlowsheetCreateView(APIView):

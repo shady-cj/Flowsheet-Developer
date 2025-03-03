@@ -10,6 +10,7 @@ export type fetchedProjectType = {
     name: string,
     description: string,
     preview_url: string,
+    background_preview_url: string, 
     get_mins_ago: string,
     starred: boolean,
     last_edited: string,
@@ -125,7 +126,7 @@ export const CardRenderer = ({data, setData, type}: rendererPropType) => {
             data.map(item => (
                 <article key={item.id} className='flex-1 min-w-[450px] max-w-[550px] aspect-[3/2]'>
                     <div className='h-[80%] relative'>
-                        <div onClick={() => starAndUnstar(item)} className='absolute flex justify-center items-center cursor-pointer top-[5%] right-[5%] w-10 h-10 bg-[#006644] rounded-2xl'>
+                        <div onClick={() => starAndUnstar(item)} className='absolute flex justify-center items-center cursor-pointer top-[5%] right-[5%] w-10 h-10 bg-[#006644] rounded-2xl z-20'>
 
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g id="star-02">
@@ -134,7 +135,16 @@ export const CardRenderer = ({data, setData, type}: rendererPropType) => {
                             </svg>
                         </div>
 
-                        <Image width={400} height={200} className='w-full h-full object-con border rounded border-[#E6E6E6] bg-grayVariant' src={item.preview_url} alt={item.name}/>
+                        <div className="flowsheet-preview-wrapper">
+                            <Image width={400} height={200} className='w-full h-full absolute z-1 top-0 left-0 object-con border rounded border-[#E6E6E6] bg-grayVariant' src={item.background_preview_url} alt={"preview_background"}/>
+                            {
+                                item.preview_url ? <Image width={400} height={200} className='w-auto h-full relative z-10 bg-transparent' src={item.preview_url} alt={item.name}/> : <></>
+
+                            }
+                            
+
+                        </div>
+                        {/* <Image width={400} height={200} className='w-full h-full object-con border rounded border-[#E6E6E6] bg-grayVariant' src={item.preview_url} alt={item.name}/> */}
                     </div>
                     <div className='h-[20%] py-4 flex justify-between'>
                         <div className='flex flex-col gap-1'>

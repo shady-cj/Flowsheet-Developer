@@ -1,5 +1,6 @@
 import { toPng } from 'html-to-image';
 import { objectDataType } from '@/components/context/FlowsheetProvider';
+import { updateFlowsheetPreview } from '../actions/flowsheet';
 // import logoIcon from "@/assets/logo-icon.svg"
 // import Report from './report';
 // import { renderToStaticMarkup } from 'react-dom/server';
@@ -10,6 +11,7 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
     // generatePDF(reportRef, {filename: 'page.pdf'})
     
     const [maxWidth, maxHeight] = getMaxWidthAndHeight(objectData) 
+  
     // console.log(canvasRef)
     // console.log(logo)
     const logo = `
@@ -27,7 +29,7 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
 
     
 
-
+    // console.log("canvas reference", canvasRef)
     toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200, style: {background: "white", zIndex: "-2"}})
       .then((dataUrl) => {
         // console.log("dataURl", dataUrl)
@@ -49,7 +51,9 @@ const getMaxWidthAndHeight = (objectData: objectDataType): [number, number] => {
     let maxWidth = 0, maxHeight = 0;
     for (const key in objectData) {
         let projectedHeight = 0;
-        const ALLOWANCE = 20
+        const ALLOWANCE = 20 * objectData[key].scale;
+        const heightSpread = 100 * objectData[key].scale;
+        const widthSpread = 100 * objectData[key].scale;
         // console.log("object data", objectData[key])
         // console.log(objectData[key].object)
 
@@ -60,28 +64,24 @@ const getMaxWidthAndHeight = (objectData: objectDataType): [number, number] => {
             projectedHeight = numberOfLines! * 1.3 * 16
         }
         const {lastX, lastY} = objectData[key].properties.coordinates
-        if (lastX > maxWidth) maxWidth = Math.floor(lastX)
-        if ((lastY + projectedHeight) > maxHeight) maxHeight = Math.floor(lastY + projectedHeight + ALLOWANCE)
+        if (lastX > maxWidth) maxWidth = Math.floor(lastX + widthSpread) 
+        if ((lastY + projectedHeight) > maxHeight) maxHeight = Math.floor(lastY + projectedHeight + heightSpread + ALLOWANCE)
 
     }
     return [maxWidth, maxHeight]
 }
 
 
-export const previewImageGenerator = (canvasRef: HTMLDivElement, objectData: objectDataType) => {
+export const previewImageGenerator = (canvasRef: HTMLDivElement, objectData: objectDataType, flowsheetId: string) => {
   let [maxWidth, maxHeight] = getMaxWidthAndHeight(objectData)
-  let url = null;
   maxHeight = maxHeight < 280 ? 280 : maxHeight
   maxWidth = maxWidth < 850 ? 850 : maxWidth
   
-  toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200})
-      .then((dataUrl) => {
-        console.log("data url", dataUrl)
-        url = dataUrl
+  toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200, style: {background: "transparent"}})
+      .then((dataURL) => {
+        updateFlowsheetPreview(dataURL, flowsheetId)
       })
       .catch((err) => {
         console.log(err);
-      });
-  console.log(url)
-  // return url
+      })
 }

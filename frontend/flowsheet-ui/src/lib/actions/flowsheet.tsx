@@ -1,10 +1,11 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { cookies } from "next/headers"
-import { notFound, redirect } from "next/navigation"
-import { resolve } from "path"
+// import { cookies } from "next/headers"
+// import { notFound, redirect } from "next/navigation"
+// import { resolve } from "path"
 import { getAccessToken } from "../utils/requestAccessToken"
+import { updateFlowsheet } from "./dashboard"
 
 const BASE_URL = "http://localhost:8000"
 
@@ -87,4 +88,38 @@ export async function createFlowsheet(prevState: any, formData: FormData) {
     }
     // redirect("/login")
 
+}
+
+
+export const updateFlowsheetPreview = async (imageDataUrl: string, flowsheetId: string) => {
+    const accessToken = await getAccessToken()
+
+    //flowsheets/<str:project_id>/update_preview
+    
+    try {
+
+        const response = await fetch(`${BASE_URL}/flowsheets/${flowsheetId}/update_preview`, {
+            method: "PUT",
+            body: JSON.stringify({
+                "preview": imageDataUrl,
+            }),
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }
+
+        })
+        const result = await response.json()
+        revalidatePath('/dashboard')
+        // console.log(response, response.text)
+        console.log("result", result)
+        // if (response.status === 200) return result
+        // else {
+        //     console.log(result);
+        //     return null
+        // }
+    } catch (err) {
+        console.log(err)
+        // return null
+    }
 }

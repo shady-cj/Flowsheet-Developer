@@ -73,6 +73,9 @@ body {
 .objects {
   z-index: 2;
 }
+.line-z-index {
+  z-index: 30 !important;
+}
 
 .current-object {
   z-index: 20 !important;
@@ -295,4 +298,18 @@ body {
 .hide-components {
   height: 0;
   transition: height 0.5s;
+}
+
+.flowsheet-preview-wrapper, .project-preview-wrapper {
+  position:relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.project-preview-wrapper {
+  width: 50vw;
 }

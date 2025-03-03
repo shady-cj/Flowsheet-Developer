@@ -38,7 +38,8 @@ export async function createCustomComponent(formData: FormData, category: string
     const accessToken = await getAccessToken()
 
     
-    console.log(formData, "formData")
+    // console.log(formData, "formData")
+    // console.log("formdata values", formData.values())
     
     try {
         let url = ""

@@ -7,6 +7,7 @@ from PIL import Image, ImageEnhance
 from io import BytesIO
 from rembg import remove
 from cloudinary.uploader import upload
+import base64
 
 
 # =================================
@@ -152,3 +153,19 @@ def process_component_image(data):
     )
     data["image_url"] = upload_result["secure_url"]
     return data
+
+
+def upload_preview_image(image, flowsheet_id):
+    if not image:
+        return None
+    encoded_data = "".join(image.split(",")[1:])
+    decoded_data = base64.b64decode(encoded_data)
+
+    # imageBuffer = BytesIO(decoded_data)
+    # input = Image.open(imageBuffer)
+    # input.save("test_file.png")
+
+    upload_result = upload(
+        decoded_data, folder=f"{flowsheet_id}_previews", resource_type="image"
+    )
+    return upload_result["secure_url"]

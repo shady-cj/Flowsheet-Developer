@@ -21,7 +21,7 @@ const DashboardHeader = () => {
 
   }
   return (
-    <header className="w-full sticky bg-grayVariant border-b border-[#DFE1E6] top-0 z-10 flex-initial text-white">
+    <header className="w-full sticky bg-grayVariant border-b border-[#DFE1E6] top-0 z-30 flex-initial text-white">
         <div className="flex py-4 px-8 w-full">
             <Logo logoIcon={logoIcon}/>
             <div className="py-2 px-4 flex items-center gap-2 border border-[#B3B3B3] rounded-lg ml-auto">

@@ -33,7 +33,16 @@ const ProjectPage = async ({params}: {params: {project_id: string}}) => {
           result ? <div className="w-full">
             <div className="px-4 pb-8 border-b border-solid border-[#E6E6E6]">
               <div className="h-[75vh] flex gap-x-14">
-                  <Image height={200} width={560} className="w-auto h-full bg-grayVariant" src={result.project.preview_url} alt={result.project.name} />
+                  <div className="project-preview-wrapper">
+                      <Image height={300} width={600} className='w-full h-full absolute z-1 top-0 left-0 object-con border rounded border-[#E6E6E6] bg-grayVariant' src={result.project.background_preview_url} alt={"preview_background"}/>
+                      
+                      {
+                        result.project.preview_url ? <Image height={300} width={600} className="w-auto h-full relative z-10 bg-transparent" src={result.project.preview_url} alt={result.project.name}/> : <></>
+                      }
+                      
+
+                  </div>
+                  {/* <Image height={200} width={560} className="w-auto h-full bg-grayVariant" src={result.project.preview_url} alt={result.project.name} /> */}
                   <div className="flex flex-col gap-4 justify-center">
                     <h2 className="text-4xl text-text-black font-bold">{result.project.name}</h2>
                     <p className="text-lg text-text-black-2 italic">

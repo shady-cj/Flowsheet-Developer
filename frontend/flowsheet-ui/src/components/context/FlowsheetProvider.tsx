@@ -10,6 +10,7 @@ import Report, { createReport } from '@/lib/utils/report';
 
 import generatePDF from 'react-to-pdf';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { previewImageGenerator } from '@/lib/utils/htmlConvertToImage';
 
 
 
@@ -160,6 +161,8 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
       objectData.current = objects
       hasInstance.current = true
     }
+    previewImageGenerator(canvasRef.current, objectData.current, paramsId)
+
   }
 
 

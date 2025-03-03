@@ -320,20 +320,28 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const checkAndSetConnection = useCallback((type: "from" | "to", lineId: string, shapeId: string) => {
       // Check and validate connection (ore size, aperture size, gape, set)
       // Update the ore quantity.
+
+      // from: if an object is connected to the M coordinates of a line, the 
+      // lineId - id of the line
+      // shapeId - shape or object that's being linked at the M coordinate
+      
+      // to: if an object is connected to the L coordinates of a line, the
+      // lineId - remains the id of the line as mentioned earlier
+      // shapeId - shape or object that's being connected to at the L coordinate.
+
+
       const line = objectData.current[lineId]
       const activeObject = objectData.current[shapeId]
 
 
       if (type === "from") {
-        // console.log("from here")
         const nextObjectId = line.properties.nextObject[0]
         if (!nextObjectId) return true
         const nextObject = objectData.current[nextObjectId]
 
         
         if (nextObject?.properties.gape || nextObject?.properties.aperture) {
-          // console.log("here")
-          if (!activeObject.properties.gape && !activeObject.properties.aperture) return true
+          if (!activeObject.properties.gape && !activeObject.properties.aperture) return true // skip (no need for validating connection)
           if (activeObject.properties.aperture)
             activeObject.properties.maxOreSize = activeObject.properties.aperture
           else if (activeObject.properties.gape) 
@@ -345,6 +353,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           if (nextObject.properties.gape) {
             const gape = parseFloat(nextObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
+              // largest feed size must be less than or equal to 0.8 x gape size
               if (activeObject.properties.set && (parseFloat(activeObject.properties.set) <= parseFloat(nextObject.properties.set!)))
                 nextObject.properties.maxOreSize = activeObject.properties.set
               else
@@ -1111,6 +1120,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
          
           if (objectOffsetYBottom === mYAxis || ((mYAxis - objectOffsetYBottom) <= 10 && (mYAxis > scaledObjectOffsetY) )) {
     
+            // dragging the object from the top.
             if ((mXAxis >= scaledObjectOffsetX && mXAxis <= objectOffsetXRight) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
               isConnected = true
 
@@ -1171,8 +1181,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
                 // objectData.current[obj.id].lastX = newObjectOffsetX
                 objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
               }
-
-
 
               
               // setting the line next object attribute
@@ -1988,6 +1996,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           // newEl.style.zIndex = "5"
       
           newEl.setAttribute("data-variant", "line")
+          newEl.classList.add("line-z-index")
           newEl.style.outline = "none"
           newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
           newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
@@ -2004,7 +2013,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
           if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0) {
             arrow.innerHTML = `
-              <polygon points="10,20 18,5 10,9 2,5" fill="#4D4D4D" stroke="transparent" strokeWidth="1.5" />
+              <polygon points="10,22 18,5 10,9 2,5" fill="#4D4D4D" stroke="transparent" strokeWidth="1.5" />
             `
             path!.setAttribute("stroke", "#4D4D4D")
           }
@@ -2313,6 +2322,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // Lines 
         // newEl.style.zIndex = "5"
         newEl.setAttribute("data-variant", "line")
+        newEl.classList.add("line-z-index")
         newEl.style.outline = "none"
         newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
         newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
@@ -2360,7 +2370,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         arrow.style.left = `50px`
         
         arrow.innerHTML = `
-          <polygon points="10,20 18,5 10,9 2,5" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />
+          <polygon points="10,22 18,5 10,9 2,5" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />
         `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)

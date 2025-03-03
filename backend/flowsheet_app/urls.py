@@ -19,6 +19,7 @@ from .views import (
     ListFlowsheet,
     ListCreateFlowsheet,
     RetrieveUpdateDestroyFlowsheet,
+    UpdateFlowsheetPreview,
 )
 
 urlpatterns = [
@@ -35,6 +36,9 @@ urlpatterns = [
     path("auxilliary/<str:id>", RetrieveUpdateDestroyAuxilliary.as_view()),
     path("flowsheets/", ListFlowsheet.as_view()),
     path("flowsheets/<str:project_id>", ListCreateFlowsheet.as_view()),
+    path(
+        "flowsheets/<str:flowsheet_id>/update_preview", UpdateFlowsheetPreview.as_view()
+    ),
     path(
         "flowsheets/<str:project_id>/update/<str:flowsheet_id>",
         RetrieveUpdateDestroyFlowsheet.as_view(),

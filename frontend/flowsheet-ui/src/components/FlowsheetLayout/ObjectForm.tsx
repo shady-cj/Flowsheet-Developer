@@ -11,7 +11,7 @@ import Image from 'next/image'
 const ObjectForm = ({formFields, position, handleFormState, saveForm, formState, objectFormType}: {formFields: formFieldsType, position: {x: number, y: number}, handleFormState: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void, saveForm: (e: FormEvent) => void, formState: formStateObjectType, objectFormType: objectType}) => {
   
     return (
-    <div className="absolute w-full h-full bg-[#00000080] z-10 ">
+    <div className="absolute w-full h-full bg-[#00000080] z-30 ">
         <div className="relative w-full h-full">
             <form action="" className={`object-form absolute bg-white p-5 pt-6 flex flex-col gap-y-6 rounded-lg max-w-[21rem]`} style={{top: `${position.y}px`, left: `${position.x + 80}px`}} onSubmit={saveForm}>
                 <h2 className='text-xl text-[#1A1A1A] font-medium'>{objectFormType} Property</h2>
