@@ -80,7 +80,7 @@ const Report = ({objectData}: {objectData: objectDataType}) => {
         {
             Object.keys(objectData).map(key=> {
                 const currentNode = objectData[key]
-                console.log("current node ", currentNode)
+                // console.log("current node ", currentNode)
                 return <View style={styles.section} key={key}>
                             {
                                 currentNode.object_info.object_model_name === "Crusher" ? (

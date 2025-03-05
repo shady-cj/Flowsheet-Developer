@@ -112,51 +112,43 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
     }, [loadComponent])
   return (
     <>
-    <div className="w-[22%] bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-10 border-r border-[#DFE1E6] border-solid">
+    <div className="w-[25%] custom-scrollbar bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-10 border-r border-[#DFE1E6] border-solid">
         <header>
             <Image width={88} height={29} src={mineflo} alt="mineflo" quality={100} loading="lazy"/>
         </header>
         <section>
-            <div className="border border-[#DFE1E6] rounded-lg p-2 flex gap-x-2">
+            <div className="border border-[#DFE1E6] rounded-lg p-2 flex gap-x-3">
                 <label htmlFor="search-components" className="flex justify-center items-center">
-                    <Image className="cursor-pointer" width={14} height={14} src={search} alt="search" quality={100}/>
+                    <Image className="cursor-pointer w-3 h-auto" width={14} height={14} src={search} alt="search" quality={100}/>
                 </label>
-                <input type="text" id="search-components" className="border-0 outline-none text-[#B3B3B3]" placeholder="Search Components"/>
+                <input type="text" id="search-components" className="border-0 outline-none text-[#B3B3B3] text-sm" placeholder="Search Components"/>
             </div>
         </section>
         <section className="w-full flex flex-col gap-4">
-            <div className="border-b flex flex-col gap-y-5 pb-6">
+            <div className="border-b flex flex-col gap-y-5 pb-2">
                 <div className="flex justify-between items-center">
                     <div className="flex gap-x-2">
                         <Image width={12} height={12} src={menu} alt="vector" quality={100}/>
-                        <h2 className="text-md font-medium text-text-black">Standard</h2>
+                        <h2 className="text-sm font-medium text-text-black">Standard</h2>
                     </div>
                     
                     <Image className="cursor-pointer" width={12} height={12} src={standardOpen?arrowUp:arrowDown} onClick={() => setStandardOpen(!standardOpen)} alt="vector" quality={100}/>
                 </div>
-                <div className={`flex gap-5 items-center flex-wrap mb-2 overflow-hidden ${!standardOpen ? "hide-components": ""}`}>
+                <div className={`flex gap-5 items-center flex-wrap overflow-hidden ${!standardOpen ? "hide-components": ""}`}>
                     {
 
                         shapes.length > 0 ? shapes.map((shape) => {
                                 return <ConvertStringToShape key={shape.id} objectType={"Shape"} objectId={shape.id} objectName={shape.name}/>
                             }):"Loading"
                     }
-
-                    {/* <Circle />
-                    <Rectangle />
-                    <Square/>
-                    <Ellipse/>
-                    <Triangle/>
-                    <Text/>
-                    <Line /> */}
                 </div>
             </div>
-            <div className="border-b flex flex-col gap-y-5 pb-6 pt-4">
+            <div className="border-b flex flex-col gap-y-5 pb-2">
                 
                 <div className="flex justify-between items-center">
                     <div className="flex gap-x-2">
                         <Image width={12} height={12} src={menu} alt="vector" quality={100}/>
-                        <h2 className="text-md font-medium text-text-black">Components</h2>
+                        <h2 className="text-sm font-medium text-text-black">Components</h2>
                     </div>
                     
                     <Image className="cursor-pointer" width={12} height={12} src={componentOpen?arrowUp:arrowDown} onClick={() => setComponentOpen(!componentOpen)} alt="vector" quality={100}/>
@@ -164,7 +156,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                 <div className={`flex gap-2 flex-wrap overflow-hidden ${!componentOpen ? "hide-components": ""}`}>
                     {
                         activeComponent.properties.length ? <section className="flex flex-col gap-y-4 overflow-hidden w-full">
-                            <h2 className="font-medium text-text-black text-base border-b py-2 flex gap-2 items-center mx-2">
+                            <h2 className="font-medium text-text-black text-sm border-b py-2 flex gap-2 items-center mx-2">
                                 <span className="cursor-pointer text-text-black" onClick={()=> setActiveComponent({properties: [], type: ""})}>&laquo;</span>
 
                                 {activeComponent.type === "Auxilliaries" ? "Auxilliary Components" : activeComponent.type}</h2>
@@ -172,11 +164,11 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                             {
                                 activeComponent.properties.map(component => {
                         
-                                    const componentElement = activeComponent.type === "Crushers" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Crusher crusher={component} /></div> : 
-                                    activeComponent.type === "Grinders" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Grinder grinder={component}/></div> : 
-                                    activeComponent.type === "Screeners" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Screener key={component.id} screener={component}/></div> : 
-                                    activeComponent.type === "Auxilliaries" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Auxilliary key={component.id} auxilliary={component} /></div> : 
-                                    activeComponent.type === "Concentrators" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Concentrator key={component.id} concentrator={component as ConcentratorImageObjectType} /> </div>: <></>
+                                    const componentElement = activeComponent.type === "Crushers" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Crusher crusher={component} /></div> : 
+                                    activeComponent.type === "Grinders" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Grinder grinder={component}/></div> : 
+                                    activeComponent.type === "Screeners" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Screener key={component.id} screener={component}/></div> : 
+                                    activeComponent.type === "Auxilliaries" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Auxilliary key={component.id} auxilliary={component} /></div> : 
+                                    activeComponent.type === "Concentrators" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Concentrator key={component.id} concentrator={component as ConcentratorImageObjectType} /> </div>: <></>
                                     return componentElement
                                 }) 
                             }
@@ -184,7 +176,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                         </section>: components.map(c => {
                             return <div key={c.name} aria-label={c.name} onClick={handleComponentSwitch} className="border border-solid border-[#DFE1E6] p-3 flex flex-col items-center gap-y-2 rounded-lg flex-auto cursor-pointer">
                             <Image width={24} height={24} src={c.image} alt={c.name} quality={100} className="pointer-events-none"/>    
-                            <h2 className="text-black-2 text-sm font-md pointer-events-none">{c.name}</h2>
+                            <h2 className="text-black-2 text-xs font-md pointer-events-none">{c.name}</h2>
                             </div>
                         })
                     }
@@ -193,11 +185,11 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                 
             </div>
             
-            <div className="flex flex-col gap-y-5 pt-4">
+            <div className="flex flex-col gap-y-5">
                 <div className="flex justify-between items-center">
                         <div className="flex gap-x-2">
                             <Image width={12} height={12} src={menu} alt="vector" quality={100}/>
-                            <h2 className="text-md font-medium text-text-black">Personalized Objects</h2>
+                            <h2 className="text-sm font-medium text-text-black">Personalized Objects</h2>
                         </div>
                         
                         <Image className="cursor-pointer" width={12} height={12} src={customObjectOpen?arrowUp:arrowDown} onClick={() => setCustomObjectOpen(!customObjectOpen)} alt="vector" quality={100}/>
@@ -207,33 +199,33 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                         {
                             crushers.length > 0 && crushers.map(crusher=> {
                                 if (crusher.creator === userObject?.id) {
-                                    return (<div key={crusher.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Crusher  crusher={crusher} /></div>)
+                                    return (<div key={crusher.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Crusher  crusher={crusher} /></div>)
                                 }
                             })
                         }
                          {
                             grinders.length > 0 && grinders.map(grinder=>{
                                 if (grinder.creator === userObject?.id) {
-                                    return (<div key={grinder.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Grinder grinder={grinder}/></div>)
+                                    return (<div key={grinder.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Grinder grinder={grinder}/></div>)
                                 }
                             })
                         }
                         {
                             screeners.length > 0 && screeners.map(screener=>{
                                 if (screener.creator === userObject?.id)
-                                    return (<div key={screener.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"><Screener  screener={screener}/></div>)
+                                    return (<div key={screener.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Screener  screener={screener}/></div>)
                             })
                         }
                         {
                             auxilliaries.length > 0 && auxilliaries.map(auxilliary=>{
                                 if (auxilliary.creator === userObject?.id)
-                                    return (<div key={auxilliary.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"> <Auxilliary auxilliary={auxilliary}/></div>)
+                                    return (<div key={auxilliary.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"> <Auxilliary auxilliary={auxilliary}/></div>)
                             })
                         }
                         {
                             concentrators.length > 0 && concentrators.map(concentrator=>{
                                 if (concentrator.creator === userObject?.id)
-                                    return (<div key={concentrator.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-auto"> <Concentrator concentrator={concentrator}/></div>)
+                                    return (<div key={concentrator.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"> <Concentrator concentrator={concentrator}/></div>)
                             })
                         }
                     </div>

@@ -25,14 +25,14 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
     <>
       <header className="w-full z-10 border-b border-text-gray bg-grayVariant flex justify-between items-center py-2 px-5">
           <nav className="flex gap-2 items-center">
-              <Link href={"/"} className="text-base text-[#666666] font-normal">home</Link>
+              <Link href={"/"} className="text-sm text-[#666666] font-normal">dashboard</Link>
               <Image src={arrowRight} width={10} height={10} alt="arrow right" />
-                <p>{flowsheetObject?.name}</p>
-              <button onClick={()=> saveObjectData(params.flowsheet_id)} className="m-2 bg-gray-100 p-2" disabled={canvasLoading}>
-                {canvasLoading ? "Loading..." : (hasInstance.current ? "Update" : "Save")}
+                <p className="text-sm">{flowsheetObject?.name}</p>
+              <button onClick={()=> saveObjectData(params.flowsheet_id)} className="text-sm m-2 bg-gray-100 px-2" disabled={canvasLoading}>
+                {canvasLoading ? "loading..." : (hasInstance.current ? "update" : "save")}
               </button>
-              <div className="flex gap-2 relative">
-                <span>Utility</span> <Image src={arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> {
+              <div className="text-sm flex gap-2 relative">
+                <span>utility</span> <Image src={arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> {
                   if (pageNotFound) {
                     setShowDropDown(false)
                     return;
@@ -51,13 +51,13 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
               </div>
           </nav>
           <div className="flex items-center gap-5">
-            <div className="bg-[#E381E3] font-semibold text-[#261A26] text-base w-10 h-10 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
+            <div className="bg-[#E381E3] font-semibold text-[#261A26] text-sm w-9 h-9 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
             {userObject?.email.substring(0, 2).toLocaleUpperCase()}
             </div>
 
-            <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-base" onClick={()=> {
+            <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-sm" onClick={()=> {
               if (pageNotFound) return;
-              htmlToImageConvert(canvasRef.current, objectData.current);
+              htmlToImageConvert(canvasRef.current, objectData.current, flowsheetObject?.name);
               setExportCanvas(true)
               }} disabled={canvasLoading}>
               <Image width={16} height={16} src={exportImage} alt="export" quality={100} />
@@ -74,11 +74,11 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
           <div className='flex justify-end gap-4 mt-3'>
             <button className='bg-red-400 rounded-lg py-2 px-4 text-white' onClick={() => setExportCanvas(false)}>No</button>
 
-            <PDFDownloadLink document={<Report objectData={objectData.current}/>} onClick={()=> setExportCanvas(false)} className='bg-[#006644] rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' fileName="somename.pdf">
+            {/* <PDFDownloadLink document={<Report objectData={objectData.current}/>} onClick={()=> setExportCanvas(false)} className='bg-[#006644] rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' fileName="somename.pdf">
               {({ blob, url, loading, error }) =>
                 loading ? 'Loading document...' : 'Yes'
               }
-            </PDFDownloadLink>
+            </PDFDownloadLink> */}
 
           </div>
         </div>: ""}
