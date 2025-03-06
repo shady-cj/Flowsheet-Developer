@@ -53,6 +53,7 @@ export type formStateObjectType = {[index: string]: string}
 
 const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
     const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
+    const canvasWrapperRef = useRef<HTMLElement>(null!)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
     const panelCoordinateXMarker = useRef<number | null>(null)
@@ -68,7 +69,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const objectFormType = useRef<objectType>("Shape")
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
-
+    const [canvasPosition, setCanvasPosition] = useState({x: 0, y: 0}) // track canvas position while zooming and translating
+    const [canvasScale, setCanvasScale] = useState(1); // canvas scale
+    const changeCanvasPosition = useRef(false) // to know when to change the canvas position
+    const lastCanvasPosition = useRef({x: 0, y: 0}) // to track canvas last position while translating
 
 
     const validatePositiveInteger = (attribute: keyof formStateObjectType, title: string) => {
@@ -1649,6 +1653,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
     const handleMouseUpUtil = useCallback(() => {
 
+
       if (onPanelResize.current) {
         onPanelResize.current = false
         panelCoordinateXMarker.current = null
@@ -1678,6 +1683,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
       }
       onMouseDown.current = false
+      changeCanvasPosition.current = false
     }, [LineConnector, objectData])
 
     const handleMouseUpGeneral = useCallback((e: MouseEvent) => {
@@ -1686,9 +1692,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     },[handleMouseUpUtil])
     
 
-    const handleMouseDown = useCallback((e: MouseEvent, obj: HTMLElement) => {
-      // console.log("event target", e.target)
-      // console.log("obj", obj)
+    const handleMouseDown = useCallback((e: MouseEvent, obj?: HTMLElement) => {
+      e.stopPropagation()
+
+    
+      if (!obj) {
+        changeCanvasPosition.current = true
+        return
+      }
       if (obj.classList.contains("point-indicators")) {
           currentActivePoint.current = obj
           obj.style.transform = "scale(1.5) translate(-40%, -40%)"
@@ -1727,6 +1738,36 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
       
     }, [handleMouseUpGeneral, handleMouseUpUtil, objectData,calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed])
+
+
+   
+    // Handle mouse wheel for zooming
+    const handleWheel = useCallback((e: WheelEvent) => {
+      e.preventDefault();
+      
+      // Determine zoom direction and rate
+
+      console.log('e', e, e.deltaY)
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      const newScale = Math.max(0.1, Math.min(2, canvasScale + delta));
+      console.log("new scale", newScale)
+      
+      // Calculate zoom based on mouse position
+      const rect = canvasWrapperRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      const scaleFactor = newScale / canvasScale;
+      // console.log("scaleFactor", scaleFactor)
+      
+      setCanvasPosition(prev => ({
+        x: Math.max(0, mouseX - (mouseX - prev.x) * scaleFactor),
+        y: Math.max(0, mouseY - (mouseY - prev.y) * scaleFactor)
+      }));
+      // console.log("canvas position", canvasPosition)
+      
+      setCanvasScale(newScale);
+    }, [canvasWrapperRef, canvasScale]);
 
 
     const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
@@ -2497,7 +2538,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
     useEffect(()=> {
       const CanvasContainer = canvasRef.current
-      const CanvasParentContainer = document.getElementById("canvas-parent-container")!
+      const CanvasWrapper = canvasWrapperRef.current
+      // const CanvasParentContainer = document.getElementById("canvas-parent-container")!
       const objects = document.querySelectorAll(".objects")
       if (pageNotFound) return;
       // console.log(objects)
@@ -2521,10 +2563,31 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       if (!hasInstance.current) invokeLoadObjects()
           
       const handleMouseMove = (e: MouseEvent) => {
+        document.addEventListener("mouseup", handleMouseUpGeneral)
         // console.log(e.clientY - CanvasContainer.offsetTop)
+        
+        if (changeCanvasPosition.current) {
+            const dx = e.clientX - lastCanvasPosition.current.x;
+            const dy = e.clientY - lastCanvasPosition.current.y;
+            
+            setCanvasPosition(prev => ({
+              x: Math.max(0, prev.x + dx),
+              y: Math.max(0, prev.y + dy)
+            }));
+            
+            lastCanvasPosition.current = { 
+              x: e.clientX, 
+              y: e.clientY 
+
+            };
+            console.log('canvas pstion', canvasPosition)
+            return;
+            
+        }
 
         if (onPanelResize.current) {
           const MAXSCALE = 3
+          const MINSCALE = 1
           const panel = currentPanel.current
           const obj = currentObject.current
           const objData = objectData.current[obj.id]
@@ -2575,23 +2638,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           // console.log('scale out', scaleOut)
           if (scaleOut) {
-            if (currentScale < MAXSCALE) 
-              currentScale += 0.01
-            else
-              currentScale = MAXSCALE
-            
+            currentScale += 0.01
+            currentScale = Math.min(currentScale, MAXSCALE)
             currentScale = parseFloat(currentScale.toFixed(3))
             obj.style.transform = `scale(${currentScale})`
             objData.scale = currentScale
 
           } else {
-            if (currentScale > 1) 
-              currentScale -= 0.01
-            else 
-              currentScale = 1
-
+            currentScale -= 0.01
+            currentScale = Math.max(currentScale, MINSCALE)
             currentScale = parseFloat(currentScale.toFixed(3))
-            
             obj.style.transform = `scale(${currentScale})`
             objData.scale = currentScale
           }
@@ -2620,10 +2676,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             const objectCoordinate = objectData.current[obj.id].properties.coordinates
             let nextX = e.clientX - objectCoordinate.startX + objectCoordinate.lastX
             let nextY = e.clientY - objectCoordinate.startY + objectCoordinate.lastY
-            
+            console.log("e clientX", e.clientX)
+            console.log("e clientY", e.clientY)
+            console.log("startX", objectCoordinate.startX)
+            console.log("startY", objectCoordinate.startY)
+            console.log("lastX", objectCoordinate.lastX)
+            console.log("lastY", objectCoordinate.lastY)
             
             nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(6)) : parseFloat(nextX.toFixed(6))
             nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(6)) : parseFloat(nextY.toFixed(6))
+           
 
             // console.log(nextX, "nextX")
 
@@ -2640,31 +2702,31 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
             // Enable scrolling while dragging of the window to the right and bottom
 
-            const parentContainerRight = CanvasParentContainer.getBoundingClientRect().right - CanvasParentContainer.getBoundingClientRect().x
-            const parentContainerBottom = CanvasParentContainer.getBoundingClientRect().bottom - CanvasParentContainer.getBoundingClientRect().y
-            const scrollNextX = nextX - CanvasParentContainer.scrollLeft
-            const scrollNextY = nextY - CanvasParentContainer.scrollTop
+            const parentContainerRight = CanvasWrapper.getBoundingClientRect().right - CanvasWrapper.getBoundingClientRect().x
+            const parentContainerBottom = CanvasWrapper.getBoundingClientRect().bottom - CanvasWrapper.getBoundingClientRect().y
+            const scrollNextX = nextX - CanvasWrapper.scrollLeft
+            const scrollNextY = nextY - CanvasWrapper.scrollTop
             if (parentContainerRight - scrollNextX < 70) {
               // const difference = parentContainerRight - scrollNextX
-              CanvasParentContainer.scrollLeft += 50
+              CanvasWrapper.scrollLeft += 50
             }
             if (parentContainerBottom - scrollNextY < 70) {
-              CanvasParentContainer.scrollTop += 50
+              CanvasWrapper.scrollTop += 50
             }
             // Enable scrolling while dragging back
-            let scrollTop = CanvasParentContainer.scrollTop
-            let scrollLeft = CanvasParentContainer.scrollLeft
+            let scrollTop = CanvasWrapper.scrollTop
+            let scrollLeft = CanvasWrapper.scrollLeft
           
 
             if (scrollLeft > 0 && nextX - scrollLeft < 30) {
               scrollLeft -= 20
               if (scrollLeft < 0) scrollLeft = 0
-              CanvasParentContainer.scrollLeft = scrollLeft
+              CanvasWrapper.scrollLeft = scrollLeft
             }
             if (scrollTop > 0 && nextY - scrollTop < 30) {
               scrollTop -= 20
               if (scrollTop < 0) scrollTop = 0
-              CanvasParentContainer.scrollTop = scrollTop
+              CanvasWrapper.scrollTop = scrollTop
             }
 
             // update the obj top and left css styles
@@ -2676,7 +2738,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
           
         }
-        document.addEventListener("mouseup", handleMouseUpGeneral)
+        
         // fix this 
         // document.addEventListener("click", ()=> console.log("document clicked"))
         // console.log(e)
@@ -2685,6 +2747,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       CanvasContainer.addEventListener("mousemove", handleMouseMove);
       CanvasContainer.addEventListener("mouseleave", handleMouseUp);
       CanvasContainer.addEventListener("mouseup", handleMouseUp)
+      CanvasWrapper.addEventListener('wheel', handleWheel, { passive: false })
+      CanvasWrapper.addEventListener('mousedown', handleMouseDown)
+
+
 
       // Sidebar Canvas
       // SidebarCanvas.addEventListener("mousemove",)
@@ -2707,9 +2773,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         CanvasContainer.removeEventListener("mousemove", handleMouseMove);
         CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
         CanvasContainer.removeEventListener("mouseup", handleMouseUp)
+        CanvasWrapper.removeEventListener('wheel', handleWheel)
+        CanvasWrapper.removeEventListener('mousedown', handleMouseDown)
         
       }
-    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas, objectData, hasInstance])
+    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint, handleWheel, loadObjectToCanvas, objectData, hasInstance])
 
 
   return (
@@ -2720,11 +2788,17 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       {
         pageNotFound ? <div className="relative w-full h-full z-10 flex justify-center items-center">
           Page not found
-        </div> :  (<div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
+        </div> :  (
+            <main className="relative canvas-bg bg-white h-[10000px] w-[10000px]" ref={canvasWrapperRef}>
+              <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative cursor-move overflow-auto w-full h-full" ref={canvasRef} onDrop={handleDrop} style={{
+                transform: `translate(${canvasPosition.x}px, ${canvasPosition.y}px) scale(${canvasScale})`,
+                transformOrigin: '0 0'
+              }}>
                   { 
                     isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
                   }
                 </div>
+            </main>
         )
       }
       
