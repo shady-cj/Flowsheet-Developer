@@ -16,10 +16,11 @@ const Flowsheet = ({params}: {params: {project_id: string, flowsheet_id: string}
       <FlowsheetSidebar params={params} />
       <section className="flex w-[75%] flex-col h-screen overflow-hidden">
         <FlowsheetHeader params={params} />
-        <div id="canvas-wrapper" className="overflow-auto flex-auto custom-scrollbar">
-          <div className={`w-full h-full ${canvasLoading? "overflow-hidden" :"overflow-auto"} scroll-smooth custom-scrollbar`} id="canvas-parent-container">
+        <div id="canvas-wrapper" className="overflow-hidden flex-auto">
+          <div className={`w-full h-full overflow-hidden scroll-smooth`} id="canvas-parent-container">
             <Canvas params={params}/>
           </div>
+          
 
         </div>
       </section>

@@ -47,6 +47,15 @@ const defaultFormField: formFieldsType = [
   }
 ]
 
+const canvasContainerContentWidth = 5000
+const canvasContainerContentHeight = 5000
+const canvasContentWidth = 25000
+const canvasContentHeight = 25000
+const canvasContentOffsetWidth = -3000
+const canvasContentOffsetHeight = -3000
+const canvasToContainerRatio = canvasContainerContentWidth / canvasContentWidth // assuming it will always be a square. 
+
+
 // }
 export type formStateObjectType = {[index: string]: string}
 
@@ -54,6 +63,7 @@ export type formStateObjectType = {[index: string]: string}
 const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
     const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
     const canvasWrapperRef = useRef<HTMLDivElement>(null!)
+    const canvasContainerRef = useRef<HTMLElement>(null!)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
     const panelCoordinateXMarker = useRef<number | null>(null)
@@ -69,13 +79,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const objectFormType = useRef<objectType>("Shape")
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
-    const [canvasPosition, setCanvasPosition] = useState({x: -3000, y: -3000}) // track canvas position while zooming and translating
+    const [canvasPosition, setCanvasPosition] = useState({x: canvasContentOffsetWidth, y: canvasContentOffsetHeight}) // track canvas position while zooming and translating
     const [canvasScale, setCanvasScale] = useState(1); // canvas scale
     const changeCanvasPosition = useRef(false) // to know when to change the canvas position
     const lastCanvasPosition = useRef({
       startX: 0, startY: 0,
-      lastX: 0, lastY: 0
+      lastX: canvasContentOffsetWidth, lastY: canvasContentOffsetHeight
     }) // to track canvas last position while translating
+
+    // const [scrollPosition, setScrollPosition] = useState({x: 0, y: 0})
 
 
     const validatePositiveInteger = (attribute: keyof formStateObjectType, title: string) => {
@@ -1750,6 +1762,19 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
    
+    // Handle scrollbar interactions
+    const handleScroll = (e: Event) => {
+      const container = canvasContainerRef.current;
+      if (!container) return;
+      console.log("called here")
+      // Update position based on scroll
+      setCanvasPosition({
+        x: -container.scrollLeft,
+        y: -container.scrollTop
+      });
+    };
+
+
     // Handle mouse wheel for zooming
     const handleWheel = useCallback((e: WheelEvent) => {
       e.preventDefault();
@@ -1777,14 +1802,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
       
       const scaleFactor = newScale / canvasScale;
+      
       console.log("scaleFactor", scaleFactor)
       
       // console.log("canvas position before", canvasPosition)
       setCanvasPosition(prev => {
         const newX = mouseX - (mouseX - prev.x) * scaleFactor;
         const newY = mouseY - (mouseY - prev.y) * scaleFactor;
-        console.log("new X", newX)
-        console.log("new Y", newY)
+        lastCanvasPosition.current.lastX = newX;
+        lastCanvasPosition.current.lastY = newY;
         return {
           x: Math.max(Math.min(0, newX), -17000),
           y: Math.max(Math.min(0, newY), -17000)
@@ -2562,7 +2588,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
     useEffect(()=> {
-      const CanvasContainer = canvasRef.current
+      const CanvasRef = canvasRef.current
+      const CanvasContainer = canvasContainerRef.current
       const CanvasWrapper = canvasWrapperRef.current
       // const CanvasParentContainer = document.getElementById("canvas-parent-container")!
       const objects = document.querySelectorAll(".objects")
@@ -2589,11 +2616,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
       const handleMouseMove = (e: MouseEvent) => {
         document.addEventListener("mouseup", handleMouseUpGeneral)
-        // console.log(e.clientY - CanvasContainer.offsetTop)
+        // console.log(e.clientY - CanvasRef.offsetTop)
         if (changeCanvasPosition.current) {
 
             // console.log("e.clientX", e.clientX)
-            console.log("last canvas position", lastCanvasPosition.current)
+            // console.log("last canvas position", lastCanvasPosition.current)
             const nextX = e.clientX - lastCanvasPosition.current.startX + lastCanvasPosition.current.lastX
             const nextY = e.clientY - lastCanvasPosition.current.startY + lastCanvasPosition.current.lastY
             setCanvasPosition({
@@ -2684,7 +2711,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             let offsetX = 10
             let offsetY = 10
             // console.log(e.clientX, "client x")
-            // CanvasContainer.scrollLeft += 50
+            // CanvasRef.scrollLeft += 50
             
             if (obj.getAttribute("data-variant") === "line") {
               // To prevent Lines from going over the edge
@@ -2694,20 +2721,24 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               offsetY = offsetTop > offsetY ? offsetTop : offsetY
             }
             const objectCoordinate = objectData.current[obj.id].properties.coordinates
-            let nextX = e.clientX - objectCoordinate.startX + objectCoordinate.lastX
+            console.log('canvasScale', canvasScale)
+            console.log((objectCoordinate.startX + objectCoordinate.lastX) * (canvasScale))
+            console.log((objectCoordinate.startX + objectCoordinate.lastX))
+            console.log(e.clientX - objectCoordinate.startX + objectCoordinate.lastX )
+            let nextX = e.clientX - objectCoordinate.startX + objectCoordinate.lastX 
             let nextY = e.clientY - objectCoordinate.startY + objectCoordinate.lastY
             console.log("e clientX", e.clientX)
-            console.log("e clientY", e.clientY)
-            console.log("startX", objectCoordinate.startX)
-            console.log("startY", objectCoordinate.startY)
-            console.log("lastX", objectCoordinate.lastX)
-            console.log("lastY", objectCoordinate.lastY)
+            // console.log("e clientY", e.clientY)
+            // console.log("startX", objectCoordinate.startX)
+            // console.log("startY", objectCoordinate.startY)
+            // console.log("lastX", objectCoordinate.lastX)
+            // console.log("lastY", objectCoordinate.lastY)
             
             nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(6)) : parseFloat(nextX.toFixed(6))
             nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(6)) : parseFloat(nextY.toFixed(6))
-           
 
-            // console.log(nextX, "nextX")
+            console.log("nextX", nextX, "nextY", nextY)
+            // console.log("nextX with scale factor", nextX * (1/canvasScale), "nextY with scale factor", nextY * (1/canvasScale))
 
   
             
@@ -2764,11 +2795,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // console.log(e)
       }
       // Main Project Canvas
-      CanvasContainer.addEventListener("mousemove", handleMouseMove);
-      CanvasContainer.addEventListener("mouseleave", handleMouseUp);
-      CanvasContainer.addEventListener("mouseup", handleMouseUp)
+      CanvasRef.addEventListener("mousemove", handleMouseMove);
+      CanvasRef.addEventListener("mouseleave", handleMouseUp);
+      CanvasRef.addEventListener("mouseup", handleMouseUp)
       CanvasWrapper.addEventListener('wheel', handleWheel, { passive: false })
       CanvasWrapper.addEventListener('mousedown', handleMouseDown)
+      CanvasContainer.addEventListener('scroll', handleScroll);
 
 
 
@@ -2790,14 +2822,68 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           (point as HTMLElement).removeEventListener("mouseup", handleMouseUp);
           (point as HTMLElement).addEventListener("dblclick", e => createMultiplePoint(e, point as HTMLElement))
         })
-        CanvasContainer.removeEventListener("mousemove", handleMouseMove);
-        CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
-        CanvasContainer.removeEventListener("mouseup", handleMouseUp)
+        CanvasRef.removeEventListener("mousemove", handleMouseMove);
+        CanvasRef.removeEventListener("mouseleave", handleMouseUp);
+        CanvasRef.removeEventListener("mouseup", handleMouseUp)
         CanvasWrapper.removeEventListener('wheel', handleWheel)
         CanvasWrapper.removeEventListener('mousedown', handleMouseDown)
+        CanvasContainer.removeEventListener('scroll', handleScroll);
         
       }
-    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint, handleWheel, loadObjectToCanvas, objectData, hasInstance])
+    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint, handleWheel, loadObjectToCanvas, objectData, hasInstance, canvasScale])
+
+
+    /// use effect to control scroll positions
+    useEffect(() => {
+      const container = canvasContainerRef.current;
+      if (!container) return;
+      
+      // Calculate the virtual content size after scaling
+
+      // const virtualContentWidth = canvasContentWidth * canvasScale;
+      // const virtualContentHeight = canvasContentHeight * canvasScale;
+
+      // Canvas Container visible area
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+
+
+      // console.log("virtualContentWidth", virtualContentWidth)
+      // console.log("virtualContentHeight", virtualContentHeight)
+
+      // console.log("canvasclient width", canvasWrapperRef.current.clientWidth)
+      // console.log("canvas client height", canvasWrapperRef.current.clientHeight)
+
+      // console.log("containerWidth", containerWidth)
+      // console.log("containerHeight", containerHeight)
+      
+      // Calculating the theoretical scroll range 
+      // const maxScrollX = Math.max(0, virtualContentWidth - containerWidth);
+      // const maxScrollY = Math.max(0, virtualContentHeight - containerHeight);
+      console.log("canvas scale", canvasScale)
+      console.log('canvas position', canvasPosition)
+      console.log('changeCanvasPosition')
+      if (!changeCanvasPosition.current) return false
+      const maxScrollX = Math.max(0, canvasContainerContentWidth - containerWidth);
+      const maxScrollY = Math.max(0, canvasContainerContentHeight - containerHeight);
+      
+
+      // Convert position to scroll position (invert and clamp)
+
+      const nextScrollX = -canvasPosition.x * canvasToContainerRatio
+      const nextScrollY = -canvasPosition.y * canvasToContainerRatio
+      console.log("ratio",canvasToContainerRatio)
+      console.log("nextScroll", nextScrollX, nextScrollY)
+      const scrollX = Math.max(0, Math.min(maxScrollX, nextScrollX));
+      const scrollY = Math.max(0, Math.min(maxScrollY, nextScrollY));
+      console.log("scroll", scrollX, scrollY)
+      // setScrollPosition({
+      //   x: scrollX,
+      //   y: scrollY
+      // });
+      container.scrollLeft = scrollX;
+      container.scrollTop = scrollY;
+      }, [canvasScale, canvasPosition])
 
 
   return (
@@ -2809,20 +2895,24 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         pageNotFound ? <div className="relative w-full h-full z-10 flex justify-center items-center">
           Page not found
         </div> :  (
-            <main className="relative bg-white h-[5000px] w-[5000px]" >
-              <div className="relative canvas-bg small-grid-bg w-[25000px] h-[25000px]" style={{
-                    transform: `translate(${canvasPosition.x}px, ${canvasPosition.y}px) scale(${canvasScale})`,
-                    transformOrigin: '0 0'
-                  }} ref={canvasWrapperRef}>
+            <main className="relative overflow-scroll custom-scrollbar bg-white h-full w-full" ref={canvasContainerRef}>
+              <div className={`relative overflow-hidden h-[${canvasContainerContentHeight}px] w-[${canvasContainerContentWidth}px]`}>
 
-                <div className="relative z-1 canvas-bg large-grid-bg w-[25000px] h-[25000px]">
-                  <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-auto w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
-                      { 
-                        isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
-                      }
-                    </div>
+                <div className="relative canvas-bg small-grid-bg w-[25000px] h-[25000px]" style={{
+                      transform: `translate(${canvasPosition.x}px, ${canvasPosition.y}px) scale(${canvasScale})`,
+                      transformOrigin: '0 0'
+                    }} ref={canvasWrapperRef}>
+
+                  <div className="relative z-1 canvas-bg large-grid-bg w-[25000px] h-[25000px]">
+                    <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-auto w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
+                        { 
+                          isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
+                        }
+                      </div>
+                  </div>
                 </div>
               </div>
+
 
 
             </main>
