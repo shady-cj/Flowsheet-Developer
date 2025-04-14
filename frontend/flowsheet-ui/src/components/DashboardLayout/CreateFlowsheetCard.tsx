@@ -17,7 +17,7 @@ const CreateFlowsheetCard = () => {
     useEffect(()=> {
         const fetchData = async () => {
             const projects = await fetchDashboardProjects(null)
-            console.log("------------------ projects -------------------", projects)
+            // console.log("------------------ projects -------------------", projects)
             setProjects(projects)
         }
         if (selectProjectOpen){
@@ -31,7 +31,7 @@ const CreateFlowsheetCard = () => {
             <span className='text-text-blue-variant text-normal'>New Flowsheet</span>
         </div>
         {
-            selectProjectOpen ? (<div className='absolute shadow-sm w-[25vw] min-h-[20vh] left-0 top-[100%] z-10 bg-white text-black rounded-xl px-4 py-6'>
+            selectProjectOpen ? (<div className='absolute shadow-sm w-[25vw] min-h-[20vh] left-0 top-[100%] z-20 bg-white text-black rounded-xl px-4 py-6'>
                 <h2 className='text-xl font-semibold'>-- Choose Project --</h2> 
                 <article className='py-4 flex flex-col gap-3'>
                     {

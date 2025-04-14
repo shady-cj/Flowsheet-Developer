@@ -117,3 +117,29 @@ export const updateFlowsheet = async (item: fetchedFlowsheetsType) => {
         return null
     }
 }
+
+export const dashboardSearch = async (query: string) => {
+    const accessToken = await getAccessToken()
+
+    try {
+        const endpoint = `${BASE_URL}/dashboard_search/?q=${query}`
+        const response = await fetch(endpoint, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }
+
+        })
+        const result = await response.json()
+        console.log("search results", result)
+        if (response.status === 200) return result
+        else {
+            console.log(result);
+            return null
+        }
+    } catch (err) {
+        console.log("error searching for query", query, err)
+        return null
+    }
+}

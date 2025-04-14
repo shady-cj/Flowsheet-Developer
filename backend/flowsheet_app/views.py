@@ -147,11 +147,19 @@ class DashboardSearch(APIView):
     def get(self, request, format=None):
         query = request.GET.get("q")
 
-        if not query:
+        if not query or len(query) < 3:
             return Response([], status=status.HTTP_200_OK)
 
         # We'll improve search functionality later
-        # project_match =
+        projects_match = Project.objects.filter(name__icontains=query).all()
+        flowsheets_match = Flowsheet.objects.filter(name__icontains=query).all()
+        return Response(
+            {
+                "projects": ProjectSerializer(projects_match, many=True).data,
+                "flowsheets": FlowsheetSerializer(flowsheets_match, many=True).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class UpdateFlowsheetPreview(APIView):
@@ -262,7 +270,9 @@ class ListCreateFlowsheet(ListCreateAPIView):
                 )
                 flowsheet_objects.append(new_obj)
             FlowsheetObject.objects.bulk_create(flowsheet_objects)
-
+            # update the preview url since they are the same.
+            new_flowsheet_instance.preview_url = get_footprint.preview_url
+            new_flowsheet_instance.save()
         # print("new flowsheet instance", new_flowsheet_instance)
         return new_flowsheet_instance
 
