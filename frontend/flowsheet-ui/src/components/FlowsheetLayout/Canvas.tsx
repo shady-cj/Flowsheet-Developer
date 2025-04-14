@@ -80,12 +80,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
     const [canvasPosition, setCanvasPosition] = useState({x: canvasContentOffsetWidth, y: canvasContentOffsetHeight}) // track canvas position while zooming and translating
+    const canvasPositionRef = useRef({x: canvasContentOffsetWidth, y: canvasContentOffsetHeight}) // reference to the canvas position to prevent circular re-rendering.
     const [canvasScale, setCanvasScale] = useState(1); // canvas scale
     const changeCanvasPosition = useRef(false) // to know when to change the canvas position
     const lastCanvasPosition = useRef({
       startX: 0, startY: 0,
       lastX: canvasContentOffsetWidth, lastY: canvasContentOffsetHeight
     }) // to track canvas last position while translating
+    const isDraggedScroll = useRef(false) // to keep track if the scroll event was triggered as a result of canvas dragging rather than manual scrolling
 
     // const [scrollPosition, setScrollPosition] = useState({x: 0, y: 0})
 
@@ -1761,18 +1763,52 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     }, [handleMouseUpGeneral, handleMouseUpUtil, objectData,calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed])
 
 
-   
-    // Handle scrollbar interactions
-    const handleScroll = (e: Event) => {
+
+    const updateScrollPositionWithCanvasPosition = useCallback(() => {
       const container = canvasContainerRef.current;
       if (!container) return;
-      console.log("called here")
-      // Update position based on scroll
-      setCanvasPosition({
-        x: -container.scrollLeft,
-        y: -container.scrollTop
-      });
-    };
+    
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      const canvasPos = canvasPositionRef.current
+
+      // console.log("canvas scale", canvasScale)
+      console.log('canvas position', canvasPos)
+      console.log('changeCanvasPosition')
+      // if (!changeCanvasPosition.current) return
+      const maxScrollX = Math.max(0, canvasContainerContentWidth - containerWidth);
+      const maxScrollY = Math.max(0, canvasContainerContentHeight - containerHeight);
+      
+      
+
+      // Convert position to scroll position (invert and clamp)
+
+      const nextScrollX = -canvasPos.x * canvasToContainerRatio
+      const nextScrollY = -canvasPos.y * canvasToContainerRatio
+      console.log("ratio",canvasToContainerRatio)
+      console.log("nextScroll", nextScrollX, nextScrollY)
+      const scrollX = Math.max(0, Math.min(maxScrollX, nextScrollX));
+      const scrollY = Math.max(0, Math.min(maxScrollY, nextScrollY));
+      console.log("scroll", scrollX, scrollY)
+      container.scrollLeft = scrollX;
+      container.scrollTop = scrollY;
+    }, [])
+   
+    // Handle scrollbar interactions
+    // const handleScroll = useCallback((e: Event) => {
+    //   const container = canvasContainerRef.current;
+    //   if (!container) return;
+    //   console.log("scroll event called")
+    //   // Update position based on scroll
+    //   const newCanvasPosition = {
+    //     x: -container.scrollLeft,
+    //     y: -container.scrollTop
+    //   }
+    //   console.log("in scroll event new canvas position", newCanvasPosition)
+    //   setCanvasPosition(newCanvasPosition);
+    //   canvasPositionRef.current = newCanvasPosition
+    //   updateScrollPositionWithCanvasPosition();
+    // }, [updateScrollPositionWithCanvasPosition]);
 
 
     // Handle mouse wheel for zooming
@@ -1811,10 +1847,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const newY = mouseY - (mouseY - prev.y) * scaleFactor;
         lastCanvasPosition.current.lastX = newX;
         lastCanvasPosition.current.lastY = newY;
-        return {
+        const newCanvasPosition = {
           x: Math.max(Math.min(0, newX), -17000),
           y: Math.max(Math.min(0, newY), -17000)
-      }});
+        }
+        canvasPositionRef.current = newCanvasPosition
+
+        return newCanvasPosition 
+      });
       // console.log("canvas position", canvasPosition)
       
       setCanvasScale(newScale);
@@ -2591,6 +2631,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const CanvasRef = canvasRef.current
       const CanvasContainer = canvasContainerRef.current
       const CanvasWrapper = canvasWrapperRef.current
+      // console.log("invoked at launch")
       // const CanvasParentContainer = document.getElementById("canvas-parent-container")!
       const objects = document.querySelectorAll(".objects")
       if (pageNotFound) return;
@@ -2612,22 +2653,28 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         loadObjectToCanvas()
         setCanvasLoading(false)
       }
+      // console.log("has instance ", hasInstance.current)
       if (!hasInstance.current) invokeLoadObjects()
           
       const handleMouseMove = (e: MouseEvent) => {
         document.addEventListener("mouseup", handleMouseUpGeneral)
         // console.log(e.clientY - CanvasRef.offsetTop)
+  
+        
         if (changeCanvasPosition.current) {
 
             // console.log("e.clientX", e.clientX)
             // console.log("last canvas position", lastCanvasPosition.current)
             const nextX = e.clientX - lastCanvasPosition.current.startX + lastCanvasPosition.current.lastX
             const nextY = e.clientY - lastCanvasPosition.current.startY + lastCanvasPosition.current.lastY
-            setCanvasPosition({
-                x: Math.max(Math.min(0, nextX), -17000),
-                y: Math.max(Math.min(0, nextY), -17000)
-            });
-                        
+            const newCanvasPosition = {
+              x: Math.max(Math.min(0, nextX), -17000),
+              y: Math.max(Math.min(0, nextY), -17000)
+            }
+            canvasPositionRef.current = newCanvasPosition
+            setCanvasPosition(newCanvasPosition);
+      
+            updateScrollPositionWithCanvasPosition()
             return;
             
         }
@@ -2800,7 +2847,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       CanvasRef.addEventListener("mouseup", handleMouseUp)
       CanvasWrapper.addEventListener('wheel', handleWheel, { passive: false })
       CanvasWrapper.addEventListener('mousedown', handleMouseDown)
-      CanvasContainer.addEventListener('scroll', handleScroll);
+      // CanvasContainer.addEventListener('scroll', handleScroll);
 
 
 
@@ -2827,64 +2874,25 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         CanvasRef.removeEventListener("mouseup", handleMouseUp)
         CanvasWrapper.removeEventListener('wheel', handleWheel)
         CanvasWrapper.removeEventListener('mousedown', handleMouseDown)
-        CanvasContainer.removeEventListener('scroll', handleScroll);
+        // CanvasContainer.removeEventListener('scroll', handleScroll);
         
       }
-    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint, handleWheel, loadObjectToCanvas, objectData, hasInstance, canvasScale])
+    }, [
+      params.flowsheet_id, params.project_id,
+      canvasRef, pageNotFound, objectData, hasInstance, canvasScale,
+      handleMouseDown, setPageNotFound, DrawPoint, 
+      handleMouseUpGeneral, handleShapeDelete, setCanvasLoading, 
+      handleMouseUp,createMultiplePoint, 
+      handleWheel, loadObjectToCanvas, 
+      updateScrollPositionWithCanvasPosition,
+    ])
 
 
-    /// use effect to control scroll positions
+    //  use effect to control scroll positions
     useEffect(() => {
-      const container = canvasContainerRef.current;
-      if (!container) return;
-      
-      // Calculate the virtual content size after scaling
-
-      // const virtualContentWidth = canvasContentWidth * canvasScale;
-      // const virtualContentHeight = canvasContentHeight * canvasScale;
-
-      // Canvas Container visible area
-      const containerWidth = container.clientWidth;
-      const containerHeight = container.clientHeight;
-
-
-      // console.log("virtualContentWidth", virtualContentWidth)
-      // console.log("virtualContentHeight", virtualContentHeight)
-
-      // console.log("canvasclient width", canvasWrapperRef.current.clientWidth)
-      // console.log("canvas client height", canvasWrapperRef.current.clientHeight)
-
-      // console.log("containerWidth", containerWidth)
-      // console.log("containerHeight", containerHeight)
-      
-      // Calculating the theoretical scroll range 
-      // const maxScrollX = Math.max(0, virtualContentWidth - containerWidth);
-      // const maxScrollY = Math.max(0, virtualContentHeight - containerHeight);
-      console.log("canvas scale", canvasScale)
-      console.log('canvas position', canvasPosition)
-      console.log('changeCanvasPosition')
-      if (!changeCanvasPosition.current) return false
-      const maxScrollX = Math.max(0, canvasContainerContentWidth - containerWidth);
-      const maxScrollY = Math.max(0, canvasContainerContentHeight - containerHeight);
-      
-
-      // Convert position to scroll position (invert and clamp)
-
-      const nextScrollX = -canvasPosition.x * canvasToContainerRatio
-      const nextScrollY = -canvasPosition.y * canvasToContainerRatio
-      console.log("ratio",canvasToContainerRatio)
-      console.log("nextScroll", nextScrollX, nextScrollY)
-      const scrollX = Math.max(0, Math.min(maxScrollX, nextScrollX));
-      const scrollY = Math.max(0, Math.min(maxScrollY, nextScrollY));
-      console.log("scroll", scrollX, scrollY)
-      // setScrollPosition({
-      //   x: scrollX,
-      //   y: scrollY
-      // });
-      container.scrollLeft = scrollX;
-      container.scrollTop = scrollY;
-      }, [canvasScale, canvasPosition])
-
+      console.log('first thing first is called here ')
+      updateScrollPositionWithCanvasPosition();
+      }, [updateScrollPositionWithCanvasPosition])
 
   return (
     <>
