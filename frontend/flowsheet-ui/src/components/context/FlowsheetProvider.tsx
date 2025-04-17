@@ -11,6 +11,7 @@ import Report, { createReport } from '@/lib/utils/report';
 import generatePDF from 'react-to-pdf';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { previewImageGenerator } from '@/lib/utils/htmlConvertToImage';
+import { fetchedFlowsheetsType } from '../DashboardLayout/DashboardPageRenderer';
 
 
 
@@ -111,7 +112,7 @@ export type userType = {
   projects: {id: string, name: string, description: string, creator: string}[]
 } | null
 
-export type flowsheetType = {id: string, name: string, description: string, get_mins_ago: string, project: string} | null
+// export type flowsheetType = {id: string, name: string, description: string, get_mins_ago: string, project: string} | null
 
 type contextType = {
   canvasLoading: boolean,
@@ -120,7 +121,7 @@ type contextType = {
   canvasRef: MutableRefObject<HTMLDivElement>,
   calculateBondsEnergy: MutableRefObject<Boolean>,
   userObject: userType,
-  flowsheetObject: flowsheetType,
+  flowsheetObject: fetchedFlowsheetsType | null,
   Wvalue: string | null,
   communitionListForBondsEnergy: MutableRefObject<singleObjectDataType[]>,
   workIndex: RefObject<HTMLInputElement>,
@@ -146,7 +147,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
   const [canvasLoading, setCanvasLoading] = useState(true)
   const hasInstance = useRef(false) // To check if the objectData has initially been created so it'll be updated instead of being recreated
   const [userObject, setUserObject] = useState<userType>(null)
-  const [flowsheetObject, setFlowsheetObject] = useState<flowsheetType>(null)
+  const [flowsheetObject, setFlowsheetObject] = useState<fetchedFlowsheetsType | null>(null)
   const calculateBondsEnergy = useRef<Boolean>(false)
   const communitionListForBondsEnergy = useRef<singleObjectDataType[]>([])
   const workIndex = useRef<HTMLInputElement>(null)
@@ -207,6 +208,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
 
   const getFlowsheet = useCallback(async (projectID: string, flowsheetID: string) => {
     const flowsheetData = await fetchFlowsheet(projectID, flowsheetID)
+    console.log("flowsheetData", flowsheetData)
     setFlowsheetObject(flowsheetData)
   }, [])
 

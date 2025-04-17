@@ -36,41 +36,16 @@ export async function fetchObjects(objectEndpoint: string) {
 
 export async function createCustomComponent(formData: FormData, category: string) {
     const accessToken = await getAccessToken()
-
-    
-    // console.log(formData, "formData")
-    // console.log("formdata values", formData.values())
     
     try {
-        let url = ""
-        switch (category) {
-            case "crusher":
-                url = "crushers"
-                break;
-            case "screener":
-                url = "screeners"
-                break;
-            case "grinder":
-                url = "grinders"
-                break;
-            case "auxilliary":
-                url = "auxilliary"
-                break;
-            case "concentrator":
-                url = "concentrators"
-                break;
-            default:
-                url = "crushers"
-        }
-        
-        formData.append("folder", url)
+        formData.append("folder", category)
         // const objectData: {name: string, image: File} = {} as {name: string, image: File};
         
         // formData.forEach(function(value: string | File, key){
         //     objectData[key] = value;
         // });
 
-        const response = await fetch(`${BASE_URL}/${url}/`, {
+        const response = await fetch(`${BASE_URL}/${category}/`, {
             method: "POST",
             body: formData,
             headers: {
@@ -90,4 +65,37 @@ export async function createCustomComponent(formData: FormData, category: string
         return {error: "An error occured"};
     }
 
+}
+
+export async function removeObject(objectId: string, objectType: string) {
+    const accessToken = await getAccessToken()
+
+    try {
+        const endpoint = `${BASE_URL}/flowsheet_objects/destroy/`
+        const response = await fetch(endpoint, {
+            method: "DELETE",
+            body: JSON.stringify({
+                objectId,
+                objectType
+            }),
+            headers: {
+                "Authorization": `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+            }
+
+        })
+        
+        if (response.status === 204) {
+            console.log('success')
+            return {"message": "Object was deleted successfully", success: true}
+        } else if (response.status === 200) {
+            const result = await response.json()
+            return result
+        } 
+        return {"message": "something went wrong"}
+
+    } catch (err) {
+        console.log(err)
+        return {error: "An error occured"}
+    }
 }

@@ -4,9 +4,10 @@ import React, { DragEvent, FormEvent,useState, useEffect, useRef } from 'react'
 import dropIcon from "@/assets/dropIcon.svg"
 import { createCustomComponent } from '@/lib/actions/flowsheetsidebar'
 import StatusBox from '../utils/StatusBox'
+import { loadComponentType, objectStringType } from './FlowsheetSidebar'
 
 
-const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddCustomComponent: React.Dispatch<React.SetStateAction<boolean>>, setLoadComponent: React.Dispatch<React.SetStateAction<boolean>>}) => {
+const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddCustomComponent: React.Dispatch<React.SetStateAction<boolean>>, setLoadComponent: React.Dispatch<React.SetStateAction<{status: boolean, type: loadComponentType}>>}) => {
     const [preview, setPreview] = useState<ArrayBuffer| string | null>(null)
     const [file, setFile] = useState<File | null>(null)
     const [uploadingComponent, setUploadingComponent] = useState(false)
@@ -25,13 +26,13 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
 
     const checkSelectedCategory = () => {
         const category = categoryInput.current.value
-        if (category  === "concentrator" || category  === "auxilliary") setShowDescription(true)
+        if (category  === "concentrators" || category  === "auxilliary") setShowDescription(true)
         else setShowDescription(false)
 
         if (category === "auxilliary") setIsAuxilliary(true)
         else setIsAuxilliary(false)
 
-        if (category === "concentrator") setIsConcentration(true)
+        if (category === "concentrators") setIsConcentration(true)
         else setIsConcentration(false)
     }
 
@@ -39,7 +40,8 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
         setTimeout(()=> {
             setStatus(null)
             if ("success" in status) {
-                setLoadComponent(true)
+                const category = categoryInput.current.value as objectStringType
+                setLoadComponent({status: true, type: category as loadComponentType})
                 setAddCustomComponent(false)
             }
         }, 3000)
@@ -148,10 +150,10 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
                     <form className="pt-8 flex flex-col gap-y-6" onSubmit={handleFormSubmit}>
                         <input type="text" placeholder="Component Label" className="border border-[#DFE1E6] p-2 w-full rounded-sm text-sm " ref={labelInput}/>
                         <select name="category" id="category" className="border border-[#DFE1E6] p-2 w-full rounded-sm text-sm" ref={categoryInput}  onChange={checkSelectedCategory}>
-                            <option value="grinder">Grinder</option>
-                            <option value="crusher">Crusher</option>
-                            <option value="screener">Screener</option>
-                            <option value="concentrator">Concentrator</option>
+                            <option value="grinders">Grinder</option>
+                            <option value="crushers">Crusher</option>
+                            <option value="screeners">Screener</option>
+                            <option value="concentrators">Concentrator</option>
                             <option value="auxilliary">Auxilliary</option>
                         </select>
                         {

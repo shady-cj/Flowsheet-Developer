@@ -1,11 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     GenericAPIView,
     ListAPIView,
+    RetrieveUpdateAPIView,
 )
 from rest_framework.views import APIView
 from rest_framework import serializers, status
@@ -38,6 +38,7 @@ from .utils import (
     get_queryset_util,
     create_object_util,
     update_object_util,
+    destroy_object_util,
     upload_preview_image,
 )
 from .mixins import ObjectPermissionMixin, UpdateCreatorMixin, handleCreationMixin
@@ -58,9 +59,7 @@ class ListCreateScreener(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIV
         return get_queryset_util(self, Screener)
 
 
-class RetrieveUpdateDestroyScreener(
-    ObjectPermissionMixin, RetrieveUpdateDestroyAPIView
-):
+class RetrieveUpdateScreener(ObjectPermissionMixin, RetrieveUpdateAPIView):
     serializer_class = ScreenerSerializer
     lookup_field = "id"
     queryset = Screener.objects.all()
@@ -77,7 +76,7 @@ class ListCreateCrusher(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIVi
         return get_queryset_util(self, Crusher)
 
 
-class RetrieveUpdateDestroyCrusher(ObjectPermissionMixin, RetrieveUpdateDestroyAPIView):
+class RetrieveUpdateCrusher(ObjectPermissionMixin, RetrieveUpdateAPIView):
     serializer_class = CrusherSerializer
     lookup_field = "id"
     queryset = Crusher.objects.all()
@@ -94,7 +93,7 @@ class ListCreateGrinder(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIVi
         return get_queryset_util(self, Grinder)
 
 
-class RetrieveUpdateDestroyGrinder(ObjectPermissionMixin, RetrieveUpdateDestroyAPIView):
+class RetrieveUpdateGrinder(ObjectPermissionMixin, RetrieveUpdateAPIView):
     serializer_class = GrinderSerializer
     lookup_field = "id"
     queryset = Grinder.objects.all()
@@ -113,9 +112,7 @@ class ListCreateConcentrator(
         return get_queryset_util(self, Concentrator)
 
 
-class RetrieveUpdateDestroyConcentrator(
-    ObjectPermissionMixin, RetrieveUpdateDestroyAPIView
-):
+class RetrieveUpdateConcentrator(ObjectPermissionMixin, RetrieveUpdateAPIView):
     serializer_class = ConcentratorSerializer
     lookup_field = "id"
     queryset = Concentrator.objects.all()
@@ -132,9 +129,7 @@ class ListCreateAuxilliary(handleCreationMixin, UpdateCreatorMixin, ListCreateAP
         return get_queryset_util(self, Auxilliary)
 
 
-class RetrieveUpdateDestroyAuxilliary(
-    ObjectPermissionMixin, RetrieveUpdateDestroyAPIView
-):
+class RetrieveUpdateAuxilliary(ObjectPermissionMixin, RetrieveUpdateAPIView):
     serializer_class = AuxilliarySerializer
     lookup_field = "id"
     queryset = Auxilliary.objects.all()
@@ -151,8 +146,12 @@ class DashboardSearch(APIView):
             return Response([], status=status.HTTP_200_OK)
 
         # We'll improve search functionality later
-        projects_match = Project.objects.filter(name__icontains=query).all()
-        flowsheets_match = Flowsheet.objects.filter(name__icontains=query).all()
+        projects_match = Project.objects.filter(
+            name__icontains=query, creator=request.user
+        ).all()
+        flowsheets_match = Flowsheet.objects.filter(
+            name__icontains=query, project__creator=request.user
+        ).all()
         return Response(
             {
                 "projects": ProjectSerializer(projects_match, many=True).data,
@@ -424,7 +423,7 @@ class ListCreateFlowsheetObject(ListCreateAPIView):
         return serializer.save(flowsheet=flowsheet_instance, object=object_instance)
 
 
-class UpdateDestroyFlowsheetObject(GenericAPIView):
+class UpdateFlowsheetObject(GenericAPIView):
     permission_classes = (FlowsheetObjectPermission,)
     serializer_class = FlowsheetObjectSerializer
     queryset = FlowsheetObject.objects.all()
@@ -497,6 +496,21 @@ class UpdateDestroyFlowsheetObject(GenericAPIView):
                 flowsheet=flowsheet_instance, object=object_instance
             )  # Adding object=object_instance here is not needed for those objects that just needs update but it's important for the objects that were being created, hence why it's being added here, it would be improved later to prevent unnecessary query to the database.
         return None
+
+
+class DestroyFlowsheetObject(APIView):
+    def delete(self, request, format=None, *args, **kwargs):
+        object_id = request.data.get("objectId")
+        object_type = request.data.get("objectType")
+        f_objs = FlowsheetObject.objects.filter(object_id=object_id)
+        if f_objs.exists():
+            return Response(
+                {"message": "The object is in use by other flowsheets"},
+                status=status.HTTP_200_OK,
+            )
+        feedback = destroy_object_util(object_id, object_type, request.user)
+        print(feedback)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # class RetrieveUpdateDestroyFlowsheetObject(RetrieveUpdateDestroyAPIView):

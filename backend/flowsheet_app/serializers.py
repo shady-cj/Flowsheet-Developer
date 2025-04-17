@@ -157,6 +157,7 @@ class ProjectDetailSerializer(ModelSerializer):
 
 class FlowsheetSerializer(ModelSerializer):
     link = SerializerMethodField(read_only=True)
+    project_name = SerializerMethodField(read_only=True)
 
     class Meta:
         model = Flowsheet
@@ -167,7 +168,8 @@ class FlowsheetSerializer(ModelSerializer):
             "preview_url",
             "background_preview_url",
             "get_mins_ago",
-            "project",
+            "project",  # project id
+            "project_name",  # project name
             "starred",
             "link",
             "last_edited",
@@ -183,6 +185,9 @@ class FlowsheetSerializer(ModelSerializer):
 
     def get_link(self, instance):
         return f"project/{instance.project.id}/flowsheet/{instance.id}"
+
+    def get_project_name(self, instance):
+        return instance.project.name
 
 
 class FlowsheetObjectSerializer(ModelSerializer):

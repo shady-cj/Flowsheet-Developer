@@ -143,3 +143,33 @@ export const dashboardSearch = async (query: string) => {
         return null
     }
 }
+
+
+export const deleteEntity = async (projectId: string, type: "project" | "flowsheet", flowsheetId?: string) => {
+    const accessToken = await getAccessToken()
+    try{
+        let endpoint = BASE_URL
+        if (type === "project") {
+            endpoint += `/projects/${projectId}`
+        } else {
+            endpoint += `/flowsheets/${projectId}/update/${flowsheetId}`
+        }
+        const response = await fetch(endpoint, {
+            method: "DELETE", 
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }
+        })
+        if (response.status === 204){
+            return {"message": `${type} deleted successfully`, success: true}
+        } 
+        throw Error(`Error deleting ${type}`)
+
+    } catch (err) {
+        console.log("error deleting",  err)
+        return {"message": `Error deleting ${type}`}
+    }
+}
+
+

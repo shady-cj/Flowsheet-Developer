@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { revalidateTag } from "next/cache";
 import DashboardHeader from "@/components/DashboardLayout/DashboardHeader"
-import DashboardSidebar from "@/components/DashboardLayout/DashboardSidebar"
-import { CardRenderer, fetchedFlowsheetsType, fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer";
+import {fetchedFlowsheetsType, fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer";
 import Image from "next/image";
 import ProjectDetailFlowsheets from "@/components/DashboardLayout/ProjectDetail";
 const BASE_URL = 'http://localhost:8000'
@@ -15,7 +15,7 @@ const ProjectPage = async ({params}: {params: {project_id: string}}) => {
       try {
           const response = await fetch(`${BASE_URL}/projects/${params.project_id}`, {
               headers: {"Authorization": `Bearer ${accessToken}`},
-              next: {revalidate: 60} // validate atmost every minute
+              next: {tags: ['projects']} // validate atmost every minute
           })
           result = await response.json()
           console.log(result.project)
@@ -24,6 +24,10 @@ const ProjectPage = async ({params}: {params: {project_id: string}}) => {
           throw err
       }
 
+      async function revalidateProject () {
+        "use server"
+        revalidateTag('projects')
+      }
   return (
     
     <div className="w-screen h-screen">
@@ -61,7 +65,7 @@ const ProjectPage = async ({params}: {params: {project_id: string}}) => {
                 <Link href={`/project/${params.project_id}/flowsheet/create`} className="text-text-blue-variant">Add new flowsheet</Link>
               </div>
 
-              {result.flowsheets.length ? <ProjectDetailFlowsheets flowsheets={result.flowsheets}/>: <div />}
+              {result.flowsheets.length ? <ProjectDetailFlowsheets flowsheets={result.flowsheets} revalidate={revalidateProject}/>: <div />}
             </div>
 
 

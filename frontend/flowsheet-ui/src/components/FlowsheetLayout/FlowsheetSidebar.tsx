@@ -3,8 +3,11 @@ import Link from "next/link"
 import {useState, useEffect, MouseEvent, useContext} from 'react'
 import CustomComponentForm from "./CustomComponentForm";
 import { FlowsheetContext } from "../context/FlowsheetProvider"
-import { fetchObjects } from "@/lib/actions/flowsheetsidebar";
+import { fetchObjects, removeObject } from "@/lib/actions/flowsheetsidebar";
 import Image, { StaticImageData } from "next/image";
+import Logo from "../Logo";
+import trash from "@/assets/trash.svg"
+import logoIcon from "@/assets/logo-icon.svg"
 import Crusher from "../Objects/Crusher";
 import Grinder from "../Objects/Grinder";
 import Screener from "../Objects/Screener";
@@ -14,6 +17,7 @@ import search from "@/assets/search.svg"
 import menu from "@/assets/menu.svg"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
+
 
 // import screenerImage from "@/assets/screener.png"
 // import crusherImage from "@/assets/crusher.png"
@@ -51,9 +55,20 @@ export interface ConcentratorImageObjectType extends genericImageObjectType {
     valuable_recoverable: number,
     gangue_recoverable: number,
 }
+ 
+export type objectStringType = 'Shape' | 'Concentrator' | 'Grinder' | 'Auxilliary' | 'Crusher' | 'Screener'
+
+const mappedObjectType = {
+    "Shape": "shapes",
+    "Concentrator": "concentrators",
+    "Grinder": "grinders",
+    "Auxilliary": "auxilliary",
+    "Crusher": "crushers",
+    "Screener": "screeners"
+}
 
 const components: {name: string, image: StaticImageData}[] = [{name: "Crushers", image: crusherImage}, {name: "Grinders",image: grinderImage}, {name: "Screeners", image: screenerImage}, {name: "Auxilliaries", image: auxilliaryImage}, {name: "Concentrators", image: concentratorImage}]
-
+export type loadComponentType = "" | "crushers" | "concentrators" | "screeners" | "shapes" | "auxilliary" | "grinders"
 
 
 const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
@@ -64,7 +79,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
     const [concentrators, setConcentrators] = useState<ConcentratorImageObjectType[]>([])
     const [auxilliaries, setAuxilliaries] = useState<AuxilliaryImageObjectType[]>([])
     const [addCustomComponent, setAddCustomComponent] = useState(false)
-    const [loadComponent, setLoadComponent] = useState(true)
+    const [loadComponent, setLoadComponent] = useState<{status: boolean, type: loadComponentType}>({status: true, type: ""})
     const {userObject} = useContext(FlowsheetContext)
 
 
@@ -84,6 +99,14 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
         setActiveComponent({properties: componentProperty, type: element.ariaLabel || ""})
 
     }
+    const handleObjectRemoval = async (objectId: string, objectName: string, objectType: objectStringType) => {
+        const feedback = confirm(`Are you sure you want to delete this object (${objectName})?`)
+        if (feedback) {
+            const result = await removeObject(objectId, objectType)
+            if (result.success) setLoadComponent({status:true, type: mappedObjectType[objectType] as loadComponentType})
+            alert(result.message || result.error)
+        }
+    }
 
     useEffect(()=> {
         // fetching for Shapes, Grinder, Crusher, Concentrators, Auxilliary.
@@ -97,16 +120,43 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
         // """
         
         const fetchObj = async () => {
-            setShapes(await fetchObjects("shapes"))
-            setCrushers(await fetchObjects('crushers'))
-            setGrinders(await fetchObjects("grinders"))
-            setScreeners(await fetchObjects("screeners"))
-            setAuxilliaries(await fetchObjects("auxilliary"))
-            setConcentrators(await(fetchObjects("concentrators")))
+            if (loadComponent.type === "") {
+                setShapes(await fetchObjects("shapes"))
+                setCrushers(await fetchObjects("crushers"))
+                setGrinders(await fetchObjects("grinders"))
+                setScreeners(await fetchObjects("screeners"))
+                setAuxilliaries(await fetchObjects("auxilliary"))
+                setConcentrators(await(fetchObjects("concentrators")))
+            } else {
+                console.log("load component", loadComponent)
+                const result = await fetchObjects(loadComponent.type)
+                switch (loadComponent.type) {
+                    case "crushers":
+                        setCrushers(result)
+                        break
+                    case "grinders":
+                        setGrinders(result)
+                        break
+                    case "screeners":
+                        setScreeners(result)
+                        break
+                    case "auxilliary":
+                        setAuxilliaries(result)
+                        break
+                    case "concentrators":
+                        setConcentrators(result)
+                        break
+                    default:
+                        setShapes(result)
+
+                }
+            }
+            
         }
-        if (loadComponent) {
+
+        if (loadComponent.status) {
             fetchObj()
-            setLoadComponent(false)
+            setLoadComponent({status: false, type: ""})
         }
 
     }, [loadComponent])
@@ -114,7 +164,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
     <>
     <div className="w-[25%] custom-scrollbar bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-10 border-r border-[#DFE1E6] border-solid">
         <header>
-            <Image width={88} height={29} src={mineflo} alt="mineflo" quality={100} loading="lazy"/>
+            <Logo logoIcon={logoIcon}/>
         </header>
         <section>
             <div className="border border-[#DFE1E6] rounded-lg p-2 flex gap-x-3">
@@ -199,33 +249,59 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                         {
                             crushers.length > 0 && crushers.map(crusher=> {
                                 if (crusher.creator === userObject?.id) {
-                                    return (<div key={crusher.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Crusher  crusher={crusher} /></div>)
+                                    return (
+                                        <div key={crusher.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]">
+                                            <div className="absolute z-10 right-[5%] top-[10%]">
+                                                <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(crusher.id, crusher.name, "Crusher")}/>
+                                            </div>                                            
+                                            <Crusher  crusher={crusher} />
+                                        </div>)
                                 }
                             })
                         }
                          {
                             grinders.length > 0 && grinders.map(grinder=>{
                                 if (grinder.creator === userObject?.id) {
-                                    return (<div key={grinder.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Grinder grinder={grinder}/></div>)
+                                    return (<div key={grinder.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]">
+                                            <div className="absolute z-10 right-[5%] top-[10%]">
+                                                <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(grinder.id, grinder.name, "Grinder")}/>
+                                            </div>     
+                                            <Grinder grinder={grinder}/>
+                                        </div>)
                                 }
                             })
                         }
                         {
                             screeners.length > 0 && screeners.map(screener=>{
                                 if (screener.creator === userObject?.id)
-                                    return (<div key={screener.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Screener  screener={screener}/></div>)
+                                    return (<div key={screener.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]">
+                                            <div className="absolute z-10 right-[5%] top-[10%]">
+                                                <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(screener.id, screener.name, "Screener")}/>
+                                            </div>     
+                                            <Screener  screener={screener}/>
+                                        </div>)
                             })
                         }
                         {
                             auxilliaries.length > 0 && auxilliaries.map(auxilliary=>{
                                 if (auxilliary.creator === userObject?.id)
-                                    return (<div key={auxilliary.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"> <Auxilliary auxilliary={auxilliary}/></div>)
+                                    return (<div key={auxilliary.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"> 
+                                        <div className="absolute z-10 right-[5%] top-[10%]">
+                                            <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(auxilliary.id, auxilliary.name, "Auxilliary")}/>
+                                        </div>     
+                                        <Auxilliary auxilliary={auxilliary}/>
+                                    </div>)
                             })
                         }
                         {
                             concentrators.length > 0 && concentrators.map(concentrator=>{
                                 if (concentrator.creator === userObject?.id)
-                                    return (<div key={concentrator.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"> <Concentrator concentrator={concentrator}/></div>)
+                                    return (<div key={concentrator.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"> 
+                                        <div className="absolute z-10 right-[5%] top-[10%]">
+                                            <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(concentrator.id, concentrator.name, "Concentrator")}/>
+                                        </div>     
+                                        <Concentrator concentrator={concentrator}/>
+                                    </div>)
                             })
                         }
                     </div>

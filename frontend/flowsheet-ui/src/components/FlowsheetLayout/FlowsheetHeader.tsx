@@ -25,9 +25,14 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
     <>
       <header className="w-full z-10 border-b border-text-gray bg-grayVariant flex justify-between items-center py-2 px-5">
           <nav className="flex gap-2 items-center">
-              <Link href={"/"} className="text-sm text-[#666666] font-normal">dashboard</Link>
-              <Image src={arrowRight} width={10} height={10} alt="arrow right" />
-                <p className="text-sm">{flowsheetObject?.name}</p>
+              {
+                flowsheetObject ? <>
+                  <Link href={`/project/${flowsheetObject.project}`} className="text-sm text-[#666666] font-normal">{flowsheetObject.project_name}</Link>
+                  <Image src={arrowRight} width={10} height={10} alt="arrow right" />
+                  <p className="text-sm">{flowsheetObject.name}</p>
+                </> : ""
+              }
+              
               <button onClick={()=> saveObjectData(params.flowsheet_id)} className="text-sm m-2 bg-gray-100 px-2" disabled={canvasLoading}>
                 {canvasLoading ? "loading..." : (hasInstance.current ? "update" : "save")}
               </button>

@@ -1,9 +1,13 @@
 "use client"
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from "next/navigation"
 import Link from 'next/link';
+import more from "@/assets/more.svg"
+import trash from "@/assets/trash.svg"
+import share from "@/assets/share.svg"
+import edit from "@/assets/edit.svg"
 import Image from 'next/image';
-import { fetchDashboardFlowsheets, fetchDashboardProjects, updateFlowsheet, updateProject } from '@/lib/actions/dashboard';
+import { deleteEntity, fetchDashboardFlowsheets, fetchDashboardProjects, updateFlowsheet, updateProject } from '@/lib/actions/dashboard';
 
 export type fetchedProjectType = {
     id: string,
@@ -18,7 +22,8 @@ export type fetchedProjectType = {
 }
 
 export type fetchedFlowsheetsType = fetchedProjectType & {
-    project: string
+    project: string,
+    project_name: string,
 }
 
 
@@ -40,6 +45,20 @@ const DashboardPageRenderer = () => {
 
     const buttonTitle = type === "recents" ? "Recent " : type === "starred" ? "Starred " : ""
     
+    const getProjects = useCallback(async () => {
+        setLoading(true)
+        const response = await fetchDashboardProjects(type)
+        setProjects(response)
+        fetchedProjects.current = true
+        setLoading(false)
+    }, [type])
+    const getFlowsheets = useCallback(async () => {
+        setLoading(true)
+        const response = await fetchDashboardFlowsheets(type)
+        setFlowsheets(response)
+        fetchedFlowsheets.current = true
+        setLoading(false)
+    }, [type])
 
 
     useEffect(() => {
@@ -47,20 +66,7 @@ const DashboardPageRenderer = () => {
             fetchedProjects.current = false
             fetchedFlowsheets.current = false
         }
-        const getProjects = async () => {
-            setLoading(true)
-            const response = await fetchDashboardProjects(type)
-            setProjects(response)
-            fetchedProjects.current = true
-            setLoading(false)
-        }
-        const getFlowsheets = async () => {
-            setLoading(true)
-            const response = await fetchDashboardFlowsheets(type)
-            setFlowsheets(response)
-            fetchedFlowsheets.current = true
-            setLoading(false)
-        }
+        
 
 
         if (tType === "projects") {
@@ -73,7 +79,7 @@ const DashboardPageRenderer = () => {
 
         currentType.current = type
         
-    }, [type, tType])
+    }, [type, tType, getProjects, getFlowsheets])
     
     return (
     <section>
@@ -86,8 +92,8 @@ const DashboardPageRenderer = () => {
                 
                 {
                     tType === "projects" && projects?.length ?
-                    <CardRenderer type="projects" setData={setProjects} data={projects}/> :
-                    tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} /> : 
+                    <CardRenderer type="projects" setData={setProjects} data={projects} revalidate={getProjects}/> :
+                    tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} revalidate={getFlowsheets} /> : 
                     loading ? <div>loading...</div> : <div>No {tType=== "projects" ? tType : "flowsheets"}</div>
                 }
              
@@ -102,12 +108,28 @@ export default DashboardPageRenderer
 type rendererPropType = {
     setData: React.Dispatch<React.SetStateAction<fetchedProjectType[]>> | React.Dispatch<React.SetStateAction<fetchedFlowsheetsType[]>>,
     type: "projects" | "flowsheets", 
-    data: fetchedFlowsheetsType[] | fetchedProjectType[]
+    data: fetchedFlowsheetsType[] | fetchedProjectType[],
+    revalidate: () => Promise<void>
+
 }
 
 
-export const CardRenderer = ({data, setData, type}: rendererPropType) => {
-    
+export const CardRenderer = ({data, setData, type, revalidate}: rendererPropType) => {
+    const [moreBox, setMoreBox] = useState<{[index: string]: boolean}>({})
+
+    const deleteCard = async (item: fetchedFlowsheetsType | fetchedProjectType) => {
+        const confirmDelete = confirm(`Are you sure you want to delete ${item.name}?`)
+        if (!confirmDelete) return
+        let result
+        if (type === "projects")
+            result = await deleteEntity(item.id, "project")
+        else {
+            result = await deleteEntity((item as fetchedFlowsheetsType).project, "flowsheet", item.id)
+        }
+        alert(result.message)
+        if (result.success) revalidate()
+            
+    }
     const starAndUnstar = (item: fetchedFlowsheetsType | fetchedProjectType) => {
         const newData = data.map(entry => {
             if (entry.id === item.id) {
@@ -116,11 +138,25 @@ export const CardRenderer = ({data, setData, type}: rendererPropType) => {
             }
             return entry
         })
-        setData(newData)
+        setData(newData as React.SetStateAction<fetchedProjectType[]> & React.SetStateAction<fetchedFlowsheetsType[]>)
 
         if (type === "projects") updateProject(item)
         else updateFlowsheet(item as fetchedFlowsheetsType)
     }
+    const handleBoxVisibility = (itemId: string) => {
+        setMoreBox((prev) => ({...prev, [itemId]: !moreBox[itemId]}))
+    }
+    useEffect(()=> {
+        // console.log('called here')
+        const newBox: {
+            [index:string]: boolean
+        } = {}
+
+        data.map((entry) => {
+            newBox[entry.id] = false
+        })
+        setMoreBox(newBox)
+    }, [data])
     return <>
         {
             data.map(item => (
@@ -151,7 +187,24 @@ export const CardRenderer = ({data, setData, type}: rendererPropType) => {
                             <h3 className='text-[#1A1A1A] font-semibold'>{item.name}</h3>
                             <p className='text-[#4D4D4D] text-xs'>Edited {item.get_mins_ago} {item.get_mins_ago === "now" ? "" : "ago"}</p>
                         </div>
-                        <div className='justify-center items-center pr-4'>
+                        <div className='flex flex-col items-end'>
+                            <div className='pb-2 relative'>
+                                <div className={`absolute ${moreBox[item.id] ? "flex": "hidden"} flex-col gap-2 bg-white px-4 py-2 z-10 bottom-[120%] right-[30%] shadow-md min-w-[120px]`}>
+                                    <div className='flex py-1 items-center gap-2 cursor-pointer' onClick={()=>deleteCard(item)}>
+                                        <Image height={16} width={16} src={trash} alt="trash"/>
+                                        <span className='text-[#FF0000]'>Delete</span>
+                                    </div>
+                                    <div className='flex py-1 items-center gap-2 cursor-pointer'>
+                                        <Image height={16} width={16} src={share} alt="share"/>
+                                        <span className=''>Share </span>
+                                    </div>
+                                    <div className='flex py-1 items-center gap-2 cursor-pointer'>
+                                        <Image height={16} width={16} src={edit} alt="edit"/>
+                                        <span className=''>Edit </span>
+                                    </div>
+                                </div>
+                                <Image className='cursor-pointer' height={14} width={14} src={more} onClick={() => handleBoxVisibility(item.id)} alt="more" />
+                            </div>
                             <Link href={`/${item.link}`}> Open &raquo;</Link>
                         </div>
                         

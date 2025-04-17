@@ -135,6 +135,26 @@ def update_object_util(self, index, data):
     return object_instance
 
 
+def destroy_object_util(object_id, object_type, user):
+    if object_type not in EXPECTED_OBJECT_NAMES:
+        raise serializers.ValidationError(
+            {"message": "Invalid object project name provided"}
+        )
+    object_model = eval(object_type)
+    if not hasattr(object_model, "creator"):
+        raise PermissionDenied("You are not authorized to delete this object")
+    try:
+        obj = object_model.objects.get(id=object_id, creator=user)
+        obj.delete()
+
+    except object_model.DoesNotExist:
+        raise serializers.ValidationError(
+            {"message": f"No object of such was created by this user"}
+        )
+
+    # return {"message": f"object ({obj.name}) successfully deleted", "success": True}
+
+
 def process_component_image(data):
     image = data["image"]
 
