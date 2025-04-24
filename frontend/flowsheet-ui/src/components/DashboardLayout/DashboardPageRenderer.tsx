@@ -8,6 +8,8 @@ import share from "@/assets/share.svg"
 import edit from "@/assets/edit.svg"
 import Image from 'next/image';
 import { deleteEntity, fetchDashboardFlowsheets, fetchDashboardProjects, updateFlowsheet, updateProject } from '@/lib/actions/dashboard';
+import { handleCopyClick } from '@/lib/utils/clipboard';
+import { EditFlowsheetOrProject } from '../utils/popupBox';
 
 export type fetchedProjectType = {
     id: string,
@@ -113,9 +115,24 @@ type rendererPropType = {
 
 }
 
+export type editType = {
+    name: string,
+    description: string, 
+    title: "Flowsheet" | "Project",
+    projectId: string,
+    flowsheetId?: string
+}
+
 
 export const CardRenderer = ({data, setData, type, revalidate}: rendererPropType) => {
     const [moreBox, setMoreBox] = useState<{[index: string]: boolean}>({})
+    const [editBoxOpened, setEditBoxOpened] = useState(false)
+    const [editData, setEditData] = useState<editType>({
+        name: "", 
+        description: "",
+        title: "Flowsheet",
+        projectId: ""
+    })
 
     const deleteCard = async (item: fetchedFlowsheetsType | fetchedProjectType) => {
         const confirmDelete = confirm(`Are you sure you want to delete ${item.name}?`)
@@ -158,6 +175,12 @@ export const CardRenderer = ({data, setData, type, revalidate}: rendererPropType
         setMoreBox(newBox)
     }, [data])
     return <>
+        
+
+        {
+            editBoxOpened ? <EditFlowsheetOrProject setEditBoxOpened={setEditBoxOpened} editData={editData} setEditData={setEditData} revalidate={revalidate} /> : ""
+   
+        }
         {
             data.map(item => (
                 <article key={item.id} className='flex-1 min-w-[450px] max-w-[550px] aspect-[3/2]'>
@@ -194,13 +217,27 @@ export const CardRenderer = ({data, setData, type, revalidate}: rendererPropType
                                         <Image height={16} width={16} src={trash} alt="trash"/>
                                         <span className='text-[#FF0000]'>Delete</span>
                                     </div>
-                                    <div className='flex py-1 items-center gap-2 cursor-pointer'>
+                                    <div className='flex py-1 items-center gap-2 cursor-pointer' onClick={() => {
+                                            const confirmCopy = confirm(`You are about to copy the ${type} link for sharing \nDo you want to proceed?`)
+                                            if (confirmCopy) handleCopyClick(item.link, type, true)
+                                        }
+                                    }>
                                         <Image height={16} width={16} src={share} alt="share"/>
                                         <span className=''>Share </span>
                                     </div>
-                                    <div className='flex py-1 items-center gap-2 cursor-pointer'>
+                                    <div className='flex py-1 items-center gap-2 cursor-pointer' onClick={() => {
+                                        handleBoxVisibility(item.id)
+                                        setEditBoxOpened(true)
+                                        setEditData({name: item.name, 
+                                            description: item.description, 
+                                            title: (type.charAt(0).toUpperCase() + type.substring(1, type.length - 1)) as "Flowsheet" | "Project",
+                                            projectId: type === "projects" ? item.id : (item as fetchedFlowsheetsType).project,
+                                            flowsheetId: type === "flowsheets" ? item.id : undefined
+                                        })
+                                    }}>
                                         <Image height={16} width={16} src={edit} alt="edit"/>
                                         <span className=''>Edit </span>
+                                        
                                     </div>
                                 </div>
                                 <Image className='cursor-pointer' height={14} width={14} src={more} onClick={() => handleBoxVisibility(item.id)} alt="more" />

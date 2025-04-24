@@ -1,6 +1,6 @@
 "use server"
 
-import { fetchedFlowsheetsType, fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer"
+import { editType, fetchedFlowsheetsType, fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer"
 // import { revalidatePath } from "next/cache"
 // import { cookies } from "next/headers"
 // import { notFound, redirect } from "next/navigation"
@@ -8,6 +8,7 @@ import { fetchedFlowsheetsType, fetchedProjectType } from "@/components/Dashboar
 import { getAccessToken } from "../utils/requestAccessToken"
 
 const BASE_URL = "http://localhost:8000"
+
 
 
 
@@ -118,31 +119,6 @@ export const updateFlowsheet = async (item: fetchedFlowsheetsType) => {
     }
 }
 
-export const dashboardSearch = async (query: string) => {
-    const accessToken = await getAccessToken()
-
-    try {
-        const endpoint = `${BASE_URL}/dashboard_search/?q=${query}`
-        const response = await fetch(endpoint, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
-            }
-
-        })
-        const result = await response.json()
-        console.log("search results", result)
-        if (response.status === 200) return result
-        else {
-            console.log(result);
-            return null
-        }
-    } catch (err) {
-        console.log("error searching for query", query, err)
-        return null
-    }
-}
 
 
 export const deleteEntity = async (projectId: string, type: "project" | "flowsheet", flowsheetId?: string) => {
@@ -171,5 +147,73 @@ export const deleteEntity = async (projectId: string, type: "project" | "flowshe
         return {"message": `Error deleting ${type}`}
     }
 }
+
+
+
+export const editEntity = async (editData: editType) => {
+    const accessToken = await getAccessToken()
+    try{
+        let endpoint = BASE_URL
+        if (editData.title === "Project") {
+            endpoint += `/projects/${editData.projectId}`
+        } else {
+            endpoint += `/flowsheets/${editData.projectId}/update/${editData.flowsheetId}`
+        }
+        const response = await fetch(endpoint, {
+            method: "PATCH", 
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }, 
+            body: JSON.stringify({name: editData.name, description: editData.description})
+        })
+        const result = await response.json()
+        console.log("result", result)
+        if (response.status === 200) {
+            return {
+                success: true,
+                message: `${editData.title} edited successfully`
+            }
+        } else {
+            return {
+                success: false,
+                message: "Something went wrong and data wasn't updated"
+            }
+        }
+    } catch (err) {
+        console.log("error editing",  err)
+        return {"message": `Error editing ${editData.title}, data wasn't updated`}
+    }
+}
+
+
+
+export const dashboardSearch = async (query: string) => {
+    const accessToken = await getAccessToken()
+
+    try {
+        const endpoint = `${BASE_URL}/dashboard_search/?q=${query}`
+        const response = await fetch(endpoint, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }
+
+        })
+        const result = await response.json()
+        console.log("search results", result)
+        if (response.status === 200) return result
+        else {
+            console.log(result);
+            return null
+        }
+    } catch (err) {
+        console.log("error searching for query", query, err)
+        return null
+    }
+}
+
+
 
 
