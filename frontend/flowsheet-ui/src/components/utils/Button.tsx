@@ -4,9 +4,9 @@ import { useFormStatus } from 'react-dom'
 const Button = ({title}: {title: string}) => {
     const {pending} = useFormStatus()
     return (
-        <button type='submit' className={`rounded-xl p-4 w-2/3 bg-blueVariant
-            text-[#F5F7FA] text-lg font-bold transition ${pending ? "": "hover:bg-darkBlueVariant"} 
-            font-bold transition-colors mt-4`}
+        <button type='submit' className={`rounded-lg p-3 w-2/3 bg-blueVariant
+            text-[#F5F7FA] text-base font-bold transition ${pending ? "": "hover:bg-darkBlueVariant"} 
+            font-bold transition-colors mt-3`}
             disabled={pending}>
             {pending ? 
             <svg aria-hidden="true" role="status" className="inline w-4 h-4 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">

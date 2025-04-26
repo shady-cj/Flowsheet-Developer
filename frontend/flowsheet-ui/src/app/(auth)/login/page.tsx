@@ -65,7 +65,7 @@ const LoginPage = () => {
             {
                 state && <AuthStatusBox state={state}/>
             }
-            <div className='mt-8'>
+            <div className='w-full flex justify-center items-center'>
             
               <Button title="Login Account"/>
             </div>

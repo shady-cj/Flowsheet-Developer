@@ -17,8 +17,8 @@ body {
 } 
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   background-color:rgba(0, 102, 68, 0.1);
 }
  
@@ -74,10 +74,19 @@ body {
 }
 
 .canvas-bg {
-  background-image: url('../assets/grid.png');
+  background-position: 0 0;
   background-color: #F9FAFC;
-  background-position:  center;
   background-repeat: repeat;
+}
+
+.small-grid-bg {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+.large-grid-bg {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
+  background-size:90px 90px;
+  background-color: transparent;
 }
 
 .bg-auth-image {
@@ -87,6 +96,7 @@ body {
   background-position: 50% 50%;
   background-repeat: no-repeat;
 }
+
 
 @media (min-width: 2000px) {
   .font-size-default {

@@ -47,6 +47,10 @@ const defaultFormField: formFieldsType = [
   }
 ]
 
+
+const canvasContainerContentWidth = 5000
+const canvasContainerContentHeight = 5000
+
 // }
 export type formStateObjectType = {[index: string]: string}
 
@@ -59,6 +63,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const panelCoordinateYMarker = useRef<number | null>(null)
     const currentPanel = useRef<HTMLSpanElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
+    const prevActiveObject = useRef<HTMLElement | null>(null)
     const pointStore = useRef<pointStoreType>({}) // Point store format [pointId it connects from, [L or M coordinates, index in the lineCoordinate array, index of the next point]]
     const currentActivePoint = useRef<HTMLSpanElement | null>(null)
     const onMouseDown = useRef(false)
@@ -210,6 +215,21 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       setFormState(null)
       setFormFields(defaultFormField)
       setIsOpened(false)
+    }
+
+    const closeFormUnsaved = () => {
+
+      const element = currentObject.current
+      if (element) {
+        delete objectData.current[element.id]
+        currentObject.current = prevActiveObject.current!
+        element.remove()
+      }
+      
+      setFormState(null)
+      setFormFields(defaultFormField)
+      setIsOpened(false)
+      setObjectFormPosition({x: 20, y: 20})
     }
 
 
@@ -1695,6 +1715,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           // console.log(e.clientX, e.clientY)
       } else {
           currentObject.current?.classList.remove("current-object")
+          prevActiveObject.current = currentObject.current
           currentObject.current = obj
           currentObject.current.classList.add("current-object")
           
@@ -2485,7 +2506,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       } else {
           newEl.style.fontSize = `${defaultObjectData.font_size}px`
       }
-
+      prevActiveObject.current = currentObject.current
       currentObject.current = newEl
      
       
@@ -2720,11 +2741,32 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       {
         pageNotFound ? <div className="relative w-full h-full z-10 flex justify-center items-center">
           Page not found
-        </div> :  (<div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
-                  { 
-                    isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
-                  }
-                </div>
+        </div> :  (
+          <main className="relative overflow-scroll custom-scrollbar bg-white h-full w-full">
+          <div className={`relative overflow-hidden h-[${canvasContainerContentHeight}px] w-[${canvasContainerContentWidth}px]`}>
+
+            <div className="relative canvas-bg small-grid-bg w-[10000px] h-[10000px]">
+
+              <div className="relative z-1 canvas-bg large-grid-bg w-[10000px] h-[10000px]">
+                <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-auto w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
+                    { 
+                      isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} closeFormUnsaved={closeFormUnsaved} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
+                    }
+                  </div>
+              </div>
+            </div>
+          </div>
+
+
+
+        </main>
+          
+          
+          // <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="canvas-bg relative bg-white cursor-move overflow-auto h-[2000px] w-[2000px]" ref={canvasRef} onDrop={handleDrop}>
+          //         { 
+          //           isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
+          //         }
+          //       </div>
         )
       }
       

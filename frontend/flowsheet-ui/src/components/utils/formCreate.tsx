@@ -42,7 +42,7 @@ const FormCreate = ({title, nameField, descriptionField, action, param, buttonTi
     }
 
   return (
-    <section className="px-5 h-full w-full flex pt-8">
+    <section className="px-5 h-full w-full flex justify-center items-center pt-8">
 
         <form className="p-4 flex flex-col gap-y-4 w-2/3" action={formAction}>
             <h1 className="text-4xl font-bold mb-4">{title}</h1>
