@@ -32,7 +32,7 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
       link.download = `${flowsheetName || "flowsheet"}.png`;
       link.href = dataUrl;
       link.click();
-
+      
     })
     .catch((err) => {
       console.log(err);
