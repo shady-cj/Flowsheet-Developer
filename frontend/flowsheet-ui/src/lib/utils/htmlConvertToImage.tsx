@@ -24,8 +24,7 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
     
     // console.log("got here", canvasRef)
 
-
-    toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200, style: {background: "white", zIndex: "-2"}})
+    toPng(canvasRef, { cacheBust: true, includeQueryParams:true, width: maxWidth + 150, height: maxHeight + 200, style: {background: "white", zIndex: "-2"} })
     .then((dataUrl) => {
       // console.log("dataURl", dataUrl)
       const link = document.createElement("a");
@@ -74,7 +73,7 @@ export const previewImageGenerator = (canvasRef: HTMLDivElement, objectData: obj
   maxHeight = maxHeight < 280 ? 280 : maxHeight
   maxWidth = maxWidth < 850 ? 850 : maxWidth
   
-  toPng(canvasRef, { cacheBust: false, width: maxWidth + 150, height: maxHeight + 200, style: {background: "transparent"}})
+  toPng(canvasRef, { cacheBust: false, includeQueryParams:true, width: maxWidth + 150, height: maxHeight + 200, style: {background: "transparent"}})
       .then((dataURL) => {
         updateFlowsheetPreview(dataURL, flowsheetId)
       })
