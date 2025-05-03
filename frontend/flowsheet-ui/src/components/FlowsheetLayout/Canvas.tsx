@@ -56,9 +56,10 @@ export type formStateObjectType = {[index: string]: string}
 
 
 const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
-    const {canvasLoading, setCanvasLoading, objectData, hasInstance, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
+    const {canvasLoading, setCanvasLoading, objectData, hasInstance,setIsEdited, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
+    const mouseMoved = useRef(false)
     const panelCoordinateXMarker = useRef<number | null>(null)
     const panelCoordinateYMarker = useRef<number | null>(null)
     const currentPanel = useRef<HTMLSpanElement>(null!)
@@ -210,7 +211,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
      
 
-      
+      setIsEdited(true)
       updateObjectData()
       setFormState(null)
       setFormFields(defaultFormField)
@@ -1650,8 +1651,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         if (objectData.current[element.id].properties.crusherType === "primary") 
           primaryCrusherInUse.current = false
         delete objectData.current[element.id]
+        setIsEdited(true)
       }
-    }, [objectData])
+    }, [objectData, setIsEdited])
 
 
 
@@ -1668,11 +1670,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
     const handleMouseUpUtil = useCallback(() => {
-
+      if (onPanelResize.current || onMouseDown.current) {
+        if (mouseMoved.current) setIsEdited(true)
+      }
       if (onPanelResize.current) {
         onPanelResize.current = false
         panelCoordinateXMarker.current = null
         panelCoordinateYMarker.current = null
+        
       }
       if (onMouseDown.current) {
           // currentObject.current.classList.remove("current-object")
@@ -1695,10 +1700,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           tooltip?.classList.remove("show-tooltip")
           tooltip?.classList.add("hide-tooltip")
           
-          
       }
       onMouseDown.current = false
-    }, [LineConnector, objectData])
+      mouseMoved.current = false
+    }, [LineConnector, objectData, setIsEdited])
 
     const handleMouseUpGeneral = useCallback((e: MouseEvent) => {
       // console.log('mouse up called in general ', onPanelResize.current, "mouse down", onMouseDown.current)
@@ -1729,10 +1734,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     
     const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
       // console.log("called mouseup in mouseup !!!", onPanelResize.current, "mouse down", onMouseDown.current)
-      handleMouseUpUtil()
       if (onMouseDown.current || onPanelResize.current) {
         document.removeEventListener("mouseup", handleMouseUpGeneral)
       }
+      handleMouseUpUtil()
+      
 
       if (calculateBondsEnergy.current && obj){
         if (["Grinder", "Crusher"].includes(objectData.current[obj.id].object_info.object_model_name)) {
@@ -2505,10 +2511,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         })
       } else {
           newEl.style.fontSize = `${defaultObjectData.font_size}px`
+          setIsEdited(true)
       }
       prevActiveObject.current = currentObject.current
       currentObject.current = newEl
-     
       
 
     }
@@ -2543,7 +2549,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
       const handleMouseMove = (e: MouseEvent) => {
         // console.log(e.clientY - CanvasContainer.offsetTop)
-
         if (onPanelResize.current) {
           const MAXSCALE = 3
           const panel = currentPanel.current
@@ -2616,12 +2621,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             obj.style.transform = `scale(${currentScale})`
             objData.scale = currentScale
           }
-
-
+          mouseMoved.current = true
           return;
         }
 
         if (onMouseDown.current) {
+          mouseMoved.current = true
           if (currentActivePoint.current !== null) {
             DrawPoint(e, currentActivePoint.current)
           } else {

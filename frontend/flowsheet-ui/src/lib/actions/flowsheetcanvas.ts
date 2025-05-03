@@ -4,6 +4,7 @@ import { cookies } from "next/headers"
 import { redirect} from "next/navigation"
 import { objectDataType, objectCoords } from "@/components/context/FlowsheetProvider"
 import { getAccessToken } from "../utils/requestAccessToken"
+import { saveFreqType } from "@/components/FlowsheetLayout/FlowsheetHeader"
 
 
 export type objectCompatibleTypes = {
@@ -153,3 +154,26 @@ export async function loadObjects(flowsheetID: string) {
 }
 
 
+export async function saveSettings(flowsheetID: string, projectID: string, settings: saveFreqType) {
+    const accessToken = await getAccessToken()
+    try {
+        const response = await fetch(`${BASE_URL}/flowsheets/${projectID}/update/${flowsheetID}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                save_frequency: settings.saveInterval,
+                save_frequency_type: settings.frequencyType
+            }),
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }
+        })
+        const result = await response.json()
+        console.log('result here', result)
+        if (response.status === 200) return {success: true}
+        else return {error: "error occured while saving settings"}
+    } catch (err) {
+        console.log(err)
+        return {error: "error occured while saving settings"}
+    }
+}

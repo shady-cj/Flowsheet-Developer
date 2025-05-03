@@ -68,7 +68,7 @@ const getMaxWidthAndHeight = (objectData: objectDataType): [number, number] => {
 }
 
 
-export const previewImageGenerator = (canvasRef: HTMLDivElement, objectData: objectDataType, flowsheetId: string) => {
+export const previewImageGenerator = async (canvasRef: HTMLDivElement, objectData: objectDataType, flowsheetId: string) => {
   let [maxWidth, maxHeight] = getMaxWidthAndHeight(objectData)
   maxHeight = maxHeight < 280 ? 280 : maxHeight
   maxWidth = maxWidth < 850 ? 850 : maxWidth

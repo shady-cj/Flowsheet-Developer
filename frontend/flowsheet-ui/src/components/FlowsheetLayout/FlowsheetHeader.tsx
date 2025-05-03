@@ -12,8 +12,13 @@ import arrowUp from "@/assets/arrow-up.svg"
 import { htmlToImageConvert } from '@/lib/utils/htmlConvertToImage';
 import Report from "@/lib/utils/report"
 import { PDFDownloadLink } from "@react-pdf/renderer"
+import { saveSettings } from "@/lib/actions/flowsheetcanvas"
 
 
+export type saveFreqType = {
+  frequencyType: "MANUAL" | "AUTO" | undefined
+  saveInterval: number | null | undefined
+}
 
 const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
   const [showDropDown, setShowDropDown] = useState(false)
@@ -21,18 +26,36 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
   const [exportCanvas, setExportCanvas] = useState(false)
   const pdfUrl = useRef<string | null>(null)
   
-  type saveFreqType = {
-    frequencyType: "MANUAL" | "AUTO" | undefined
-    saveInterval: number | null | undefined
-  }
+  
 
-  const { canvasRef,objectData, saveObjectData, hasInstance, canvasLoading,userObject, flowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
+  const { canvasRef,objectData, saveObjectData, isEdited, isSaving, canvasLoading,userObject, flowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
   const [saveFrequencySettings, setSaveFrequencySettings] = useState<saveFreqType>({
     frequencyType: undefined,
     saveInterval: undefined,
   })
   const [showSaveSettings, setShowSaveSettings] = useState(false)
 
+  const updateSaveSettings = async () => {
+    console.log("save settings", saveFrequencySettings)
+    if (saveFrequencySettings.frequencyType === "AUTO") {
+      console.log(isNaN(saveFrequencySettings.saveInterval!))
+      
+      if (!saveFrequencySettings.saveInterval) {
+
+        alert("Please enter a save interval")
+        return
+      }
+      if (isNaN(saveFrequencySettings.saveInterval!)) {
+        alert("save interval must be a number")
+      }
+      if (saveFrequencySettings.saveInterval < 10) {
+        alert("Save interval must be greater than 10 seconds")
+        return
+      }
+    }
+    const result = await saveSettings(params.flowsheet_id, params.project_id, saveFrequencySettings)
+    console.log("final", result)
+  }
   useEffect(() => {
     setSaveFrequencySettings({
       frequencyType: flowsheetObject?.save_frequency_type,
@@ -52,30 +75,34 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
                 </> : ""
               }
               
-              <button onClick={()=> saveObjectData(params.flowsheet_id)} className="z-20 relative text-sm m-2 px-3 py-1 flex gap-2 bg-tertiary rounded-xl" disabled={canvasLoading}>
-                <span className="text-white">save</span> <Image src={showSaveSettings ? arrowUp : arrowDown} alt="arrow down" onClick={() => setShowSaveSettings(prev=>!prev)}/>
+              <div className="z-20 relative text-sm m-2 px-3 py-1 flex gap-2 bg-tertiary rounded-xl" >
+                <button onClick={()=> saveObjectData(params.flowsheet_id)} className="text-white disabled:opacity-90" disabled={canvasLoading || isSaving || !isEdited}>
+                    {isSaving ? "saving" : isEdited ? "save" : "saved"}
+                </button>
+               
+                <Image className="cursor-pointer" src={showSaveSettings ? arrowUp : arrowDown} alt="arrow down" onClick={() => setShowSaveSettings(prev=>!prev)}/>
                 {
                   showSaveSettings ? (<div className="absolute z-40 flex flex-col flex-start w-[200px] bg-white top-[130%] left-0 p-4 shadow-md rounded-md">
                         <h2 className="text-xl font-semibold text-left">Save Frequency</h2>
                         {
                           saveFrequencySettings.frequencyType === "AUTO" ? (<div className="mt-2 flex items-center gap-2">
                           <label htmlFor="save_interval" className="font-semibold">Interval: </label>
-                        <input type="number" id="save_interval" name="saveInterval" className="border border-1 w-full px-2 py-1" min={5} placeholder="secs"/>
+                        <input type="number" id="save_interval" name="saveInterval" value={saveFrequencySettings.saveInterval || ""} className="border border-1 w-full px-2 py-1" min={10} placeholder="secs" onChange={(e)=> setSaveFrequencySettings((prev)=> ({...prev, saveInterval: parseInt(e.target.value)}))}/>
 
                         </div>) : ""
                         }
                         
                         <div className="flex gap-3 items-center mt-3">
-                          <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "MANUAL" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "MANUAL"}))}>Manual</button>
+                          <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "MANUAL" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "MANUAL", saveInterval: null}))}>Manual</button>
                           <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "AUTO" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "AUTO"}))}>Auto</button>
                         </div>
-                        <button className="mt-4 border border-2 border-[#006644] p-2 rounded-2xl hover:bg-tertiary hover:text-white  transition-all"> Save Changes</button>
+                        <button className="mt-4 border border-2 border-[#006644] p-2 rounded-2xl hover:bg-tertiary hover:text-white  transition-all" onClick={updateSaveSettings}> Save Changes</button>
         
 
                       </div>) : ""
                 }
                 
-              </button>
+              </div>
               <div className="text-sm flex gap-2 relative">
                 <span>utility</span> <Image src={showDropDown ? arrowUp : arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> {
                   if (pageNotFound) {

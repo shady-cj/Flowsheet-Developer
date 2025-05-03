@@ -118,6 +118,8 @@ type contextType = {
   canvasLoading: boolean,
   objectData: MutableRefObject<objectDataType>,
   hasInstance: MutableRefObject<boolean>,
+  isEdited: boolean,
+  isSaving: boolean,
   canvasRef: MutableRefObject<HTMLDivElement>,
   calculateBondsEnergy: MutableRefObject<Boolean>,
   userObject: userType,
@@ -126,6 +128,8 @@ type contextType = {
   communitionListForBondsEnergy: MutableRefObject<singleObjectDataType[]>,
   workIndex: RefObject<HTMLInputElement>,
   pageNotFound: boolean,
+  setIsEdited: Dispatch<SetStateAction<boolean>>,
+  setIsSaving: Dispatch<SetStateAction<boolean>>,
   setPageNotFound: Dispatch<SetStateAction<boolean>>,
   setCanvasLoading: Dispatch<SetStateAction<boolean>>,
   setWvalue: Dispatch<SetStateAction<string | null>>,
@@ -146,6 +150,8 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
   const [pageNotFound, setPageNotFound] = useState(false)
   const [canvasLoading, setCanvasLoading] = useState(true)
   const hasInstance = useRef(false) // To check if the objectData has initially been created so it'll be updated instead of being recreated
+  const [isEdited, setIsEdited] = useState(false) // To keep track of whether the canvas has been edited or not, if edited means it needs to be saved
+  const [isSaving, setIsSaving] = useState(false) // To keep track of whether the canvas is being saved or not
   const [userObject, setUserObject] = useState<userType>(null)
   const [flowsheetObject, setFlowsheetObject] = useState<fetchedFlowsheetsType | null>(null)
   const calculateBondsEnergy = useRef<Boolean>(false)
@@ -153,17 +159,20 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
   const workIndex = useRef<HTMLInputElement>(null)
   const [Wvalue, setWvalue] = useState<string | null>(null)
 
-  const reportRef = useRef<HTMLDivElement>(null)
+  // const reportRef = useRef<HTMLDivElement>(null)
 
 
   const saveObjectData = async (paramsId: string) => {
+    if (!isEdited) return
+    setIsSaving(true)
     const objects = await uploadObject(objectData.current, paramsId, hasInstance.current)
     if (Object.keys(objects).length > 0) {
       objectData.current = objects
       hasInstance.current = true
     }
-    previewImageGenerator(canvasRef.current, objectData.current, paramsId)
-
+    await previewImageGenerator(canvasRef.current, objectData.current, paramsId)
+    setIsSaving(false)
+    setIsEdited(false)
   }
 
 
@@ -223,7 +232,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
       getFlowsheet, calculateBondsEnergy, 
     communitionListForBondsEnergy, workIndex, 
     calculateEnergyUsed, Wvalue, setWvalue,
-    pageNotFound, setPageNotFound
+    pageNotFound, setPageNotFound, isEdited, setIsEdited, isSaving, setIsSaving,
     }}>
       {children}
       {/* {
