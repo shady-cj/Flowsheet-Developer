@@ -173,6 +173,8 @@ class FlowsheetSerializer(ModelSerializer):
             "starred",
             "link",
             "last_edited",
+            "save_frequency",
+            "save_frequency_type",
         ]
         read_only_fields = [
             "id",

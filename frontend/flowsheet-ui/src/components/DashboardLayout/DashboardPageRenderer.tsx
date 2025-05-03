@@ -26,6 +26,8 @@ export type fetchedProjectType = {
 export type fetchedFlowsheetsType = fetchedProjectType & {
     project: string,
     project_name: string,
+    save_frequency: number | null,
+    save_frequency_type: "MANUAL" | "AUTO",
 }
 
 
@@ -185,7 +187,7 @@ export const CardRenderer = ({data, setData, type, revalidate}: rendererPropType
             data.map(item => (
                 <article key={item.id} className='flex-1 min-w-[450px] max-w-[550px] aspect-[3/2]'>
                     <div className='h-[80%] relative'>
-                        <div onClick={() => starAndUnstar(item)} className='absolute flex justify-center items-center cursor-pointer top-[5%] right-[5%] w-10 h-10 bg-[#006644] rounded-2xl z-20'>
+                        <div onClick={() => starAndUnstar(item)} className='absolute flex justify-center items-center cursor-pointer top-[5%] right-[5%] w-10 h-10 bg-tertiary rounded-2xl z-20'>
 
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g id="star-02">

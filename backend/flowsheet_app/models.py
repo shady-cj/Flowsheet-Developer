@@ -115,7 +115,7 @@ class Concentrator(models.Model):
 class Auxilliary(models.Model):
     MISC_TYPE = {
         "ORE": "ore",
-        "Storage Facility": {"STOCKPILE": "stockpile", "BINS": "bins"},
+        "STORAGE FACILITY": {"STOCKPILE": "stockpile", "BINS": "bins"},
         "TAILING FACILITY": "tailing facility",
         "OTHERS": "others",
     }
@@ -161,6 +161,7 @@ class Project(models.Model):
 
 
 class Flowsheet(models.Model):
+    SAVE_FREQUENCY_TYPES = (("MANUAL", "Manual"), ("AUTO", "Auto"))
     id = models.UUIDField(
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
@@ -173,6 +174,10 @@ class Flowsheet(models.Model):
     )
     last_edited = models.DateTimeField(auto_now=True)
     starred = models.BooleanField(default=False)
+    save_frequency_type = models.CharField(
+        choices=SAVE_FREQUENCY_TYPES, max_length=10, default=SAVE_FREQUENCY_TYPES[0][0]
+    )
+    save_frequency = models.IntegerField(blank=True, null=True)  # in secs
 
     def __str__(self):
         return f"{self.name} ---- project/{self.project.id}/flowsheet/{self.id}"

@@ -24,7 +24,8 @@ const config: Config = {
         "darkBlueVariant": "#1e2179",
         "grayVariant": "#F4F5F7",
         "grayVariant2": "#DFE1E6",
-        "normalBlueVariant": "#0052CC"
+        "normalBlueVariant": "#0052CC",
+        "tertiary": "#006644" // green variant
       },
       colors: {
         "text-black": "#17181A",

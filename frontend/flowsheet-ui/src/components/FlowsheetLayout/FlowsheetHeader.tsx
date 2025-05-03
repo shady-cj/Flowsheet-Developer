@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
+
 import { FlowsheetContext } from "../context/FlowsheetProvider"
-import { useContext, useRef, useState } from "react"
+import { useContext, useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import exportImage from "@/assets/export.svg"
 import arrowRight from "@/assets/arrow-right.svg"
 import arrowDown from "@/assets/arrow-down.svg"
+import arrowUp from "@/assets/arrow-up.svg"
 import { htmlToImageConvert } from '@/lib/utils/htmlConvertToImage';
 import Report from "@/lib/utils/report"
 import { PDFDownloadLink } from "@react-pdf/renderer"
@@ -19,7 +21,24 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
   const [exportCanvas, setExportCanvas] = useState(false)
   const pdfUrl = useRef<string | null>(null)
   
+  type saveFreqType = {
+    frequencyType: "MANUAL" | "AUTO" | undefined
+    saveInterval: number | null | undefined
+  }
+
   const { canvasRef,objectData, saveObjectData, hasInstance, canvasLoading,userObject, flowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
+  const [saveFrequencySettings, setSaveFrequencySettings] = useState<saveFreqType>({
+    frequencyType: undefined,
+    saveInterval: undefined,
+  })
+  const [showSaveSettings, setShowSaveSettings] = useState(false)
+
+  useEffect(() => {
+    setSaveFrequencySettings({
+      frequencyType: flowsheetObject?.save_frequency_type,
+      saveInterval: flowsheetObject?.save_frequency
+    })
+  }, [flowsheetObject])
 
   return (
     <>
@@ -33,11 +52,32 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
                 </> : ""
               }
               
-              <button onClick={()=> saveObjectData(params.flowsheet_id)} className="text-sm m-2 bg-gray-100 px-2" disabled={canvasLoading}>
-                {canvasLoading ? "loading..." : (hasInstance.current ? "update" : "save")}
+              <button onClick={()=> saveObjectData(params.flowsheet_id)} className="z-20 relative text-sm m-2 px-3 py-1 flex gap-2 bg-tertiary rounded-xl" disabled={canvasLoading}>
+                <span className="text-white">save</span> <Image src={showSaveSettings ? arrowUp : arrowDown} alt="arrow down" onClick={() => setShowSaveSettings(prev=>!prev)}/>
+                {
+                  showSaveSettings ? (<div className="absolute z-40 flex flex-col flex-start w-[200px] bg-white top-[130%] left-0 p-4 shadow-md rounded-md">
+                        <h2 className="text-xl font-semibold text-left">Save Frequency</h2>
+                        {
+                          saveFrequencySettings.frequencyType === "AUTO" ? (<div className="mt-2 flex items-center gap-2">
+                          <label htmlFor="save_interval" className="font-semibold">Interval: </label>
+                        <input type="number" id="save_interval" name="saveInterval" className="border border-1 w-full px-2 py-1" min={5} placeholder="secs"/>
+
+                        </div>) : ""
+                        }
+                        
+                        <div className="flex gap-3 items-center mt-3">
+                          <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "MANUAL" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "MANUAL"}))}>Manual</button>
+                          <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "AUTO" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "AUTO"}))}>Auto</button>
+                        </div>
+                        <button className="mt-4 border border-2 border-[#006644] p-2 rounded-2xl hover:bg-tertiary hover:text-white  transition-all"> Save Changes</button>
+        
+
+                      </div>) : ""
+                }
+                
               </button>
               <div className="text-sm flex gap-2 relative">
-                <span>utility</span> <Image src={arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> {
+                <span>utility</span> <Image src={showDropDown ? arrowUp : arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> {
                   if (pageNotFound) {
                     setShowDropDown(false)
                     return;
@@ -79,7 +119,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
           <div className='flex justify-end gap-4 mt-3'>
             <button className='bg-red-400 rounded-lg py-2 px-4 text-white' onClick={() => setExportCanvas(false)}>No</button>
 
-            {/* <PDFDownloadLink document={<Report objectData={objectData.current}/>} onClick={()=> setExportCanvas(false)} className='bg-[#006644] rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' fileName="somename.pdf">
+            {/* <PDFDownloadLink document={<Report objectData={objectData.current}/>} onClick={()=> setExportCanvas(false)} className='bg-tertiary rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' fileName="somename.pdf">
               {({ blob, url, loading, error }) =>
                 loading ? 'Loading document...' : 'Yes'
               }
@@ -114,7 +154,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
                 </div>
                 <div className='flex justify-end gap-4 mt-3'>
                   <button className='bg-red-400 rounded-lg py-2 px-4 text-white' onClick={(e)=> {setOpenBondsBox(false)}}>Discard</button>
-                  <button className='bg-[#006644] rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' onClick={()=> {
+                  <button className='bg-tertiary rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' onClick={()=> {
                     calculateBondsEnergy.current = true
                     setOpenBondsBox(false)
                   }}>Calculate</button>
