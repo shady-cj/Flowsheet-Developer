@@ -74,7 +74,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const objectFormType = useRef<objectType>("Shape")
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
-
+    const lineCapCoordinate = "10,22 18,5 10,9 2,5"
 
 
     const validatePositiveInteger = (attribute: keyof formStateObjectType, title: string) => {
@@ -2040,14 +2040,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
           if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0) {
             arrow.innerHTML = `
-              <polygon points="10,22 18,5 10,9 2,5" fill="#4D4D4D" stroke="transparent" strokeWidth="1.5" />
+              <polygon points="${lineCapCoordinate}" fill="#4D4D4D" stroke="transparent" strokeWidth="1.5" />
             `
             path!.setAttribute("stroke", "#4D4D4D")
           }
            
           else {
             arrow.innerHTML = `
-              <polygon points="10,20 18,10 10,13 2,10" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />
+              <polygon points="${lineCapCoordinate}" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />
             `
             path!.setAttribute("stroke", "#beb4b4")
           }
@@ -2397,7 +2397,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         arrow.style.left = `50px`
         
         arrow.innerHTML = `
-          <polygon points="10,22 18,5 10,9 2,5" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />
+          <polygon points="${lineCapCoordinate}" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />
         `
         lineWrapEl.appendChild(point1)
         lineWrapEl.appendChild(point2)

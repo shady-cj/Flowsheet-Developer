@@ -160,8 +160,10 @@ def process_component_image(data):
 
     if not image:
         return None
+
     input = Image.open(image)
-    # input = remove(input)
+    if input.format != "PNG" or input.mode != "RGBA":
+        input = remove(input)
     input.thumbnail((100, 100))
     # enhanced_img = ImageEnhance.Brightness(input)
     data["image_width"], data["image_height"] = input.size
