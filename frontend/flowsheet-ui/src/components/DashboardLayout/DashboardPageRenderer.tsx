@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { deleteEntity, fetchDashboardFlowsheets, fetchDashboardProjects, updateFlowsheet, updateProject } from '@/lib/actions/dashboard';
 import { handleCopyClick } from '@/lib/utils/clipboard';
 import { EditFlowsheetOrProject } from '../utils/popupBox';
+import Loader from '../utils/loader';
 
 export type fetchedProjectType = {
     id: string,
@@ -39,7 +40,7 @@ const DashboardPageRenderer = () => {
     const fetchedFlowsheets = useRef(false)
     const [flowsheets, setFlowsheets] = useState<fetchedFlowsheetsType[]>([]);
     const [projects, setProjects] = useState<fetchedProjectType[]>([])
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
     const searchParams = useSearchParams()
     const type = searchParams.get("f")
     const tType = searchParams.get("t")
@@ -95,10 +96,9 @@ const DashboardPageRenderer = () => {
             <div className='flex flex-row flex-wrap gap-5 gap-y-10 w-full min-h-[25vw] content-start justify-start'>
                 
                 {
-                    tType === "projects" && projects?.length ?
+                    loading ? <Loader fullScreen={false} offsetHeightClass='h-[300px]'/> : tType === "projects" && projects?.length ?
                     <CardRenderer type="projects" setData={setProjects} data={projects} revalidate={getProjects}/> :
-                    tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} revalidate={getFlowsheets} /> : 
-                    loading ? <div>loading...</div> : <div>No {tType=== "projects" ? tType : "flowsheets"}</div>
+                    tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} revalidate={getFlowsheets} />  : <div>No {tType=== "projects" ? tType : "flowsheets"}</div>
                 }
              
             </div>

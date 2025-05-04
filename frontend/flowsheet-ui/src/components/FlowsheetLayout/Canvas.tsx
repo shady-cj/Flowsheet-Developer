@@ -8,6 +8,7 @@ import { ObjectCreator } from "../Objects/ObjectCreator";
 import { renderToStaticMarkup } from "react-dom/server"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
+import Loader from "../utils/loader";
 
 
 export type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
@@ -2756,7 +2757,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
   return (
     <>
       {
-        canvasLoading && (<div className="relative w-full h-full bg-[#00000080] z-20 flex justify-center items-center"> Loading... </div>) 
+        canvasLoading ? (<div className="relative w-full h-full bg-[#00000080] z-20 flex justify-center items-center"> 
+          <Loader fullScreen={false} offsetHeightClass="h-[calc(100vh-60px)]" color="[#006644]"/>
+         </div>): ""
       }
       {
         pageNotFound ? <div className="relative w-full h-full z-10 flex justify-center items-center">
