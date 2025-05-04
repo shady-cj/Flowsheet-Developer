@@ -28,7 +28,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
   
   
 
-  const { canvasRef,objectData, saveObjectData, isEdited, isSaving, canvasLoading,userObject, flowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
+  const { canvasRef,objectData, saveObjectData, isEdited, isSaving, canvasLoading,userObject, flowsheetObject,setFlowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
   const [saveFrequencySettings, setSaveFrequencySettings] = useState<saveFreqType>({
     frequencyType: undefined,
     saveInterval: undefined,
@@ -38,7 +38,6 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
   const updateSaveSettings = async () => {
     console.log("save settings", saveFrequencySettings)
     if (saveFrequencySettings.frequencyType === "AUTO") {
-      console.log(isNaN(saveFrequencySettings.saveInterval!))
       
       if (!saveFrequencySettings.saveInterval) {
 
@@ -47,6 +46,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
       }
       if (isNaN(saveFrequencySettings.saveInterval!)) {
         alert("save interval must be a number")
+        return
       }
       if (saveFrequencySettings.saveInterval < 10) {
         alert("Save interval must be greater than 10 seconds")
@@ -54,8 +54,17 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
       }
     }
     const result = await saveSettings(params.flowsheet_id, params.project_id, saveFrequencySettings)
-    console.log("final", result)
+    if (result.success) {
+      alert("Settings updated successfully")
+      setFlowsheetObject(result.data)
+      setShowSaveSettings(false)
+    } else {
+      alert("Error updating settings")
+      return
+    }
+
   }
+
   useEffect(() => {
     setSaveFrequencySettings({
       frequencyType: flowsheetObject?.save_frequency_type,

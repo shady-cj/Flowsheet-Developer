@@ -169,8 +169,8 @@ export async function saveSettings(flowsheetID: string, projectID: string, setti
             }
         })
         const result = await response.json()
-        console.log('result here', result)
-        if (response.status === 200) return {success: true}
+        // console.log('result here', result)
+        if (response.status === 200) return {success: true, data: result}
         else return {error: "error occured while saving settings"}
     } catch (err) {
         console.log(err)

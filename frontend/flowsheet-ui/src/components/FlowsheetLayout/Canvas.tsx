@@ -56,7 +56,7 @@ export type formStateObjectType = {[index: string]: string}
 
 
 const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
-    const {canvasLoading, setCanvasLoading, objectData, hasInstance,setIsEdited, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
+    const {canvasLoading, setCanvasLoading, saveObjectData, flowsheetObject, objectData, hasInstance,setIsEdited, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
     const mouseMoved = useRef(false)
@@ -2737,6 +2737,21 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
     }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas, objectData, hasInstance])
 
+    useEffect(() => {
+      let intervalRef: NodeJS.Timeout | null = null;
+      if (flowsheetObject) {
+        if (flowsheetObject.save_frequency_type === "AUTO" && flowsheetObject.save_frequency) {
+          intervalRef = setInterval(()=> {    
+              saveObjectData(params.flowsheet_id)
+            
+          }, Number(flowsheetObject.save_frequency) * 1000)
+        }
+        
+      }
+      return (()=> {
+        if (intervalRef) clearInterval(intervalRef)
+      })
+    }, [flowsheetObject, params.flowsheet_id, saveObjectData])
 
   return (
     <>

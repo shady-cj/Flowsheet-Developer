@@ -191,6 +191,23 @@ class FlowsheetSerializer(ModelSerializer):
     def get_project_name(self, instance):
         return instance.project.name
 
+    def validate(self, attrs):
+        """
+        Ensure that the save settings are valid
+        """
+        save_frequency_type = attrs.get("save_frequency_type")
+        save_frequency = attrs.get("save_frequency")
+        if save_frequency_type and save_frequency_type == "AUTO":
+            if not save_frequency:
+                raise serializers.ValidationError(
+                    "Save frequency must be set for auto save frequency type"
+                )
+            if save_frequency < 10:
+                raise serializers.ValidationError(
+                    "Save frequency must be greater than 10 seconds"
+                )
+        return super().validate(attrs)
+
 
 class FlowsheetObjectSerializer(ModelSerializer):
     object = serializers.SerializerMethodField()

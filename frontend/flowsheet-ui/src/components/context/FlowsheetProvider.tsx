@@ -133,6 +133,7 @@ type contextType = {
   setPageNotFound: Dispatch<SetStateAction<boolean>>,
   setCanvasLoading: Dispatch<SetStateAction<boolean>>,
   setWvalue: Dispatch<SetStateAction<string | null>>,
+  setFlowsheetObject: Dispatch<SetStateAction<fetchedFlowsheetsType | null>>,
   saveObjectData: (paramsId: string)=>void,
   getUser: () => void,
   getFlowsheet: (projectID: string, flowsheetID: string) => void
@@ -162,7 +163,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
   // const reportRef = useRef<HTMLDivElement>(null)
 
 
-  const saveObjectData = async (paramsId: string) => {
+  const saveObjectData = useCallback(async (paramsId: string) => {
     if (!isEdited) return
     setIsSaving(true)
     const objects = await uploadObject(objectData.current, paramsId, hasInstance.current)
@@ -173,7 +174,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
     await previewImageGenerator(canvasRef.current, objectData.current, paramsId)
     setIsSaving(false)
     setIsEdited(false)
-  }
+  }, [canvasRef, objectData, isEdited])
 
 
 
@@ -228,7 +229,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
       canvasRef, canvasLoading, 
       setCanvasLoading, saveObjectData, 
       objectData, hasInstance, userObject, 
-      getUser, flowsheetObject, 
+      getUser, flowsheetObject, setFlowsheetObject,
       getFlowsheet, calculateBondsEnergy, 
     communitionListForBondsEnergy, workIndex, 
     calculateEnergyUsed, Wvalue, setWvalue,
