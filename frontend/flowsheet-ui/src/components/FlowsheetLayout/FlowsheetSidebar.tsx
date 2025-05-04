@@ -203,7 +203,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                     
                     <Image className="cursor-pointer" width={12} height={12} src={componentOpen?arrowUp:arrowDown} onClick={() => setComponentOpen(!componentOpen)} alt="vector" quality={100}/>
                 </div>
-                <div className={`flex gap-2 flex-wrap overflow-hidden ${!componentOpen ? "hide-components": ""}`}>
+                <div className={`flex gap-x-2 gap-y-4 flex-wrap overflow-hidden ${!componentOpen ? "hide-components": ""}`}>
                     {
                         activeComponent.properties.length ? <section className="flex flex-col gap-y-4 overflow-hidden w-full">
                             <h2 className="font-medium text-text-black text-sm border-b py-2 flex gap-2 items-center mx-2">
@@ -214,17 +214,17 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                             {
                                 activeComponent.properties.map(component => {
                         
-                                    const componentElement = activeComponent.type === "Crushers" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Crusher crusher={component} /></div> : 
-                                    activeComponent.type === "Grinders" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Grinder grinder={component}/></div> : 
-                                    activeComponent.type === "Screeners" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Screener key={component.id} screener={component}/></div> : 
-                                    activeComponent.type === "Auxilliaries" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Auxilliary key={component.id} auxilliary={component} /></div> : 
-                                    activeComponent.type === "Concentrators" ? <div key={component.id} className="p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"><Concentrator key={component.id} concentrator={component as ConcentratorImageObjectType} /> </div>: <></>
+                                    const componentElement = activeComponent.type === "Crushers" ? <ObjectComponentWrapper key={component.id}><Crusher crusher={component} /></ObjectComponentWrapper> : 
+                                    activeComponent.type === "Grinders" ? <ObjectComponentWrapper key={component.id}><Grinder grinder={component}/></ObjectComponentWrapper> : 
+                                    activeComponent.type === "Screeners" ? <ObjectComponentWrapper key={component.id}><Screener screener={component}/></ObjectComponentWrapper> : 
+                                    activeComponent.type === "Auxilliaries" ? <ObjectComponentWrapper key={component.id}><Auxilliary auxilliary={component} /></ObjectComponentWrapper> : 
+                                    activeComponent.type === "Concentrators" ? <ObjectComponentWrapper key={component.id}><Concentrator concentrator={component as ConcentratorImageObjectType} /> </ObjectComponentWrapper>: <></>
                                     return componentElement
                                 }) 
                             }
                             </div>
                         </section>: components.map(c => {
-                            return <div key={c.name} aria-label={c.name} onClick={handleComponentSwitch} className="border border-solid border-[#DFE1E6] p-3 flex flex-col items-center gap-y-2 rounded-lg flex-auto cursor-pointer">
+                            return <div key={c.name} aria-label={c.name} onClick={handleComponentSwitch} className="border border-solid shadow-sm border-[#DFE1E6] p-3 flex flex-col items-center gap-y-4 rounded-lg flex-auto cursor-pointer">
                             <Image width={24} height={24} src={c.image} alt={c.name} quality={100} className="pointer-events-none"/>    
                             <h2 className="text-black-2 text-xs font-md pointer-events-none">{c.name}</h2>
                             </div>
@@ -245,63 +245,47 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                         <Image className="cursor-pointer" width={12} height={12} src={customObjectOpen?arrowUp:arrowDown} onClick={() => setCustomObjectOpen(!customObjectOpen)} alt="vector" quality={100}/>
                 </div>
                 <div className={`flex gap-2 flex-wrap overflow-hidden transition-all ${!customObjectOpen ? "hide-components": ""}`}>
-                    <div className="flex flex-wrap gap-5 overflow-hidden p-2">
+                    <div className="flex flex-wrap gap-4 overflow-hidden p-2">
                         {
                             crushers.length > 0 && crushers.map(crusher=> {
                                 if (crusher.creator === userObject?.id) {
-                                    return (
-                                        <div key={crusher.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]">
-                                            <div className="absolute z-10 right-[5%] top-[10%]">
-                                                <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(crusher.id, crusher.name, "Crusher")}/>
-                                            </div>                                            
+                                    return (<ObjectComponentWrapper key={crusher.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(crusher.id, crusher.name, "Crusher")}>
                                             <Crusher  crusher={crusher} />
-                                        </div>)
+                                        </ObjectComponentWrapper>)
                                 }
                             })
                         }
                          {
                             grinders.length > 0 && grinders.map(grinder=>{
                                 if (grinder.creator === userObject?.id) {
-                                    return (<div key={grinder.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]">
-                                            <div className="absolute z-10 right-[5%] top-[10%]">
-                                                <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(grinder.id, grinder.name, "Grinder")}/>
-                                            </div>     
+                                    return (<ObjectComponentWrapper key={grinder.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(grinder.id, grinder.name, "Grinder")}>
                                             <Grinder grinder={grinder}/>
-                                        </div>)
+                                        </ObjectComponentWrapper>)
                                 }
                             })
                         }
                         {
                             screeners.length > 0 && screeners.map(screener=>{
                                 if (screener.creator === userObject?.id)
-                                    return (<div key={screener.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]">
-                                            <div className="absolute z-10 right-[5%] top-[10%]">
-                                                <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(screener.id, screener.name, "Screener")}/>
-                                            </div>     
+                                    return (<ObjectComponentWrapper key={screener.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(screener.id, screener.name, "Screener")}>
                                             <Screener  screener={screener}/>
-                                        </div>)
+                                        </ObjectComponentWrapper>)
                             })
                         }
                         {
                             auxilliaries.length > 0 && auxilliaries.map(auxilliary=>{
                                 if (auxilliary.creator === userObject?.id)
-                                    return (<div key={auxilliary.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"> 
-                                        <div className="absolute z-10 right-[5%] top-[10%]">
-                                            <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(auxilliary.id, auxilliary.name, "Auxilliary")}/>
-                                        </div>     
+                                    return (<ObjectComponentWrapper key={auxilliary.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(auxilliary.id, auxilliary.name, "Auxilliary")}>
                                         <Auxilliary auxilliary={auxilliary}/>
-                                    </div>)
+                                    </ObjectComponentWrapper>)
                             })
                         }
                         {
                             concentrators.length > 0 && concentrators.map(concentrator=>{
                                 if (concentrator.creator === userObject?.id)
-                                    return (<div key={concentrator.id} className="relative p-3 border border-[#DFE1E6] rounded-lg flex-1 min-w-[100px]"> 
-                                        <div className="absolute z-10 right-[5%] top-[10%]">
-                                            <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={() => handleObjectRemoval(concentrator.id, concentrator.name, "Concentrator")}/>
-                                        </div>     
+                                    return (<ObjectComponentWrapper key={concentrator.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(concentrator.id, concentrator.name, "Concentrator")}>      
                                         <Concentrator concentrator={concentrator}/>
-                                    </div>)
+                                    </ObjectComponentWrapper>)
                             })
                         }
                     </div>
@@ -323,3 +307,17 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
 }
 
 export default FlowsheetSidebar
+
+
+const ObjectComponentWrapper = ({children, showTrashIcon = false, handleTrashClick}: {children: React.ReactNode, showTrashIcon?: boolean, handleTrashClick?: () => void}) => {
+    return (
+        <div className="relative p-3 shadow-sm border border-[#DFE1E6] rounded-lg flex-1 min-w-[120px]">
+            {
+                showTrashIcon ? <div className="absolute z-10 right-[5%] top-[10%]">
+                    <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={handleTrashClick}/> 
+                </div> : ""
+            }
+            {children}
+        </div>
+    )
+}

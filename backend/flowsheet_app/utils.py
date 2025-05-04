@@ -162,6 +162,7 @@ def process_component_image(data):
         return None
 
     input = Image.open(image)
+    print("input", input.format, input.mode, input.filename)
     if input.format != "PNG" or input.mode != "RGBA":
         input = remove(input)
     input.thumbnail((100, 100))
