@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 import { resolve } from "path"
 import { getAccessToken } from "../utils/requestAccessToken"
 
-const BASE_URL = "http://localhost:8000"
+const BASE_URL = process.env.API_URL as string 
 
 export async function createProject(prevState: any, formData: FormData) {
     const accessToken = await getAccessToken()

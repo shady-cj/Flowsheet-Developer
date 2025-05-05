@@ -6,7 +6,9 @@ import { MouseEvent } from 'react'
 import { getAccessToken } from '../utils/requestAccessToken'
 // import { NextResponse } from 'next/server'
 
-const BASE_URL = "http://localhost:8000"
+const BASE_URL = process.env.API_URL as string 
+console.log("BASE_URL", BASE_URL)
+
 
 
 export async function login(prevState: any, formData:FormData) {

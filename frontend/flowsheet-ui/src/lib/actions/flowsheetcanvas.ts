@@ -31,7 +31,7 @@ export type objectCompatibleTypes = {
   }
   
 
-const BASE_URL = "http://localhost:8000"
+const BASE_URL = process.env.API_URL as string 
 
 
 

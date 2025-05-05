@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-const BaseURL = "http://localhost:8000"
+const BaseURL = process.env.API_URL as string 
 
 
 

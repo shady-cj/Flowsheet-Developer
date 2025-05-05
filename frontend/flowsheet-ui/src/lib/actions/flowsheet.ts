@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache"
 import { getAccessToken } from "../utils/requestAccessToken"
 import { updateFlowsheet } from "./dashboard"
 
-const BASE_URL = "http://localhost:8000"
+const BASE_URL = process.env.API_URL as string 
 
 
 
