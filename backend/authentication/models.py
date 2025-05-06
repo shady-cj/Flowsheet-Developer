@@ -1,11 +1,12 @@
 from django.db import models
 import uuid
+
 # Create your models here.
 from django.contrib.auth.models import (
     AbstractBaseUser,
-    BaseUserManager, 
-    PermissionsMixin
-    )
+    BaseUserManager,
+    PermissionsMixin,
+)
 
 from django.db import models
 
@@ -13,10 +14,13 @@ from django.db import models
 class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
+
         if email is None:
-            raise TypeError('Users should have a Email')
-        if password is None:
-            raise TypeError('Password is required')
+            raise TypeError("Users should have a Email")
+        if not extra_fields.get("is_oauth") and password is None:
+            raise TypeError("Password is required")
+        if extra_fields.get("is_oauth") and not extra_fields.get("provider"):
+            raise TypeError("Oauth authentication method requires a provider")
 
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
@@ -25,9 +29,9 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password=None):
         if email is None:
-            raise TypeError('Users should have a Email')
+            raise TypeError("Users should have a Email")
         if password is None:
-            raise TypeError('Password should not be none')
+            raise TypeError("Password should not be none")
 
         user = self.create_user(email, password)
         user.is_superuser = True
@@ -36,17 +40,23 @@ class UserManager(BaseUserManager):
         return user
 
 
-
 class User(AbstractBaseUser, PermissionsMixin):
-    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(max_length=255, unique=True,)
+    id = models.UUIDField(
+        primary_key=True, unique=True, default=uuid.uuid4, editable=False
+    )
+    email = models.EmailField(
+        max_length=255,
+        unique=True,
+    )
     password = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
+    is_oauth = models.BooleanField(default=False)
+    provider = models.CharField(max_length=100, blank=True, null=True)
 
-    USERNAME_FIELD = 'email'
-    EMAIL_FIELD = 'email'
+    USERNAME_FIELD = "email"
+    EMAIL_FIELD = "email"
 
     objects = UserManager()
 

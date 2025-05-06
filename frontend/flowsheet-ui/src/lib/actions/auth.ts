@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { MouseEvent } from 'react'
-import { getAccessToken } from '../utils/requestAccessToken'
+import { getAccessToken, storeTokens } from '../utils/requestAccessToken'
 // import { NextResponse } from 'next/server'
 
 const BASE_URL = process.env.API_URL as string 
@@ -34,19 +34,7 @@ export async function login(prevState: any, formData:FormData) {
         if (response.status == 200) {
             const access_token = data.access 
             const refresh_token = data.refresh 
-            cookies().set("access", access_token, {
-                expires: new Date(Date.now() + (60 * 59 * 1000)),
-                httpOnly: true,
-                secure: true,
-                path: "/"
-            })
-
-            cookies().set("refresh", refresh_token, {
-                expires: new Date(Date.now() + (23 * 60 * 60 * 1000)),
-                httpOnly: true,
-                secure: true,
-                path: "/"
-            })
+            storeTokens(access_token, refresh_token)
             return {success: "Login Succesful"}
         } else {
             return {error: "Invalid Credentials"}
@@ -59,6 +47,33 @@ export async function login(prevState: any, formData:FormData) {
             return {error: "Something went wrong"}
     }
    
+}
+
+export async function oauthSignin(payload: {email: string, provider: string}) {
+    try {
+
+        const response = await fetch(`${BASE_URL}/auth/oauth-auth/`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const data = await response.json()
+        if (response.status == 200) {
+            const access_token = data.access 
+            const refresh_token = data.refresh 
+            storeTokens(access_token, refresh_token)
+            return {success: "Login Succesful"}
+        } else if (response.status == 401) {
+            return data
+        }
+    } catch (err) {
+        if (err instanceof Error)
+            return {error: "Sorry!, An error occured"}
+        else
+            return {error: "Something went wrong"}
+    }
 }
 
 export async function register(prevState: any, formData: FormData) {

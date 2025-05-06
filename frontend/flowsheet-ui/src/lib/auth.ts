@@ -1,4 +1,5 @@
 import GoogleProvider from 'next-auth/providers/google'
+import { oauthSignin } from './actions/auth'
 const nextAuthConfig = {    
     providers: [
         GoogleProvider({
@@ -16,15 +17,22 @@ const nextAuthConfig = {
         }),
     ],
     callbacks: {
-        async signIn({ user, account, profile, email, credentials }: any) {
-            console.log("user signin", user, account, profile, email, credentials)
+        async signIn({ user, account }: any) {
+            const email = user.email
+            const provider = account.provider
+            // console.log("details", email, provider)
+            const response = await oauthSignin({email, provider})
+            console.log(response)
+            if (response.error) {
+                 return `/login?error=${encodeURIComponent(response.error || 'Authentication failed')}`
+            }
             return true
           },
-        async jwt({ token, user, account, profile, isNewUser }: any) {
-            console.log("jwt", token, user, account, profile, isNewUser)
-            return token
-          }
       }
 }
+
+
+
+
 
 export { nextAuthConfig }

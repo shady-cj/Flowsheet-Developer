@@ -11,6 +11,8 @@ import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import Image from 'next/image';
 import logoIcon from "@/assets/logo-icon-2.svg"
 import googleIcon from "@/assets/Google.svg"
+import { signIn } from 'next-auth/react';
+import { useEffect } from 'react';
 
 
 const LoginPage = () => {
@@ -18,6 +20,7 @@ const LoginPage = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const nextURL = searchParams.get("nextURL")
+  const error = searchParams.get("error")
   if (state?.success) {
     setTimeout(()=> {
 
@@ -27,6 +30,11 @@ const LoginPage = () => {
           return router.replace('/dashboard')
     }, 1000)
   }
+  useEffect(()=> {
+    if (error) {
+      alert(error)
+    }
+  }, [error])
   return (
     <AuthPageWrapper>
 
@@ -39,7 +47,7 @@ const LoginPage = () => {
             <h2 className='text-[#16191C] text-[2.5rem] font-semibold leading-[3.1rem]'>Login account</h2>
             <p className='text-[#666666] text-base font-normal'>Welcome back, login to continue</p>
           </div>
-          <div className='mt-4 flex justify-center items-center border border-[#C7CFD6] rounded-lg'>
+          <div className='mt-4 flex justify-center items-center border border-[#C7CFD6] rounded-lg cursor-pointer' onClick={() => signIn("google")}>
             <div className='flex gap-4 py-2 items-center'>
               <Image src={googleIcon} height={24} width={24} alt="google icon" quality={100}/>
               <p className='text-sm font-medium text-[#16191C]'>
