@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
+import { storeTokens } from './lib/utils/requestAccessToken'
 const BaseURL = "http://localhost:8000"
  
 const unauthenticated_routes = ["/", "/login", "/register"]
@@ -8,7 +9,7 @@ const unauthenticated_routes = ["/", "/login", "/register"]
 export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
     let accessToken = request.cookies.get("access")?.value as string
-    const refreshToken  = request.cookies.get("refresh")?.value as string
+    let refreshToken  = request.cookies.get("refresh")?.value as string
     const serverResponse = NextResponse.next()
     if (!accessToken && refreshToken) {
         try {
@@ -22,16 +23,12 @@ export async function middleware(request: NextRequest) {
 
             const data = await response.json()
             
-
+            console.log("data", data)
             accessToken = data.access
+            refreshToken = data.refresh
   
 
-            serverResponse.cookies.set("access", accessToken, {
-                expires: new Date(Date.now() + (60 * 59 * 1000)),
-                httpOnly: true,
-                secure: true,
-                path: "/"
-            })
+            storeTokens(accessToken, refreshToken, serverResponse)
         } catch (err) {
             // console.log("error")
             const redirectLogin = NextResponse.redirect(new URL("/login", request.url))

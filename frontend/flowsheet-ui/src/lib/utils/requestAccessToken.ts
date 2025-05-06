@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server';
 const BaseURL = process.env.API_URL as string 
 
 
@@ -18,14 +19,9 @@ export const requestAccessToken = async (refreshToken: string) => {
 
             const data = await response.json()
             
-
             accessToken = data.access
-            cookies().set("access", accessToken, {
-                expires: new Date(Date.now() + (60 * 59 * 1000)),
-                httpOnly: true,
-                secure: true,
-                path: "/"
-            })
+            const newRefreshToken = data.refresh
+            storeTokens(accessToken, newRefreshToken)
             return accessToken
         } catch (err) {
             // console.log("error")
@@ -45,4 +41,23 @@ export const getAccessToken = async () => {
     if (!accessToken && refreshToken)
         accessToken = await requestAccessToken(refreshToken);
     return accessToken;
+}
+
+
+
+export const storeTokens = (access_token: string, refresh_token: string, serverResponse?: NextResponse) => {
+    const cookie = serverResponse ? serverResponse.cookies : cookies() 
+    cookie.set("access", access_token, {
+        expires: new Date(Date.now() + (60 * 59 * 1000)),
+        httpOnly: true,
+        secure: true,
+        path: "/"
+    })
+
+    cookie.set("refresh", refresh_token, {
+        expires: new Date(Date.now() + (23 * 60 * 60 * 1000)),
+        httpOnly: true,
+        secure: true,
+        path: "/"
+    })
 }
