@@ -1,3 +1,5 @@
+"use server"
+
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server';
@@ -6,6 +8,7 @@ const BaseURL = process.env.API_URL as string
 
 
 export const requestAccessToken = async (refreshToken: string) => {
+    const cookie = await cookies()
     if (refreshToken) {
         let accessToken;
         try {
@@ -25,8 +28,8 @@ export const requestAccessToken = async (refreshToken: string) => {
             return accessToken
         } catch (err) {
             // console.log("error")
-            cookies().delete("access")
-            cookies().delete("refresh")
+            cookie.delete("access")
+            cookie.delete("refresh")
             redirect("/login")
         }
             
@@ -34,8 +37,9 @@ export const requestAccessToken = async (refreshToken: string) => {
 }
 
 export const getAccessToken = async () => {
-    let accessToken = cookies().get("access")?.value
-    const refreshToken = cookies().get("refresh")?.value
+    const cookie = await cookies()
+    let accessToken = cookie.get("access")?.value
+    const refreshToken = cookie.get("refresh")?.value
     if (!accessToken && !refreshToken)
         return redirect("/login")
     if (!accessToken && refreshToken)
@@ -45,8 +49,8 @@ export const getAccessToken = async () => {
 
 
 
-export const storeTokens = (access_token: string, refresh_token: string, serverResponse?: NextResponse) => {
-    const cookie = serverResponse ? serverResponse.cookies : cookies() 
+export const storeTokens = async (access_token: string, refresh_token: string, serverResponse?: NextResponse) => {
+    const cookie = await (serverResponse ? serverResponse.cookies : cookies())
     cookie.set("access", access_token, {
         expires: new Date(Date.now() + (60 * 59 * 1000)),
         httpOnly: true,

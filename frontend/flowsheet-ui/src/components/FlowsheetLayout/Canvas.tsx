@@ -57,6 +57,7 @@ export type formStateObjectType = {[index: string]: string}
 
 
 const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
+    console.log('params', params, params.project_id, params.flowsheet_id)
     const {canvasLoading, setCanvasLoading, saveObjectData, flowsheetObject, objectData, hasInstance,setIsEdited, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)

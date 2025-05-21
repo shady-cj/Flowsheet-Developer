@@ -34,7 +34,7 @@ export async function login(prevState: any, formData:FormData) {
         if (response.status == 200) {
             const access_token = data.access 
             const refresh_token = data.refresh 
-            storeTokens(access_token, refresh_token)
+            await storeTokens(access_token, refresh_token)
             return {success: "Login Succesful"}
         } else {
             return {error: "Invalid Credentials"}
@@ -63,7 +63,7 @@ export async function oauthSignin(payload: {email: string, provider: string}) {
         if (response.status == 200) {
             const access_token = data.access 
             const refresh_token = data.refresh 
-            storeTokens(access_token, refresh_token)
+            await storeTokens(access_token, refresh_token)
             return {success: "Login Succesful"}
         } else if (response.status == 401) {
             return data
@@ -123,8 +123,9 @@ export async function register(prevState: any, formData: FormData) {
 
 
 export async function logout() {
-    cookies().delete("access")
-    cookies().delete("refresh")
+    const cookie = await cookies()
+    cookie.delete("access")
+    cookie.delete("refresh")
     redirect("/")
 }
 

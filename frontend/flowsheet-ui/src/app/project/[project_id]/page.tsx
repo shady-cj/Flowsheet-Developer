@@ -6,28 +6,31 @@ import DashboardHeader from "@/components/DashboardLayout/DashboardHeader"
 import {fetchedFlowsheetsType, fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer";
 import Image from "next/image";
 import ProjectDetailFlowsheets from "@/components/DashboardLayout/ProjectDetail";
-const BASE_URL = 'http://localhost:8000'
-const ProjectPage = async ({params}: {params: {project_id: string}}) => {
+const BASE_URL = process.env.API_URL as string
+const ProjectPage = async ({params}: {params: Promise<{project_id: string}>}) => {
+      const route_params = await params
       let result: {project: fetchedProjectType, flowsheets: fetchedFlowsheetsType[]}
-      const accessToken = cookies().get("access")?.value
+      const accessToken = (await cookies()).get("access")?.value
       if (!accessToken)
           redirect("/")
       try {
-          const response = await fetch(`${BASE_URL}/projects/${params.project_id}`, {
+          const response = await fetch(`${BASE_URL}/projects/${route_params.project_id}`, {
               headers: {"Authorization": `Bearer ${accessToken}`},
-              next: {tags: ['projects']} // validate atmost every minute
+              next: {tags: ['projects']} // revalidate when the tag is invalidated
           })
+          
           result = await response.json()
           console.log(result.project)
-
       } catch (err) {
           throw err
       }
-
+  
       async function revalidateProject () {
         "use server"
         revalidateTag('projects')
       }
+
+
   return (
     
     <div className="w-screen h-screen">
@@ -62,7 +65,7 @@ const ProjectPage = async ({params}: {params: {project_id: string}}) => {
             <div className="py-10 px-4">
               <div className="flex justify-between pr-4">
                 <h1 className="text-4xl font-bold mb-6">Flowsheets</h1>
-                <Link href={`/project/${params.project_id}/flowsheet/create`} className="text-text-blue-variant">Add new flowsheet</Link>
+                <Link href={`/project/${route_params.project_id}/flowsheet/create`} className="text-text-blue-variant">Add new flowsheet</Link>
               </div>
 
               {result.flowsheets.length ? <ProjectDetailFlowsheets flowsheets={result.flowsheets} revalidate={revalidateProject}/>: <div />}
@@ -77,7 +80,7 @@ const ProjectPage = async ({params}: {params: {project_id: string}}) => {
     </div>
     
    
-      // <Project params={params}/>
+      // <Project route_params={params}/>
   )
 }
 

@@ -1,9 +1,10 @@
 import DashboardMain from "@/components/DashboardLayout/DashboardMain"
 
-const Dashboard = ({searchParams}:{searchParams: {f: string}}) => {
-  console.log("dashboard", searchParams)
+const Dashboard = async ({searchParams}:{searchParams: Promise<{f: string}>}) => {
+  // const routeSearchParams = await searchParams
+  // console.log("dashboard", routeSearchParams)
   return (
-      <DashboardMain searchParams={searchParams}/>
+      <DashboardMain />
   )
 }
 

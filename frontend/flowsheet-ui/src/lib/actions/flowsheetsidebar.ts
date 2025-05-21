@@ -1,6 +1,5 @@
 "use server";
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation";
+
 import { getAccessToken } from "../utils/requestAccessToken";
 
 const BASE_URL = process.env.API_URL as string 

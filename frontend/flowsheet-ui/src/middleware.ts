@@ -23,12 +23,11 @@ export async function middleware(request: NextRequest) {
 
             const data = await response.json()
             
-            console.log("data", data)
             accessToken = data.access
             refreshToken = data.refresh
   
 
-            storeTokens(accessToken, refreshToken, serverResponse)
+            await storeTokens(accessToken, refreshToken, serverResponse)
         } catch (err) {
             // console.log("error")
             const redirectLogin = NextResponse.redirect(new URL("/login", request.url))

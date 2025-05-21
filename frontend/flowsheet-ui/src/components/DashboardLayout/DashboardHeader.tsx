@@ -19,9 +19,9 @@ const DashboardHeader = () => {
   const [showDropDown, setShowDropDown] = useState(false)
   const {user} = useContext(UserContext)
   const [searchResult, setSearchResult] = useState<null | {projects: fetchedProjectType[], flowsheets: fetchedFlowsheetsType[]}>(null)
-  const Logout = (e: MouseEvent<HTMLButtonElement>) => {
+  const Logout = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    logout()
+    await logout()
 
   }
   const handleSearchInput = async (e: ChangeEvent<HTMLInputElement>) => {

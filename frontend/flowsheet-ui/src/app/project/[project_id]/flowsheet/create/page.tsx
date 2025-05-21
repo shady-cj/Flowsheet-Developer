@@ -6,19 +6,20 @@ import DashboardHeader from "@/components/DashboardLayout/DashboardHeader"
 import { fetchedFlowsheetsType, fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer";
 import { createFlowsheet } from "@/lib/actions/flowsheet";
 import FormCreate from "@/components/utils/formCreate";
-const BASE_URL = 'http://localhost:8000'
+const BASE_URL = process.env.API_URL as string
 
 
 
 
 
-const FlowsheetCreatePage = async ({params}: {params: {project_id: string}}) => {
+const FlowsheetCreatePage = async ({params}: {params: Promise<{project_id: string}>}) => {
+    const route_params = await params
     let result: {project: string, flowsheets: fetchedFlowsheetsType[]}
-          const accessToken = cookies().get("access")?.value
+          const accessToken = (await cookies()).get("access")?.value
           if (!accessToken)
               redirect("/")
           try {
-              const response = await fetch(`${BASE_URL}/flowsheet_create/${params.project_id}`, {
+              const response = await fetch(`${BASE_URL}/flowsheet_create/${route_params.project_id}`, {
                   headers: {"Authorization": `Bearer ${accessToken}`},
                   next: {revalidate: 60} // validate atmost every minute
               })
@@ -44,7 +45,7 @@ const FlowsheetCreatePage = async ({params}: {params: {project_id: string}}) => 
         param: {
             type: "flowsheet",
             data: result.flowsheets,
-            id: params.project_id
+            id: route_params.project_id
         },
 
     }   

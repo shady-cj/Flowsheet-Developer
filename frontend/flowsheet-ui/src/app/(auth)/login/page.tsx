@@ -2,7 +2,7 @@
 import PasswordInput from '@/components/auth/PasswordInput'
 import { login } from '@/lib/actions/auth'
 import Button from '@/components/utils/Button';
-import { useFormState } from 'react-dom';
+// import { useFormState } from 'react-dom';
 import AuthStatusBox from '@/components/utils/StatusBox';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -12,11 +12,11 @@ import Image from 'next/image';
 import logoIcon from "@/assets/logo-icon-2.svg"
 import googleIcon from "@/assets/Google.svg"
 import { signIn } from 'next-auth/react';
-import { useEffect } from 'react';
+import { useActionState, useEffect } from 'react';
 
 
 const LoginPage = () => {
-  const [state, formAction] = useFormState(login, null)
+  const [state, formAction] = useActionState(login, null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const nextURL = searchParams.get("nextURL")

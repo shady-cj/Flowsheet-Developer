@@ -1,7 +1,6 @@
 "use client";
 import PasswordInput from '@/components/auth/PasswordInput'
 import Button from '@/components/utils/Button';
-import { useFormState } from 'react-dom';
 import { register } from '@/lib/actions/auth';
 import AuthStatusBox from '@/components/utils/StatusBox';
 import { useRouter } from 'next/navigation';
@@ -11,11 +10,12 @@ import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import Image from 'next/image';
 import logoIcon from "@/assets/logo-icon-2.svg"
 import googleIcon from "@/assets/Google.svg"
+import { useActionState } from 'react';
 
 
 const Register = () => {
     const router = useRouter()
-    const [state, formAction] = useFormState(register, null)
+    const [state, formAction] = useActionState(register, null)
     if (state?.success) {
         setTimeout(()=>{
             router.push('/login')

@@ -1,19 +1,9 @@
-import HomeHeader from '@/components/HomeLayout/HomeHeader'
-import React from 'react'
-import { cookies } from 'next/headers'
-import DashboardHeader from '@/components/DashboardLayout/DashboardHeader'
-
-const NotFoundPage = () => {
-  const accessToken = cookies().get("access")?.value
+import NotFound from "@/components/utils/NotFound"
+const NotFoundPage = async () => {
   return (
-    <>
-        {
-          accessToken ? <DashboardHeader/> : <HomeHeader />
-        }
-        <div className='h-screen -mt-14 flex justify-center items-center'> 
+   <NotFound>
            Flowsheet does not exist
-        </div>
-    </>
+    </NotFound>
   )
 }
 

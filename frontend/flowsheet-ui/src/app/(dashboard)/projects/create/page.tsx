@@ -1,5 +1,6 @@
 import FormCreate from "@/components/utils/formCreate";
 import { createProject } from "@/lib/actions/project";
+import Link from "next/link";
 
 
 
@@ -21,6 +22,15 @@ const propsForProjectCreation = {
 export default function ProjectCreate() {
    
     return (
-        <FormCreate {...propsForProjectCreation} />
+        <section className="flex flex-col gap-y-4 h-full w-full px-6">
+            <div className="flex justify-end w-full">
+                <Link href="/projects" className="text-text-blue-variant text-lg font-medium flex flex-col hover:scale-105 transition">
+                  Project List
+                    <span className="inline-block border border-solid border-[#0052CC] w-[9ch] -mt-1"></span>
+                </Link>
+            </div>
+            <FormCreate {...propsForProjectCreation} />
+            
+        </section>
     )
 }

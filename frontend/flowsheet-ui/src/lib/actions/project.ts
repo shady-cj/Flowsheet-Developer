@@ -36,8 +36,9 @@ export async function createProject(prevState: any, formData: FormData) {
             revalidatePath("/projects")
             return {success: "Created Successfully", result}
         } else if(response.status === 401) {
-            cookies().delete("refresh")
-            cookies().delete("access")
+            const cookie = await cookies()
+            cookie.delete("refresh")
+            cookie.delete("access")
         } else {
             return {error: "An error occured"}
         }

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import DashboardPageRenderer from './DashboardPageRenderer'
 import CreateFlowsheetCard from './CreateFlowsheetCard'
 
-const DashboardMain = ({searchParams}: {searchParams: {f: "recents" | "starred" } | {}}) => {
+const DashboardMain = () => {
 //   console.log('search params', searchParams)
 
 // const activeSection = search

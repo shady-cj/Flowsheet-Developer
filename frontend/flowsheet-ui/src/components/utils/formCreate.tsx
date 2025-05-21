@@ -1,8 +1,8 @@
 "use client"
 import Button from "@/components/utils/Button"
-import { useFormState } from "react-dom"
 import StatusBox from "@/components/utils/StatusBox"
 import { useRouter } from "next/navigation"
+import { useActionState } from "react"
 
 type props = {
     title: string,
@@ -26,7 +26,7 @@ type props = {
 
 const FormCreate = ({title, nameField, descriptionField, action, param, buttonTitle}: props) => {
     const router = useRouter()
-    const [state, formAction] = useFormState(action, null)
+    const [state, formAction] = useActionState(action, null)
     if (state?.success) {
         console.log("after submission state", state)
 
