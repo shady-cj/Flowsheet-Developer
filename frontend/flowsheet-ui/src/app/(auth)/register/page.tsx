@@ -3,24 +3,32 @@ import PasswordInput from '@/components/auth/PasswordInput'
 import Button from '@/components/utils/Button';
 import { register } from '@/lib/actions/auth';
 import AuthStatusBox from '@/components/utils/StatusBox';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import Image from 'next/image';
 import logoIcon from "@/assets/logo-icon-2.svg"
 import googleIcon from "@/assets/Google.svg"
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
+import { signIn } from 'next-auth/react';
 
 
 const Register = () => {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [state, formAction] = useActionState(register, null)
+    const error = searchParams.get("error")
     if (state?.success) {
         setTimeout(()=>{
             router.push('/login')
         }, 2000)
     }
+    useEffect(()=> {
+        if (error) {
+          alert(error)
+        }
+    }, [error])
     return (
         
         <AuthPageWrapper>
@@ -34,13 +42,13 @@ const Register = () => {
                 <h2 className='text-[#16191C] text-[2.5rem] font-semibold leading-[3.1rem]'>Create account</h2>
                 <p className='text-[#666666] text-base font-normal'>Get started by creating an account.</p>
                 </div>
-                <div className='mt-4 flex justify-center items-center border border-[#C7CFD6] rounded-lg'>
-                <div className='flex gap-4 py-2 items-center'>
-                    <Image src={googleIcon} height={24} width={24} alt="google icon" quality={100}/>
-                    <p className='text-sm font-medium text-[#16191C]'>
-                    Continue with Google
-                    </p>
-                </div>
+                <div className='mt-4 flex justify-center items-center border border-[#C7CFD6] rounded-lg cursor-pointer' onClick={() => signIn("google")}>
+                    <div className='flex gap-4 py-2 items-center'>
+                        <Image src={googleIcon} height={24} width={24} alt="google icon" quality={100}/>
+                        <p className='text-sm font-medium text-[#16191C]'>
+                        Continue with Google
+                        </p>
+                    </div>
                 </div>
             </div>
             <div className='flex gap-4 items-center'>

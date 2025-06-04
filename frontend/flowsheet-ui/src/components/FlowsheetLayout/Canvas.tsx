@@ -2390,13 +2390,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         point2.addEventListener("mousedown", (e)=> handleMouseDown(e, point2)) 
         point2.addEventListener("mouseup", handleMouseUp)
         point2.addEventListener("dblclick", e => createMultiplePoint(e, point2))
-        const startCoords: [number, number] = [0, 15]
+        const startCoords: [number, number] = [15, 15]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
-        point2.style.left = `50px`
+        point2.style.left = `60px`
         point2.style.top = `${startCoords[1]}px`
         arrow.style.top = `${startCoords[1]}px`;
-        arrow.style.left = `50px`
+        arrow.style.left = `60px`
         
         arrow.innerHTML = `
           <polygon points="${lineCapCoordinate}" fill="#beb4b4" stroke="transparent" strokeWidth="1.5" />

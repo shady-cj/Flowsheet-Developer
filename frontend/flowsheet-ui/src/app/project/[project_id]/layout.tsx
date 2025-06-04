@@ -2,7 +2,7 @@
 
 import { UserProvider } from "@/components/context/UserProvider"
 
-const Layout = ({children, params}: {children: React.ReactNode, params: {id: string}}) => {
+const Layout = ({children}: {children: React.ReactNode}) => {
   return (
     <UserProvider>
       <div className="select-none flex flex-col h-screen">

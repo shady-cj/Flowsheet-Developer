@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import Link from "next/link"
 import folder from "@/assets/folder.svg"
 import Image from 'next/image'
 import DashboardPageRenderer from './DashboardPageRenderer'
 import CreateFlowsheetCard from './CreateFlowsheetCard'
+import Loader from '../utils/loader'
 
 const DashboardMain = () => {
 //   console.log('search params', searchParams)
@@ -25,7 +26,9 @@ return (
                 </div>
             </section>
             <section className='py-12 px-5'>
-                <DashboardPageRenderer/>
+                <Suspense fallback={<Loader fullScreen={false} offsetHeightClass='h-[200px]' color='black' />}>
+                    <DashboardPageRenderer/>
+                </Suspense>
             </section>
 
 

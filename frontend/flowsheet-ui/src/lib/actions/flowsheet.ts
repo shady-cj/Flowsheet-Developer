@@ -109,10 +109,12 @@ export const updateFlowsheetPreview = async (imageDataUrl: string, flowsheetId: 
             }
 
         })
-        const result = await response.json()
-        revalidatePath('/dashboard')
+        if (response.status === 200) {
+            const result = await response.json()
+            revalidatePath('/dashboard')
+        }
+        
         // console.log(response, response.text)
-        console.log("result", result)
         // if (response.status === 200) return result
         // else {
         //     console.log(result);

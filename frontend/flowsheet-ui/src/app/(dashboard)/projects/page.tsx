@@ -30,8 +30,9 @@ export default async function Projects () {
     // console.log('results', results)   
     return (
         <>
-            <section className="flex justify-end">
-                <Link href='/projects/create' className="bg-blueVariant text-white p-4 rounded-md shadow-md font-bold active:opacity-90 hover:bg-normalBlueVariant active:scale-90 transition"> Create New Project </Link>
+            <section className="flex w-full justify-between items-center">
+                <h1 className="text-2xl font-bold">All Projects</h1>
+                <Link href='/projects/create' className="bg-blueVariant text-white px-4 py-3 rounded-md shadow-md font-bold active:opacity-90 hover:bg-normalBlueVariant active:scale-90 transition mr-4"> New Project </Link>
             </section>
     
             <section className="mt-8 flex gap-4 flex-wrap">

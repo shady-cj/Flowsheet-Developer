@@ -1,7 +1,7 @@
 
 import FlowsheetProvider from "@/components/context/FlowsheetProvider"
 
-const Layout = ({children, params}: {children: React.ReactNode, params: {id: string}}) => {
+const Layout = ({children}: {children: React.ReactNode}) => {
   return (
     <FlowsheetProvider>
       <div className="select-none h-screen">

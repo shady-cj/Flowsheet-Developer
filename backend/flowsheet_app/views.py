@@ -334,10 +334,10 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin, RetrieveUpdateDestroyA
     queryset = Project.objects.all()
 
     def get_queryset(self):
+        print("request user", self.request.user, self.get_permissions())
         user = self.request.user
         if user.is_superuser:
             return Project.objects.all()
-
         return Project.objects.filter(creator=user)
         # return Project.objects.all()
 
