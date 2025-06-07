@@ -1535,20 +1535,29 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const objOffsetTop = obj.offsetTop
 
       for (const point of pointIndicatorArray) {
+
         if ((objOffsetLeft + (point as HTMLElement).offsetLeft) < 7 || (objOffsetTop + (point as HTMLElement).offsetTop) < 7) {
           // 7 here is arbitrary for padding
+            // console.log("object offset left", objOffsetLeft, "point offset left", (point as HTMLElement).offsetLeft)
+
           if ((objOffsetLeft + (point as HTMLElement).offsetLeft) < 7)
             coords.offsetLeft = Math.abs((point as HTMLElement).offsetLeft) + 6
           if ((objOffsetTop + (point as HTMLElement).offsetTop) < 7)
             coords.offsetTop = Math.abs((point as HTMLElement).offsetTop) + 6
-          if ((objOffsetLeft + (point as HTMLElement).offsetLeft) > (canvasContainerContentWidth - 10)) {
-            coords.offsetLeftEnd = Math.abs((point as HTMLElement).offsetLeft) + 6
+          
+        } else if ((objOffsetLeft + (point as HTMLElement).offsetLeft) > (canvasContainerContentWidth - 20) || (objOffsetTop + (point as HTMLElement).offsetTop) > (canvasContainerContentHeight - 20)) {
+            console.log("additon", (objOffsetLeft + (point as HTMLElement).offsetLeft))
+        
+          if ((objOffsetLeft + (point as HTMLElement).offsetLeft) > (canvasContainerContentWidth - 20)) {
+
+            coords.offsetLeftEnd = canvasContainerContentWidth - Math.abs((point as HTMLElement).offsetLeft) - 10            
           }
-          if ((objOffsetTop + (point as HTMLElement).offsetTop) > (canvasContainerContentHeight - 10)) {
-            coords.offsetTopEnd = Math.abs((point as HTMLElement).offsetTop) + 6
+          if ((objOffsetTop + (point as HTMLElement).offsetTop) > (canvasContainerContentHeight - 20)) {
+            coords.offsetTopEnd = canvasContainerContentHeight - Math.abs((point as HTMLElement).offsetTop) - 10
           }
         }
       }
+      console.log("coords", coords)
       return coords
     }
 
@@ -2656,8 +2665,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             
               offsetX = offsetLeft > offsetX ? offsetLeft : offsetX
               offsetY = offsetTop > offsetY ? offsetTop : offsetY
-              offsetRight = offsetRight < offsetLeftEnd ? offsetLeftEnd : offsetRight
-              offsetBottom = offsetBottom < offsetTopEnd ? offsetTopEnd : offsetBottom
+              offsetRight = offsetLeftEnd < offsetRight && offsetLeftEnd !== 0 ? offsetLeftEnd : offsetRight
+              offsetBottom = offsetTopEnd < offsetBottom && offsetTopEnd !== 0 ? offsetTopEnd : offsetBottom
+              console.log("final offset right", offsetRight)
               
             } else {
               const shapeWidth = obj.getBoundingClientRect().width
@@ -2676,7 +2686,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             // console.log(nextX, "nextX")
             // console.log(offsetX, "offsetX")
           
-            console.log(nextX, canvasContainerContentWidth, "canvasContainerContentWidth")
+            // console.log(nextX, canvasContainerContentWidth, "canvasContainerContentWidth")
             nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(6)) : nextX > offsetRight ? parseFloat(offsetRight.toFixed(6)) : parseFloat(nextX.toFixed(6))
             nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(6)) : nextY > offsetBottom ? parseFloat(offsetBottom.toFixed(6)): parseFloat(nextY.toFixed(6))
     
@@ -2797,10 +2807,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           <main className="relative overflow-scroll custom-scrollbar bg-white h-full w-full">
             <div className={`relative overflow-hidden h-[${canvasContainerContentHeight}px] w-[${canvasContainerContentWidth}px]`}>
 
-              <div className="relative canvas-bg small-grid-bg w-[10000px] h-[10000px]">
+              <div className="relative overflow-hidden canvas-bg small-grid-bg w-[10000px] h-[10000px]">
 
-                <div className="relative z-1 canvas-bg large-grid-bg w-[10000px] h-[10000px]">
-                  <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-auto w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
+                <div className="relative overflow-hidden z-1 canvas-bg large-grid-bg w-[10000px] h-[10000px]">
+                  <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-hidden w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
                       { 
                         isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} closeFormUnsaved={closeFormUnsaved} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
                       }
