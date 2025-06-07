@@ -11,8 +11,8 @@ import cancel from "@/assets/cancel.svg"
 const ObjectForm = ({formFields, position, handleFormState, saveForm, closeFormUnsaved, formState, objectFormType}: {formFields: formFieldsType, position: {x: number, y: number}, handleFormState: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void, saveForm: (e: FormEvent) => void, closeFormUnsaved: ()=> void, formState: formStateObjectType, objectFormType: objectType}) => {
   
     
-    const formPositionY = position.y + 150 < canvasContainerContentHeight ? position.y : canvasContainerContentHeight - 400;
-    const formPositionX = position.x + 150 < canvasContainerContentWidth ? position.x + 80 : canvasContainerContentWidth - 400;
+    const formPositionY = position.y + 300 < canvasContainerContentHeight ? position.y : canvasContainerContentHeight - 400;
+    const formPositionX = position.x + 300 < canvasContainerContentWidth ? position.x + 80 : canvasContainerContentWidth - 400;
     // console.log(formPositionY, position.y)
     return (
     <div className="absolute w-full h-full bg-[#00000080] z-30 ">

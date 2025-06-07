@@ -1529,10 +1529,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
     const checkLineBoundary = (e: MouseEvent, obj: HTMLElement) => {
       const pointIndicators = obj.querySelectorAll(".point-indicators")
-      const coords: {offsetLeft: number, offsetTop: number} = {offsetLeft: 0, offsetTop: 0}
+      const coords: {offsetLeft: number, offsetTop: number, offsetLeftEnd: number, offsetTopEnd: number} = {offsetLeft: 0, offsetTop: 0, offsetLeftEnd: 0, offsetTopEnd: 0} 
       const pointIndicatorArray = Array.from(pointIndicators)
       const objOffsetLeft = obj.offsetLeft
       const objOffsetTop = obj.offsetTop
+
       for (const point of pointIndicatorArray) {
         if ((objOffsetLeft + (point as HTMLElement).offsetLeft) < 7 || (objOffsetTop + (point as HTMLElement).offsetTop) < 7) {
           // 7 here is arbitrary for padding
@@ -1540,6 +1541,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             coords.offsetLeft = Math.abs((point as HTMLElement).offsetLeft) + 6
           if ((objOffsetTop + (point as HTMLElement).offsetTop) < 7)
             coords.offsetTop = Math.abs((point as HTMLElement).offsetTop) + 6
+          if ((objOffsetLeft + (point as HTMLElement).offsetLeft) > (canvasContainerContentWidth - 10)) {
+            coords.offsetLeftEnd = Math.abs((point as HTMLElement).offsetLeft) + 6
+          }
+          if ((objOffsetTop + (point as HTMLElement).offsetTop) > (canvasContainerContentHeight - 10)) {
+            coords.offsetTopEnd = Math.abs((point as HTMLElement).offsetTop) + 6
+          }
         }
       }
       return coords
@@ -2634,25 +2641,45 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             DrawPoint(e, currentActivePoint.current)
           } else {
             const obj = currentObject.current as HTMLElement
-            let offsetX = 10
-            let offsetY = 10
+            const objScale = objectData.current[obj.id].scale
+
+            let offsetX = 10 
+            let offsetY = 10 
+            let offsetRight = canvasContainerContentWidth - 60
+            let offsetBottom = canvasContainerContentHeight - 60
             // console.log(e.clientX, "client x")
             // CanvasContainer.scrollLeft += 50
             
             if (obj.getAttribute("data-variant") === "line") {
               // To prevent Lines from going over the edge
-              const {offsetLeft, offsetTop} = checkLineBoundary(e, obj)
+              const {offsetLeft, offsetTop, offsetLeftEnd,offsetTopEnd} = checkLineBoundary(e, obj)
             
               offsetX = offsetLeft > offsetX ? offsetLeft : offsetX
               offsetY = offsetTop > offsetY ? offsetTop : offsetY
+              offsetRight = offsetRight < offsetLeftEnd ? offsetLeftEnd : offsetRight
+              offsetBottom = offsetBottom < offsetTopEnd ? offsetTopEnd : offsetBottom
+              
+            } else {
+              const shapeWidth = obj.getBoundingClientRect().width
+              const shapeHeight = obj.getBoundingClientRect().height
+              const extrasX = shapeWidth - (shapeWidth / objScale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
+              const extrasY = shapeHeight - (shapeHeight / objScale)
+              offsetX = 10 + extrasX / 2
+              offsetY = 10 + extrasY / 2
+              offsetRight = canvasContainerContentWidth - (shapeWidth + extrasX / 4)
+              offsetBottom = canvasContainerContentHeight - (shapeHeight + extrasY / 4)
+
             }
             const objectCoordinate = objectData.current[obj.id].properties.coordinates
             let nextX = e.clientX - objectCoordinate.startX + objectCoordinate.lastX
             let nextY = e.clientY - objectCoordinate.startY + objectCoordinate.lastY
-            
-            
-            nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(6)) : parseFloat(nextX.toFixed(6))
-            nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(6)) : parseFloat(nextY.toFixed(6))
+            // console.log(nextX, "nextX")
+            // console.log(offsetX, "offsetX")
+          
+            console.log(nextX, canvasContainerContentWidth, "canvasContainerContentWidth")
+            nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(6)) : nextX > offsetRight ? parseFloat(offsetRight.toFixed(6)) : parseFloat(nextX.toFixed(6))
+            nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(6)) : nextY > offsetBottom ? parseFloat(offsetBottom.toFixed(6)): parseFloat(nextY.toFixed(6))
+    
 
             // console.log(nextX, "nextX")
 
