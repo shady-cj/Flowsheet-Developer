@@ -49,8 +49,8 @@ const defaultFormField: formFieldsType = [
 ]
 
 
-const canvasContainerContentWidth = 5000
-const canvasContainerContentHeight = 5000
+export const canvasContainerContentWidth = 10000
+export const canvasContainerContentHeight = 10000
 
 // }
 export type formStateObjectType = {[index: string]: string}
@@ -2481,8 +2481,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       newEl.classList.add("cursor-move")
       newEl.classList.remove("cursor-grabbing")
 
-      x = x < 6 ? 6 : parseFloat(x.toFixed(6))
-      y = y < 6 ? 6 : parseFloat(y.toFixed(6))
+      //. Ensure when the object is dropped it's within the canvas area
+      x = x < 6 ? 6 : x + 100 > canvasContainerContentWidth ? canvasContainerContentWidth - 100 : parseFloat(x.toFixed(6))
+      y = y < 6 ? 6 : y + 100 > canvasContainerContentHeight ? canvasContainerContentHeight - 100 : parseFloat(y.toFixed(6))
      
       objectData.current[uuid4] = defaultObjectData
       objectData.current[uuid4].properties.coordinates.lastX = x
@@ -2767,21 +2768,19 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           Page not found
         </div> :  (
           <main className="relative overflow-scroll custom-scrollbar bg-white h-full w-full">
-          <div className={`relative overflow-hidden h-[${canvasContainerContentHeight}px] w-[${canvasContainerContentWidth}px]`}>
+            <div className={`relative overflow-hidden h-[${canvasContainerContentHeight}px] w-[${canvasContainerContentWidth}px]`}>
 
-            <div className="relative canvas-bg small-grid-bg w-[10000px] h-[10000px]">
+              <div className="relative canvas-bg small-grid-bg w-[10000px] h-[10000px]">
 
-              <div className="relative z-1 canvas-bg large-grid-bg w-[10000px] h-[10000px]">
-                <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-auto w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
-                    { 
-                      isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} closeFormUnsaved={closeFormUnsaved} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
-                    }
-                  </div>
+                <div className="relative z-1 canvas-bg large-grid-bg w-[10000px] h-[10000px]">
+                  <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-auto w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
+                      { 
+                        isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} closeFormUnsaved={closeFormUnsaved} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
+                      }
+                    </div>
+                </div>
               </div>
             </div>
-          </div>
-
-
 
         </main>
           

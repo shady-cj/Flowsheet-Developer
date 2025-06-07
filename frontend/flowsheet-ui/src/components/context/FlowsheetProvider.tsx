@@ -192,6 +192,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
     }
     const Wi = parseFloat(workIndex.current!.value)
     const isValidPath = validateCommunitionPaths(communitionListForBondsEnergy.current, objectData.current)
+    console.log("is valid path", isValidPath)
     if (!isValidPath) {
       communitionListForBondsEnergy.current = []
       alert("Invalid connection between two points")

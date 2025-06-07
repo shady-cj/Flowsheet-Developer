@@ -1,5 +1,5 @@
 import {ChangeEvent, Dispatch, FormEvent, SetStateAction} from 'react'
-import { formStateObjectType, formFieldsType, objectType } from './Canvas'
+import { formStateObjectType, formFieldsType, objectType, canvasContainerContentHeight, canvasContainerContentWidth } from './Canvas'
 import save from "@/assets/save.png"
 import gape from "@/assets/gape.svg"
 import set from "@/assets/set.svg"
@@ -10,10 +10,14 @@ import cancel from "@/assets/cancel.svg"
 
 const ObjectForm = ({formFields, position, handleFormState, saveForm, closeFormUnsaved, formState, objectFormType}: {formFields: formFieldsType, position: {x: number, y: number}, handleFormState: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void, saveForm: (e: FormEvent) => void, closeFormUnsaved: ()=> void, formState: formStateObjectType, objectFormType: objectType}) => {
   
+    
+    const formPositionY = position.y + 150 < canvasContainerContentHeight ? position.y : canvasContainerContentHeight - 400;
+    const formPositionX = position.x + 150 < canvasContainerContentWidth ? position.x + 80 : canvasContainerContentWidth - 400;
+    // console.log(formPositionY, position.y)
     return (
     <div className="absolute w-full h-full bg-[#00000080] z-30 ">
         <div className="relative w-full h-full">
-            <form action="" className={`object-form absolute bg-white p-5 pt-6 flex flex-col gap-y-6 rounded-lg max-w-[21rem]`} style={{top: `${position.y}px`, left: `${position.x + 80}px`}} onSubmit={saveForm}>
+            <form action="" className={`object-form absolute bg-white p-5 pt-6 flex flex-col gap-y-6 rounded-lg max-w-[21rem]`} style={{top: `${formPositionY}px`, left: `${formPositionX}px`}} onSubmit={saveForm}>
                 <div className='relative'>
                     <h2 className='text-xl text-[#1A1A1A] font-semibold'>{objectFormType} Property</h2>
                     <Image src={cancel} alt="cancel" width={20} height={20} className="absolute right-0 top-0 mt-1 cursor-pointer" onClick={() => closeFormUnsaved()}/>

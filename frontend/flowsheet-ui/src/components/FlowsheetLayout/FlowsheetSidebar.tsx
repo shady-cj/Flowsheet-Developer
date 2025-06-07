@@ -34,6 +34,7 @@ import concentratorImage from "@/assets/concentrator.svg"
 
 import ConvertStringToShape from "../Shapes/ConvertStringToShape";
 import Concentrator from "../Objects/Concentrator";
+import Loader from "../utils/loader";
 
 export type genericImageObjectType = {
     id: string, 
@@ -189,7 +190,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
 
                         shapes.length > 0 ? shapes.map((shape) => {
                                 return <ConvertStringToShape key={shape.id} objectType={"Shape"} objectId={shape.id} objectName={shape.name}/>
-                            }):"Loading"
+                            }): <Loader fullScreen={false} offsetHeightClass="h-[20px]" color="black" small={true}/>
                     }
                 </div>
             </div>
