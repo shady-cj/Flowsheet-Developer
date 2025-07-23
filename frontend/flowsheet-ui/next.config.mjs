@@ -9,7 +9,15 @@ const nextConfig = {
                 pathname: '**',
             },
           ],
-    }
+        // Increase timeout to 30 seconds
+        minimumCacheTTL: 60,
+        dangerouslyAllowSVG: true,
+        unoptimized: false,
+        // Add loader timeout
+        loader: 'default',
+        
+    },
+    
 };
 
 export default nextConfig;

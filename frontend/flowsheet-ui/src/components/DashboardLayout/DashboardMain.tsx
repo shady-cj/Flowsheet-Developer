@@ -11,7 +11,7 @@ const DashboardMain = () => {
 
 // const activeSection = search
 return (
-    <section className='overflow-y-scroll h-[90vh]'>
+    <section className='overflow-y-auto h-[90vh]'>
         <section className=''>
             <section className='pt-12 px-5 h-[14.5rem] border-b border-solid border-[#E6E6E6]'>
 

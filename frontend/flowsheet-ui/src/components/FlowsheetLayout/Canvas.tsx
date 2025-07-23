@@ -1745,6 +1745,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           objectData.current[obj.id].properties.coordinates.startX = parseFloat(e.clientX.toFixed(6))
           objectData.current[obj.id].properties.coordinates.startY = parseFloat(e.clientY.toFixed(6))
       }
+      // currentObject.current?.querySelector(".object-details-tooltip")?.classList.add("show-tooltip")
       onMouseDown.current = true
       document.removeEventListener("mouseup", handleMouseUpGeneral)
       // console.log(e)
@@ -1884,15 +1885,26 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       // console.log(element.style.top, element.style.left, element.style.width)
       const data = objectData.current[dataId]
       
-      if (element.id === currentObject.current?.id) { 
-        tooltip.classList.remove("show-tooltip")
+      // if (element.id === currentObject.current?.id) { 
+      //   tooltip.classList.remove("show-tooltip")
+      //   tooltip.classList.add("hide-tooltip")
+      // } else {
+      //   element.classList.add("current-object")
+      //   tooltip.classList.remove("hide-tooltip")
+      //   tooltip.classList.add("show-tooltip")
+
+      // }
+      if (onMouseDown.current && element.id === currentObject.current?.id) {
+          tooltip.classList.remove("show-tooltip")
         tooltip.classList.add("hide-tooltip")
       } else {
-        element.classList.add("current-object")
         tooltip.classList.remove("hide-tooltip")
-        tooltip.classList.add("show-tooltip")
+     tooltip.classList.add("show-tooltip")
       }
       
+      // object-hover is a class added when mouse enters an object area.
+      
+      element.classList.add('object-hover')
       
       tooltip.innerHTML = `
         <p><strong>Label:</strong> ${data.label} </p>
@@ -2205,6 +2217,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           newEl.addEventListener("mouseleave", (e)=> {
             tooltipWrapper.classList.remove("show-tooltip")
             tooltipWrapper.classList.add("hide-tooltip")
+            newEl.classList.remove('object-hover')
             if (newEl.id !== currentObject.current?.id)
               newEl.classList.remove("current-object")
           })
@@ -2525,6 +2538,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         newEl.addEventListener("mouseleave", (e)=> {
           tooltipWrapper.classList.remove("show-tooltip")
           tooltipWrapper.classList.add("hide-tooltip")
+          newEl.classList.remove('object-hover')
           if (newEl.id !== currentObject.current?.id)
             newEl.classList.remove("current-object")
         })

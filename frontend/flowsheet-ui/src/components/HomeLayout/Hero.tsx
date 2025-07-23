@@ -9,7 +9,7 @@ const Hero = () => {
             <div className="flex basis-[40%] flex-col justify-between gap-12 border border-[#C7CFD6] rounded-xl py-12 px-8 bg-[#E9ECF0] shrink-0">
               <div className="flex flex-col gap-6">
                 <h1 className="font-semibold text-5xl lg:text-[3.5rem] xl:text-7xl hero-text">Visualize your mineral processing workflow</h1>
-                <p className="font-inter text-normal xl:text-lg text-[#505F79] font-normal tracking-wide xl:tracking-widest">
+                <p className="font-inter text-normal xl:text-lg text-[#505F79] font-normal tracking-normal xl:tracking-wide">
                     Increase efficiency, reduce cost and optimize mineral processing operation with our flowsheet modelling software
                 </p>
               </div>
