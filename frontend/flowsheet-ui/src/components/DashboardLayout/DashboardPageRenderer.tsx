@@ -34,6 +34,7 @@ export type fetchedFlowsheetsType = fetchedProjectType & {
 
 
 const initialPageNumberState = {flowsheet: 0, project: 0}
+const initialDoneFetchingState = {flowsheet: false, project: false}
 
 const DashboardPageRenderer = () => {
     const currentType = useRef<string | null>(null)
@@ -46,34 +47,39 @@ const DashboardPageRenderer = () => {
     const searchParams = useSearchParams()
     const type = searchParams.get("f")
     const tType = searchParams.get("t")
-    // console.log('type', type, "tType", tType)
     const pageLimit = 10
-    const [pageNumber, setPageNumber] = useState(initialPageNumberState)
-    // console.log("search param tType ", tType)
+    // const [pageNumber, setPageNumber] = useState(initialPageNumberState)
+    const pageNumber = useRef<{ flowsheet: number, project: number }>(initialPageNumberState)
     const activeBtnClass = 'bg-[#17181A] text-text-gray-2 p-2 rounded-xl'
     const dormantBtnClass = 'bg-grayVariant text-text-black-2 p-2 rounded-xl'
 
+    const doneFetching = useRef<{ project: boolean, flowsheet: boolean }>(initialDoneFetchingState)
     const buttonTitle = type === "recents" ? "Recent " : type === "starred" ? "Starred " : ""
     
     const getProjects = useCallback(async () => {
-        const response = await fetchDashboardProjects(type, pageLimit, pageNumber.project)
+        const response = await fetchDashboardProjects(type, pageLimit, pageNumber.current.project)
+        if (response.length < pageLimit) doneFetching.current = {...doneFetching.current, project: true}
         setProjects((prev) => [...prev, ...response])
         fetchedProjects.current = true
         setLoading(false)
         setBottomPageLoading(false)
-    }, [type, pageNumber])
+    }, [type])
 
     const getFlowsheets = useCallback(async () => {
-        const response = await fetchDashboardFlowsheets(type, pageLimit, pageNumber.flowsheet)
+        const response = await fetchDashboardFlowsheets(type, pageLimit, pageNumber.current.flowsheet)
+        if (response.length < pageLimit) doneFetching.current = {...doneFetching.current, flowsheet: true}
         setFlowsheets((prev) => [...prev, ...response])
         fetchedFlowsheets.current = true
         setLoading(false)
         setBottomPageLoading(false)
-    }, [type, pageNumber])
+    }, [type])
 
     const resetPage = () => {
-        setPageNumber(initialPageNumberState)
+        pageNumber.current = initialPageNumberState
+        doneFetching.current = initialDoneFetchingState
         setBottomPageLoading(false)
+        setFlowsheets([])
+        setProjects([])
     }
 
     useEffect(() => {
@@ -85,22 +91,19 @@ const DashboardPageRenderer = () => {
         }
 
      
-        console.log("flowsheets", flowsheets)
         if (tType === "projects") {
-            if (currentType.current !== type && !fetchedProjects.current && pageNumber.project < 1){
+            if (!(currentType.current === type && fetchedProjects.current) && pageNumber.current.project < 1){
                 setLoading(true)
-                setPageNumber(prev => ({...prev, project: prev.project + 1}))
                 getProjects()
+                pageNumber.current = {...pageNumber.current, project: pageNumber.current.project + 1}
             }
 
         } else {
-            console.log("currentType ", currentType.current, type)
-            console.log("fetchedFlowsheets", fetchedFlowsheets.current)
-            console.log( "pageNumber", pageNumber.flowsheet)
-            if (currentType.current !== type && !fetchedFlowsheets.current && pageNumber.flowsheet < 1) {
+
+            if (!(currentType.current === type && fetchedFlowsheets.current) && pageNumber.current.flowsheet < 1) {
                 setLoading(true)
-                setPageNumber(prev => ({...prev, flowsheet: prev.flowsheet + 1}))
                 getFlowsheets()
+                pageNumber.current = {...pageNumber.current, flowsheet: pageNumber.current.flowsheet + 1}
             }
 
 
@@ -109,7 +112,7 @@ const DashboardPageRenderer = () => {
 
         currentType.current = type
       
-    }, [type, tType, getProjects, getFlowsheets, projects, flowsheets, loading, pageNumber])
+    }, [type, tType, getProjects, getFlowsheets, projects, flowsheets])
 
 
 
@@ -117,24 +120,26 @@ const DashboardPageRenderer = () => {
     useEffect(() => {
         // infinite scroll logic
         const dashboardMain = document.getElementById("dashboard-main")
-        console.log('getting called')
         const handleScroll = () => {
             if (!dashboardMain ) return
             const scrollTop = dashboardMain.scrollTop
             const scrollHeight = dashboardMain.scrollHeight
             const clientHeight = dashboardMain.clientHeight
 
-            console.log("pageNumber", pageNumber)
 
             if (scrollTop + clientHeight + 1 >= scrollHeight && !loading && !bottomPageLoading) {
-                console.log("Reached bottom of the page")  
-                setBottomPageLoading(true)
                 if (tType === "projects") {
-                    setPageNumber(prev => ({...prev, project: prev.project + 1}))
-                    getProjects()
-                }else {
-                    setPageNumber(prev => ({...prev, flowsheet: prev.flowsheet + 1}))
-                    getFlowsheets()
+                    if (!doneFetching.current.project) {
+                        setBottomPageLoading(true)
+                        getProjects()
+                        pageNumber.current = {...pageNumber.current, project: pageNumber.current.project + 1}
+                    }
+                }else  {
+                    if (!doneFetching.current.flowsheet) {
+                        setBottomPageLoading(true)
+                        getFlowsheets()
+                        pageNumber.current = {...pageNumber.current, flowsheet: pageNumber.current.flowsheet + 1}
+                    }
                 }
             }
         }
@@ -142,7 +147,7 @@ const DashboardPageRenderer = () => {
         return () => {
             dashboardMain?.removeEventListener("scroll", handleScroll)
         }
-    }, [pageNumber, tType, getProjects, getFlowsheets, loading, bottomPageLoading])
+    }, [tType, getProjects, getFlowsheets, loading, bottomPageLoading])
 
 
 
@@ -157,8 +162,17 @@ const DashboardPageRenderer = () => {
                 
                 {
                     loading ? <Loader fullScreen={false} offsetHeightClass='h-[300px]' color='black'/> : tType === "projects" && projects?.length ?
+                    
                     <CardRenderer type="projects" setData={setProjects} data={projects} revalidate={getProjects}/> :
-                    tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} revalidate={getFlowsheets} />  : <div>No {tType=== "projects" ? tType : "flowsheets"}</div>
+                    tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} revalidate={getFlowsheets} />  : 
+                    
+                    <div>
+
+                        { 
+                            (tType === "projects" && fetchedProjects.current) ? <b>No projects yet...</b> : 
+                            (tType === null && fetchedFlowsheets.current) ? <b>No flowsheets yet...</b> : ""
+                        }
+                    </div>
                 }
                 {
                     bottomPageLoading ? <Loader fullScreen={false} offsetHeightClass='h-[100px]' color='black'/> : ""
