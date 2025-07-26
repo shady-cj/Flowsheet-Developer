@@ -57,7 +57,7 @@ export type formStateObjectType = {[index: string]: string}
 
 
 const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
-    console.log('params', params, params.project_id, params.flowsheet_id)
+    // console.log('params', params, params.project_id, params.flowsheet_id)
     const {canvasLoading, setCanvasLoading, saveObjectData, flowsheetObject, objectData, hasInstance,setIsEdited, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
@@ -1006,7 +1006,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
 
         if (!isConnected) {
-          // console.log('got here')
+          // console.log('got here (not isConnected)')
           // console.log(objectData.current[shapeId])
           /**
            * 
@@ -1093,7 +1093,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
         }
 
-        console.log('is connected', isConnected)
+        console.log('is connected (line-to-shape)', isConnected)
+        console.log("line data", objectData.current[obj.id])
+        console.log("shape data", objectData.current[shape.id])
+        console.log("\n")
+        console.log("\n")
 
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
           path!.setAttribute("stroke", "#4D4D4D")
@@ -1105,6 +1109,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
       }
     }, [objectData, canvasRef, checkAndSetConnection])
+
+
+
+
+  
 
 
     const ShapeToLine = useCallback((obj: HTMLElement) => {
@@ -1166,8 +1175,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
               // setting the line previous object attribute
+
               objectData.current[line.id].properties.prevObject[0] = obj.id
               const nextObjectId = objectData.current[line.id].properties.nextObject[0]
+
+              console.log("line after --- ", objectData.current[line.id])
+              console.log("nextObject Id from line", nextObjectId)
 
               // setting the current object to the line next object attribute
               if (nextObjectId && objectData.current[nextObjectId]) {
@@ -1183,6 +1196,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
                 }
               }
               
+              console.log("object info after change", objectData.current[obj.id])
             }
           }
 
@@ -1492,7 +1506,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             
           }
 
-          console.log('is connected', isConnected)
+          
+          console.log('is connected (shape-to-line)', isConnected)
+          console.log("line data", objectData.current[line.id])
+          console.log("shape data", objectData.current[obj.id])
+          console.log("\n")
+          console.log("\n")
           if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
             path!.setAttribute("stroke", "#4D4D4D")
             arrow.setAttribute("fill", "#4D4D4D")
@@ -1557,7 +1576,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
         }
       }
-      console.log("coords", coords)
+      // console.log("coords", coords)
       return coords
     }
 
@@ -2681,7 +2700,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               offsetY = offsetTop > offsetY ? offsetTop : offsetY
               offsetRight = offsetLeftEnd < offsetRight && offsetLeftEnd !== 0 ? offsetLeftEnd : offsetRight
               offsetBottom = offsetTopEnd < offsetBottom && offsetTopEnd !== 0 ? offsetTopEnd : offsetBottom
-              console.log("final offset right", offsetRight)
+              // console.log("final offset right", offsetRight)
               
             } else {
               const shapeWidth = obj.getBoundingClientRect().width

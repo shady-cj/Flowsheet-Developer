@@ -33,6 +33,7 @@ export type fetchedFlowsheetsType = fetchedProjectType & {
 
 
 
+const initialPageNumberState = {flowsheet: 0, project: 0}
 
 const DashboardPageRenderer = () => {
     const currentType = useRef<string | null>(null)
@@ -41,9 +42,13 @@ const DashboardPageRenderer = () => {
     const [flowsheets, setFlowsheets] = useState<fetchedFlowsheetsType[]>([]);
     const [projects, setProjects] = useState<fetchedProjectType[]>([])
     const [loading, setLoading] = useState(true)
+    const [bottomPageLoading, setBottomPageLoading] = useState(false)
     const searchParams = useSearchParams()
     const type = searchParams.get("f")
     const tType = searchParams.get("t")
+    // console.log('type', type, "tType", tType)
+    const pageLimit = 10
+    const [pageNumber, setPageNumber] = useState(initialPageNumberState)
     // console.log("search param tType ", tType)
     const activeBtnClass = 'bg-[#17181A] text-text-gray-2 p-2 rounded-xl'
     const dormantBtnClass = 'bg-grayVariant text-text-black-2 p-2 rounded-xl'
@@ -51,43 +56,96 @@ const DashboardPageRenderer = () => {
     const buttonTitle = type === "recents" ? "Recent " : type === "starred" ? "Starred " : ""
     
     const getProjects = useCallback(async () => {
-        setLoading(true)
-        const response = await fetchDashboardProjects(type)
-        setProjects(response)
+        const response = await fetchDashboardProjects(type, pageLimit, pageNumber.project)
+        setProjects((prev) => [...prev, ...response])
         fetchedProjects.current = true
         setLoading(false)
-    }, [type])
+        setBottomPageLoading(false)
+    }, [type, pageNumber])
+
     const getFlowsheets = useCallback(async () => {
-        setLoading(true)
-        const response = await fetchDashboardFlowsheets(type)
-        setFlowsheets(response)
+        const response = await fetchDashboardFlowsheets(type, pageLimit, pageNumber.flowsheet)
+        setFlowsheets((prev) => [...prev, ...response])
         fetchedFlowsheets.current = true
         setLoading(false)
-    }, [type])
+        setBottomPageLoading(false)
+    }, [type, pageNumber])
 
+    const resetPage = () => {
+        setPageNumber(initialPageNumberState)
+        setBottomPageLoading(false)
+    }
 
     useEffect(() => {
+
         if (currentType.current !== type) {
             fetchedProjects.current = false
             fetchedFlowsheets.current = false
+            resetPage()
         }
-        
 
-
-
+     
+        console.log("flowsheets", flowsheets)
         if (tType === "projects") {
-            if (currentType.current === type && fetchedProjects.current) return;
-            getProjects()
+            if (currentType.current !== type && !fetchedProjects.current && pageNumber.project < 1){
+                setLoading(true)
+                setPageNumber(prev => ({...prev, project: prev.project + 1}))
+                getProjects()
+            }
+
         } else {
-            if (currentType.current === type && fetchedFlowsheets.current) return;
-            getFlowsheets()
+            console.log("currentType ", currentType.current, type)
+            console.log("fetchedFlowsheets", fetchedFlowsheets.current)
+            console.log( "pageNumber", pageNumber.flowsheet)
+            if (currentType.current !== type && !fetchedFlowsheets.current && pageNumber.flowsheet < 1) {
+                setLoading(true)
+                setPageNumber(prev => ({...prev, flowsheet: prev.flowsheet + 1}))
+                getFlowsheets()
+            }
+
+
         }
         
 
         currentType.current = type
-        
-    }, [type, tType, getProjects, getFlowsheets])
-    
+      
+    }, [type, tType, getProjects, getFlowsheets, projects, flowsheets, loading, pageNumber])
+
+
+
+
+    useEffect(() => {
+        // infinite scroll logic
+        const dashboardMain = document.getElementById("dashboard-main")
+        console.log('getting called')
+        const handleScroll = () => {
+            if (!dashboardMain ) return
+            const scrollTop = dashboardMain.scrollTop
+            const scrollHeight = dashboardMain.scrollHeight
+            const clientHeight = dashboardMain.clientHeight
+
+            console.log("pageNumber", pageNumber)
+
+            if (scrollTop + clientHeight + 1 >= scrollHeight && !loading && !bottomPageLoading) {
+                console.log("Reached bottom of the page")  
+                setBottomPageLoading(true)
+                if (tType === "projects") {
+                    setPageNumber(prev => ({...prev, project: prev.project + 1}))
+                    getProjects()
+                }else {
+                    setPageNumber(prev => ({...prev, flowsheet: prev.flowsheet + 1}))
+                    getFlowsheets()
+                }
+            }
+        }
+        dashboardMain?.addEventListener("scroll", handleScroll)
+        return () => {
+            dashboardMain?.removeEventListener("scroll", handleScroll)
+        }
+    }, [pageNumber, tType, getProjects, getFlowsheets, loading, bottomPageLoading])
+
+
+
     return (
     <section>
         <header className='flex flex-row gap-4'>
@@ -98,9 +156,12 @@ const DashboardPageRenderer = () => {
             <div className='flex flex-row flex-wrap gap-5 gap-y-10 w-full min-h-[25vw] content-start justify-start'>
                 
                 {
-                    loading ? <Loader fullScreen={false} offsetHeightClass='h-[300px]'/> : tType === "projects" && projects?.length ?
+                    loading ? <Loader fullScreen={false} offsetHeightClass='h-[300px]' color='black'/> : tType === "projects" && projects?.length ?
                     <CardRenderer type="projects" setData={setProjects} data={projects} revalidate={getProjects}/> :
                     tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} revalidate={getFlowsheets} />  : <div>No {tType=== "projects" ? tType : "flowsheets"}</div>
+                }
+                {
+                    bottomPageLoading ? <Loader fullScreen={false} offsetHeightClass='h-[100px]' color='black'/> : ""
                 }
              
             </div>

@@ -13,11 +13,13 @@ console.log("BASE_URL", BASE_URL)
 
 
 
-export const fetchDashboardProjects = async (query: string | null, limit?: number) => {
+export const fetchDashboardProjects = async (query: string | null, limit?: number, page?: number) => {
     const accessToken = await getAccessToken()
     
     try {
-        const endpoint = query ? `${BASE_URL}/projects/?f=${query}${limit ? "&limit="+limit : ""}` : `${BASE_URL}/projects/${limit ? "?limit="+limit : ""}`
+        const offset = ((page || page === 0) && limit) ? page * limit : null
+         const paginate = limit && (offset === 0 || offset) ? true : false
+        const endpoint = query ? `${BASE_URL}/projects/?f=${query}${paginate ? "&offset="+offset+"&limit="+limit : ""}` : `${BASE_URL}/projects/${paginate ? "?offset="+offset+"&limit="+limit : ""}`
         const response = await fetch(endpoint, {
             method: "GET",
             headers: {
@@ -39,11 +41,13 @@ export const fetchDashboardProjects = async (query: string | null, limit?: numbe
     }
 }
 
-export const fetchDashboardFlowsheets = async (query: string | null, limit?: number) => {
+export const fetchDashboardFlowsheets = async (query: string | null, limit?: number, page?: number) => {
     const accessToken = await getAccessToken()
     
     try {
-        const endpoint = query ? `${BASE_URL}/flowsheets/?f=${query}${limit ? "&limit="+limit : ""}` : `${BASE_URL}/flowsheets/${limit ? "?limit="+limit : ""}`
+        const offset = ((page || page === 0) && limit) ? page * limit : null
+        const paginate = limit && (offset === 0 || offset) ? true : false
+        const endpoint = query ? `${BASE_URL}/flowsheets/?f=${query}${paginate ? "&offset="+offset+"&limit="+limit: ""}` : `${BASE_URL}/flowsheets/${paginate ? "?offset="+offset+"&limit="+limit : ""}`
         const response = await fetch(endpoint, {
             method: "GET",
             headers: {

@@ -203,7 +203,11 @@ class ListFlowsheet(ListAPIView):
         user = self.request.user
         query_params = self.request.GET.get("f")
         limit = self.request.GET.get("limit")
-        print("query params ----", query_params)
+        offset = self.request.GET.get("offset")
+
+        # print("query params ----", query_params)
+        print("limit ", limit)
+        print("offset ", offset)
         if query_params == "recents":
             if not limit:
                 return Flowsheet.objects.filter(project__creator=user).order_by(
@@ -214,7 +218,7 @@ class ListFlowsheet(ListAPIView):
             else:
                 return Flowsheet.objects.filter(project__creator=user).order_by(
                     "-last_edited"
-                )[: int(limit)]
+                )[int(offset) : int(offset) + int(limit)]
         elif query_params == "starred":
             if not limit:
 
@@ -224,13 +228,13 @@ class ListFlowsheet(ListAPIView):
             else:
                 return Flowsheet.objects.filter(
                     project__creator=user, starred=True
-                ).order_by("-last_edited")[: int(limit)]
+                ).order_by("-last_edited")[int(offset) : int(offset) + int(limit)]
         if not limit:
             return Flowsheet.objects.filter(project__creator=user)
         else:
             return Flowsheet.objects.filter(project__creator=user).order_by(
                 "-last_edited"
-            )[: int(limit)]
+            )[int(offset) : int(offset) + int(limit)]
 
 
 class ListCreateFlowsheet(ListCreateAPIView):
@@ -295,6 +299,7 @@ class ListCreateProject(UpdateCreatorMixin, ListCreateAPIView):
     def get_queryset(self):
         query_params = self.request.GET.get("f")
         limit = self.request.GET.get("limit")
+        offset = self.request.GET.get("offset")
         # print("query params ", query_params)
         user = self.request.user
         if query_params == "recents":
@@ -304,7 +309,7 @@ class ListCreateProject(UpdateCreatorMixin, ListCreateAPIView):
                 ]
             else:
                 return Project.objects.filter(creator=user).order_by("-last_edited")[
-                    : int(limit)
+                    int(offset) : int(offset) + int(limit)
                 ]
 
         elif query_params == "starred":
@@ -315,7 +320,7 @@ class ListCreateProject(UpdateCreatorMixin, ListCreateAPIView):
             else:
                 return Project.objects.filter(creator=user, starred=True).order_by(
                     "-last_edited"
-                )[: int(limit)]
+                )[int(offset) : int(offset) + int(limit)]
         # if user.is_superuser:
         #     return Project.objects.all() will consider this later...
 
@@ -323,7 +328,7 @@ class ListCreateProject(UpdateCreatorMixin, ListCreateAPIView):
             return Project.objects.filter(creator=user)
         else:
             return Project.objects.filter(creator=user).order_by("-last_edited")[
-                : int(limit)
+                int(offset) : int(offset) + int(limit)
             ]
 
 
