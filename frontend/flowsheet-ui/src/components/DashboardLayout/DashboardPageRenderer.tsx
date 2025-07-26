@@ -74,6 +74,7 @@ const DashboardPageRenderer = () => {
         
 
 
+
         if (tType === "projects") {
             if (currentType.current === type && fetchedProjects.current) return;
             getProjects()
@@ -81,6 +82,7 @@ const DashboardPageRenderer = () => {
             if (currentType.current === type && fetchedFlowsheets.current) return;
             getFlowsheets()
         }
+        
 
         currentType.current = type
         
