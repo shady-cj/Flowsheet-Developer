@@ -16,11 +16,11 @@ const DashboardSidebar = () => {
   const fetchData = async () => {
     let response;
     if (selectType.current.value === "projects") 
-      response = await fetchDashboardProjects(null, 5)
+      response = await fetchDashboardProjects("recents", 5, 0)
     else 
-      response = await fetchDashboardFlowsheets(null, 5)
+      response = await fetchDashboardFlowsheets("recents", 5, 0)
     console.log("response", response)
-    setData(response)
+    setData(response.results)
   }
 
   useEffect(() =>{

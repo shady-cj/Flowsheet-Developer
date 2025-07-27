@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
+from django.core.paginator import Paginator
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
@@ -9,6 +10,8 @@ from rest_framework.generics import (
 )
 from rest_framework.views import APIView
 from rest_framework import serializers, status
+
+from .pagination import CustomPagination
 
 from .serializers import (
     ShapeSerializer,
@@ -195,56 +198,37 @@ class FlowsheetCreateView(APIView):
         )
 
 
+# Lists flowsheets across all projects
 class ListFlowsheet(ListAPIView):
     serializer_class = FlowsheetSerializer
     queryset = Flowsheet.objects.all()
+    pagination_class = CustomPagination
 
-    def get_queryset(self):
-        user = self.request.user
+    def filter_queryset(self, queryset):
         query_params = self.request.GET.get("f")
-        limit = self.request.GET.get("limit")
-        offset = self.request.GET.get("offset")
-
-        # print("query params ----", query_params)
-        print("limit ", limit)
-        print("offset ", offset)
+        user = self.request.user
+        qs = None
         if query_params == "recents":
-            if not limit:
-                return Flowsheet.objects.filter(project__creator=user).order_by(
-                    "-last_edited"
-                )[
-                    :20
-                ]  # for now just fetch the first 20
-            else:
-                return Flowsheet.objects.filter(project__creator=user).order_by(
-                    "-last_edited"
-                )[int(offset) : int(offset) + int(limit)]
+            qs = queryset.filter(project__creator=user).order_by("-last_edited")
         elif query_params == "starred":
-            if not limit:
-
-                return Flowsheet.objects.filter(
-                    project__creator=user, starred=True
-                ).order_by("-last_edited")
-            else:
-                return Flowsheet.objects.filter(
-                    project__creator=user, starred=True
-                ).order_by("-last_edited")[int(offset) : int(offset) + int(limit)]
-        if not limit:
-            return Flowsheet.objects.filter(project__creator=user)
-        else:
-            return Flowsheet.objects.filter(project__creator=user).order_by(
+            qs = queryset.filter(project__creator=user, starred=True).order_by(
                 "-last_edited"
-            )[int(offset) : int(offset) + int(limit)]
+            )
+        else:
+            qs = queryset.filter(project__creator=user)
+
+        return qs
 
 
+# Lists flowsheets under <project_id>
 class ListCreateFlowsheet(ListCreateAPIView):
     serializer_class = FlowsheetSerializer
     permission_classes = (FlowsheetInstancePermission,)
     queryset = Flowsheet.objects.all()
 
-    def get_queryset(self):
+    def filter_queryset(self, queryset):
         project_id = self.request.parser_context.get("kwargs").get("project_id")
-        return Flowsheet.objects.filter(project__id=project_id)
+        return queryset.filter(project__id=project_id)
 
     def perform_create(self, serializer):
         print("validated_data", serializer.validated_data)
@@ -295,41 +279,20 @@ class RetrieveUpdateDestroyFlowsheet(RetrieveUpdateDestroyAPIView):
 class ListCreateProject(UpdateCreatorMixin, ListCreateAPIView):
     serializer_class = ProjectSerializer
     queryset = Project.objects.all()
+    pagination_class = CustomPagination
 
-    def get_queryset(self):
+    def filter_queryset(self, queryset):
         query_params = self.request.GET.get("f")
-        limit = self.request.GET.get("limit")
-        offset = self.request.GET.get("offset")
-        # print("query params ", query_params)
         user = self.request.user
+        qs = None
         if query_params == "recents":
-            if not limit:
-                return Project.objects.filter(creator=user).order_by("-last_edited")[
-                    :20
-                ]
-            else:
-                return Project.objects.filter(creator=user).order_by("-last_edited")[
-                    int(offset) : int(offset) + int(limit)
-                ]
-
+            qs = queryset.filter(creator=user).order_by("-last_edited")
         elif query_params == "starred":
-            if not limit:
-                return Project.objects.filter(creator=user, starred=True).order_by(
-                    "-last_edited"
-                )
-            else:
-                return Project.objects.filter(creator=user, starred=True).order_by(
-                    "-last_edited"
-                )[int(offset) : int(offset) + int(limit)]
-        # if user.is_superuser:
-        #     return Project.objects.all() will consider this later...
-
-        if not limit:
-            return Project.objects.filter(creator=user)
+            qs = queryset.filter(creator=user, starred=True).order_by("-last_edited")
         else:
-            return Project.objects.filter(creator=user).order_by("-last_edited")[
-                int(offset) : int(offset) + int(limit)
-            ]
+            qs = queryset.filter(creator=user)
+
+        return qs
 
 
 class RetrieveUpdateDestroyProject(ObjectPermissionMixin, RetrieveUpdateDestroyAPIView):

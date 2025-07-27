@@ -23,9 +23,9 @@ export default async function Projects () {
 
     async function revalidateProject () {
         "use server"
-        console.log("revalidating project")
+
         revalidateTag('project-lists')
-        console.log("done revalidating project")
+      
     }
     // console.log('results', results)   
     return (

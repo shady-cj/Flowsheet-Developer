@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import DashboardHeader from "@/components/DashboardLayout/DashboardHeader"
 import {fetchedFlowsheetsType, fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer";
 import Image from "next/image";
@@ -29,6 +29,12 @@ const ProjectPage = async ({params}: {params: Promise<{project_id: string}>}) =>
         "use server"
         revalidateTag('projects')
       }
+
+      // async function revalidateProjectPath () {
+      //   "use server"
+      //   const url = `${BASE_URL}/projects/${route_params.project_id}`
+      //   // revalidatePath()
+      // }
 
 
   return (

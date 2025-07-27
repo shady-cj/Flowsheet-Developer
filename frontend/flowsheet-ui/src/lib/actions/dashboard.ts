@@ -57,7 +57,7 @@ export const fetchDashboardFlowsheets = async (query: string | null, limit?: num
 
         })
         const result = await response.json()
-        console.log("flowsheet result", result)
+        // console.log("flowsheet ---- result", result)
         if (response.status === 200) return result
         else {
             console.log(result);

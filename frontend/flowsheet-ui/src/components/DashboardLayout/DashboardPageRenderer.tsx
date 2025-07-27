@@ -12,6 +12,15 @@ import { handleCopyClick } from '@/lib/utils/clipboard';
 import { EditFlowsheetOrProject } from '../utils/popupBox';
 import Loader from '../utils/loader';
 
+type paginatedResponseType = {
+    total: number,
+    has_next: boolean, 
+    has_previous: boolean,
+    next_link: string | null,
+    prev_link: string | null,
+    results: fetchedFlowsheetsType[] | fetchedProjectType[]
+}
+
 export type fetchedProjectType = {
     id: string,
     name: string,
@@ -57,18 +66,18 @@ const DashboardPageRenderer = () => {
     const buttonTitle = type === "recents" ? "Recent " : type === "starred" ? "Starred " : ""
     
     const getProjects = useCallback(async () => {
-        const response = await fetchDashboardProjects(type, pageLimit, pageNumber.current.project)
-        if (response.length < pageLimit) doneFetching.current = {...doneFetching.current, project: true}
-        setProjects((prev) => [...prev, ...response])
+        const response: paginatedResponseType = await fetchDashboardProjects(type, pageLimit, pageNumber.current.project)
+        if (!response.has_next) doneFetching.current = {...doneFetching.current, project: true}
+        setProjects((prev) => [...prev, ...response.results])
         fetchedProjects.current = true
         setLoading(false)
         setBottomPageLoading(false)
     }, [type])
 
     const getFlowsheets = useCallback(async () => {
-        const response = await fetchDashboardFlowsheets(type, pageLimit, pageNumber.current.flowsheet)
-        if (response.length < pageLimit) doneFetching.current = {...doneFetching.current, flowsheet: true}
-        setFlowsheets((prev) => [...prev, ...response])
+        const response: paginatedResponseType = await fetchDashboardFlowsheets(type, pageLimit, pageNumber.current.flowsheet)
+        if (!response.has_next) doneFetching.current = {...doneFetching.current, flowsheet: true}
+        setFlowsheets((prev) => [...prev, ...(response.results as fetchedFlowsheetsType[])])
         fetchedFlowsheets.current = true
         setLoading(false)
         setBottomPageLoading(false)
