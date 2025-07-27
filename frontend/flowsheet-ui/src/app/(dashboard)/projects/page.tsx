@@ -1,46 +1,20 @@
-import { fetchedProjectType } from "@/components/DashboardLayout/DashboardPageRenderer";
-import ProjectList from "@/components/DashboardLayout/ProjectList";
-import { revalidateTag } from "next/cache";
-import { cookies } from "next/headers";
+
+import ProjectListWrapper from "@/components/DashboardLayout/ProjectListWrapper";
+import Loader from "@/components/utils/loader";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-const BASE_URL = process.env.API_URL as string
-export default async function Projects () {
-    let results: fetchedProjectType[] | null = null
-    const accessToken = (await cookies()).get("access")?.value
-    if (!accessToken)
-        redirect("/")
-    try {
-        const response = await fetch(`${BASE_URL}/projects`, {
-            headers: {"Authorization": `Bearer ${accessToken}`},
-            next: {tags: ['project-lists']}
-        })
-        results = await response.json()
+import { Suspense } from "react";
 
-    } catch (err) {
-        throw err
-    }
-
-    async function revalidateProject () {
-        "use server"
-
-        revalidateTag('project-lists')
-      
-    }
-    // console.log('results', results)   
+export default async function Projects ({searchParams}: {searchParams: Promise<{ limit?: string, offset?: string, scrollTo?: string }>}) {
+    
     return (
         <>
             <section className="flex w-full justify-between items-center">
                 <h1 className="text-2xl font-bold">All Projects</h1>
                 <Link href='/projects/create' className="hover:bg-blueVariant text-white px-4 py-3 rounded-md shadow-md font-bold active:opacity-90 bg-normalBlueVariant active:scale-90 transition mr-4"> Create New Project </Link>
             </section>
-    
-            <section className="mt-8 flex gap-4 flex-wrap">
-
-            {
-                results && results.length ? <ProjectList projects={results} revalidate={revalidateProject}/> : <h1 className="font-bold text-xl">No Projects Yet...</h1>
-            }
-            </section>
+            <Suspense fallback={<Loader fullScreen={false} offsetHeightClass="h-[500px]" color="black" />}>
+                <ProjectListWrapper searchParams={searchParams}/>
+            </Suspense>
         </>
     )
     

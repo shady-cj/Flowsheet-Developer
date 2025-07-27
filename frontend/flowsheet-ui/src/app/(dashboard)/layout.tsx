@@ -7,14 +7,16 @@ import { Suspense } from "react"
 
 export default function DashboardLayout ({children}: {children: React.ReactNode}) {
     return (
-        <UserProvider>   
+        <UserProvider>
             <DashboardHeader />
             <section className="flex-auto flex">
                 <Suspense fallback={<Loader color="black" />}>
                     <DashboardSidebar/>
                 </Suspense>
                 <div className="flex-auto bg-primary-2">
-                    {children}
+                    <Suspense fallback={<Loader color="black" />}>
+                        {children}
+                    </Suspense>
                 </div>
             </section>     
         </UserProvider>

@@ -16,8 +16,8 @@ type paginatedResponseType = {
     total: number,
     has_next: boolean, 
     has_previous: boolean,
-    next_link: string | null,
-    prev_link: string | null,
+    offset: number,
+    limit: number,
     results: fetchedFlowsheetsType[] | fetchedProjectType[]
 }
 

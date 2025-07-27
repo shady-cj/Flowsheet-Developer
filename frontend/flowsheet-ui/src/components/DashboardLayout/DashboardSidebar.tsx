@@ -6,12 +6,14 @@ import { fetchedFlowsheetsType, fetchedProjectType } from "./DashboardPageRender
 import { fetchDashboardFlowsheets, fetchDashboardProjects } from "@/lib/actions/dashboard"
 import arrowRight from "@/assets/arrow-right.svg";
 import Image from "next/image"
+import Loader from "../utils/loader"
 
 const DashboardSidebar = () => {
   const [data, setData] = useState<(fetchedFlowsheetsType | fetchedProjectType)[]>([])
   const selectType = useRef<HTMLSelectElement>(null!)
   const searchParams = useSearchParams()
   const type = searchParams.get("f")
+  const [loading, setLoading] = useState(true)
   // console.log("search param type", type)
   const fetchData = async () => {
     let response;
@@ -19,8 +21,8 @@ const DashboardSidebar = () => {
       response = await fetchDashboardProjects("recents", 5, 0)
     else 
       response = await fetchDashboardFlowsheets("recents", 5, 0)
-    console.log("response", response)
     setData(response.results)
+    setLoading(false)
   }
 
   useEffect(() =>{
@@ -70,7 +72,7 @@ const DashboardSidebar = () => {
               </div>
 
               <div className="py-5 px-3 flex flex-col gap-5">
-                {data?.length ? data.map((item)=>{
+                {loading ? <Loader fullScreen={false} offsetHeightClass="h-[150px]" color="black"/> : data?.length ? data.map((item)=>{
                   const link = selectType.current.value === "projects" ? `/project/${item.id}` : `/project/${(item as fetchedFlowsheetsType).project}/flowsheet/${item.id}`
                   return (<Link href={link} key={item.id} className="flex justify-between text-[#4D4D4D]">
                     <h2>{item.name}</h2>

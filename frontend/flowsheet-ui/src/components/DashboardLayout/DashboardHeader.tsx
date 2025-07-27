@@ -12,12 +12,13 @@ import Image from "next/image";
 import { UserContext } from "../context/UserProvider";
 import { dashboardSearch } from "@/lib/actions/dashboard";
 import { fetchedFlowsheetsType, fetchedProjectType } from "./DashboardPageRenderer";
+import Loader from "../utils/loader";
 
 
 
 const DashboardHeader = () => {
   const [showDropDown, setShowDropDown] = useState(false)
-  const {user} = useContext(UserContext)
+  const {user, loadingUser} = useContext(UserContext)
   const [searchResult, setSearchResult] = useState<null | {projects: fetchedProjectType[], flowsheets: fetchedFlowsheetsType[]}>(null)
   const Logout = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -101,6 +102,10 @@ const DashboardHeader = () => {
             </div>
             <nav className="flex items-center pl-4 gap-x-2 ml-auto">
               {
+                loadingUser ?
+                <div>
+                  <Loader fullScreen={false}  color="black"  small/>
+                </div> : 
                 user ? <>
                   <div className="bg-[#E381E3] font-semibold text-[#261A26] text-base w-10 h-10 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
                     {user.email.substring(0, 2).toUpperCase()}

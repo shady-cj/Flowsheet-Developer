@@ -16,8 +16,8 @@ class CustomPagination(LimitOffsetPagination):
                 "total": self.count,
                 "has_next": has_next,
                 "has_previous": has_previous,
-                "next_link": self.get_next_link(),
-                "prev_link": self.get_previous_link(),
+                "offset": self.offset,
+                "limit": self.limit,
                 "results": data,
             }
         )
