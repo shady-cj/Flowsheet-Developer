@@ -54,6 +54,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_oauth = models.BooleanField(default=False)
     provider = models.CharField(max_length=100, blank=True, null=True)
+    password_reset_token = models.CharField(max_length=255, blank=True, null=True)
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"

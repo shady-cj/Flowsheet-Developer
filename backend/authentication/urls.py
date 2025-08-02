@@ -1,4 +1,11 @@
-from .views import RegisterUserView, RetrieveUserView, OauthAuthentication
+from .views import (
+    RegisterUserView,
+    RetrieveUserView,
+    OauthAuthentication,
+    RequestPasswordResetView,
+    PasswordResetVerificationView,
+    PasswordResetView,
+)
 
 from django.urls import path
 from rest_framework_simplejwt.views import (
@@ -15,4 +22,15 @@ urlpatterns = [
     path("token/", TokenObtainPairView.as_view()),
     path("token/refresh/", TokenRefreshView.as_view()),
     path("token/verify/", TokenVerifyView.as_view()),
+    path(
+        "request-password-reset/",
+        RequestPasswordResetView.as_view(),
+        name="request_password_reset",
+    ),
+    path(
+        "password-reset-verification/",
+        PasswordResetVerificationView.as_view(),
+        name="password_reset_verification",
+    ),
+    path("password-reset/", PasswordResetView.as_view(), name="password_reset"),
 ]

@@ -148,6 +148,22 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 # =======================================================================================================================
+
+
+# ======================================================================================================================
+# Django Email Configurations
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = eval(getenv("EMAIL_PORT", 587))
+EMAIL_HOST_USER = getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = getenv("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = eval(getenv("EMAIL_USE_TLS", True))
+DEFAULT_FROM_EMAIL = getenv("DEFAULT_FROM_EMAIL")
+
+# ======================================================================================================================
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 

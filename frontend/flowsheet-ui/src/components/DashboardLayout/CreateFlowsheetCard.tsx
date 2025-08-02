@@ -18,7 +18,7 @@ const CreateFlowsheetCard = () => {
         const fetchData = async () => {
             const projects = await fetchDashboardProjects(null)
             // console.log("------------------ projects -------------------", projects)
-            setProjects(projects)
+            setProjects(projects.results)
         }
         if (selectProjectOpen){
             fetchData()
