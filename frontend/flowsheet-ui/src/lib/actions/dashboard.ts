@@ -8,7 +8,7 @@ import { editType, fetchedFlowsheetsType, fetchedProjectType } from "@/component
 import { getAccessToken } from "../utils/requestAccessToken"
 
 const BASE_URL = process.env.API_URL as string 
-console.log("BASE_URL", BASE_URL)
+// console.log("BASE_URL", BASE_URL)
 
 
 

@@ -35,7 +35,7 @@ def create_reset_link(host, user):
     token.set_exp(lifetime=timedelta(minutes=10))  # Set token expiration time
     user.password_reset_token = str(token)
     user.save()
-    return f"http://{host}/reset-password?token={token}"
+    return f"{host}/reset-password?token={token}"
 
 
 def validate_reset_token(token):

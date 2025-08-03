@@ -37,7 +37,7 @@ const Register = () => {
             <div className='flex flex-col gap-10'>
 
             <div className='flex flex-col gap-4'>
-                <Logo logoIcon={logoIcon}/>
+                <Logo logoIcon={logoIcon} />
                 <div className='flex flex-col gap-2'>
                 <h2 className='text-[#16191C] text-[2.5rem] font-semibold leading-[3.1rem]'>Create account</h2>
                 <p className='text-[#666666] text-base font-normal'>Get started by creating an account.</p>

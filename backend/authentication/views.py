@@ -63,6 +63,7 @@ class RequestPasswordResetView(APIView):
 
     def post(self, request, format=None):
         email = request.data.get("email")
+        host = request.data.get("host")
         if not email:
             return Response(
                 {"error": "Email is required."},
@@ -83,8 +84,7 @@ class RequestPasswordResetView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            host = request.get_host()
-            print("host", host)
+            # print("host", host)
             reset_link = create_reset_link(host, user)
 
             # Using a thread to send the email asynchronously

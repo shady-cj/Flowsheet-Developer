@@ -7,7 +7,8 @@ import { getAccessToken, storeTokens } from '../utils/requestAccessToken'
 // import { NextResponse } from 'next/server'
 
 const BASE_URL = process.env.API_URL as string 
-console.log("BASE_URL", BASE_URL)
+const HOST_URL = process.env.BASE_URL as string
+// console.log("BASE_URL", BASE_URL)
 
 
 
@@ -154,4 +155,63 @@ export async function fetchUser() {
         console.log(err)
         return null
     }
+}
+
+export async function passwordReset (prevState: any, formData:FormData) {
+    const email: string = (formData.get("email") as string).trim()
+    if (email.length == 0) {
+        return {detail: "Provide an email"}
+    }
+
+        try {
+
+        const response = await fetch(`${BASE_URL}/auth/request-password-reset/`, {
+            method: "POST",
+            body: JSON.stringify({email, host: HOST_URL}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const data = await response.json()
+        if (response.status == 200) {
+
+            return {success: data.message}
+        } else {
+            return {error: data.error || "Something went wrong"}
+        }
+        
+    } catch(err) {
+        if (err instanceof Error)
+            return {error: "Sorry!, An error occured"}
+        else
+            return {error: "Something went wrong"}
+    }
+   
+}
+
+export async function passwordChange(formState: {new_password: string, confirm_password: string, email: string, token: string}) {
+
+    try {
+        const response = await fetch(`${BASE_URL}/auth/password-reset/`, {
+            method: "POST",
+            body: JSON.stringify(formState),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+
+        const data = await response.json()
+
+        if (response.status == 200) {
+            return {success: data.message}
+        } else {
+            return {error: data.error || "Something went wrong"}
+        }
+
+    } catch(err) {
+        if (err instanceof Error)
+            return {error: "Sorry!, An error occured"}
+        else
+            return {error: "Something went wrong"}
+    }  
 }

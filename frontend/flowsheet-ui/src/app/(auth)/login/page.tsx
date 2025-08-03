@@ -79,6 +79,9 @@ const LoginPage = () => {
               <div className='text-[#16191C] font-normal text-base '>
                 Don&apos;t have an account? <Link href="/register" className='text-[#2570BB] font-medium text-base'>Sign-up </Link>
               </div>
+              <div>
+                <Link href="/forgot-password" className='text-[#2570BB] font-medium text-base'>Forgot password</Link>
+              </div>
           </form>
           </div>
         

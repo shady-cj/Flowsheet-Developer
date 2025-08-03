@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { storeTokens } from './lib/utils/requestAccessToken'
 const BaseURL = "http://localhost:8000"
  
-const unauthenticated_routes = ["/", "/login", "/register"]
+const unauthenticated_routes = ["/", "/login", "/register", "/forgot-password", "/reset-password"]
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
