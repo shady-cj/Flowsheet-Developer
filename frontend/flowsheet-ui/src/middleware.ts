@@ -52,7 +52,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         { 
-        source: '/((?!api|_next/static|_next/image|favicon.ico|.*jpg|.*jpeg).*)',
+        source: '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|.*svg|.*jpg|.*jpeg).*)',
         missing: [
             // Exclude Server Actions
             { type: 'header', key: 'next-action' },

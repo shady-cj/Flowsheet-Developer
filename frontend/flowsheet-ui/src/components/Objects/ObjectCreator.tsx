@@ -4,6 +4,7 @@ import Crusher from "./Crusher"
 import Grinder from "./Grinder"
 import Screener from "./Screener"
 import Auxilliary from "./Auxilliary"
+import Concentrator from "./Concentrator"
 
 export const ObjectCreator = ({objectData, dataId}:{objectData: objectDataType, dataId: string}): JSX.Element => {
     const data = objectData[dataId]
