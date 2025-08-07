@@ -1981,7 +1981,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const content = `
           <p><strong>Recovery(%) of valuable mineral:</strong> ${valuable_recoverable} </p>
           <p><strong>Recovery(%) of gangue: </strong> ${gangue_recoverable} </p>
-          <h3>Ore Recovery</h3>
+          <h3 class='font-semibold'>Ore Recovery</h3>
           <div> 
             <p><strong>Valuable(%) in feed:</strong> ${valuable_in_feed * 100} </p>
             <p><strong>Gangue(%) in feed: </strong> ${gangue_in_feed * 100} </p>
