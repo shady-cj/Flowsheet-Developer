@@ -108,12 +108,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
       if (formState!.maxOreSize) {
         objectData.current[object.id].properties.maxOreSize = formState!.maxOreSize
+        objectData.current[object.id].properties.defaultMaxOreSize = formState!.maxOreSize
       }
       if (formState!.oreQuantity) {
         objectData.current[object.id].properties.oreQuantity = formState!.oreQuantity
+        objectData.current[object.id].properties.defaultOreQuantity = formState!.oreQuantity // fall back
       }
       if (formState!.oreGrade) {
         objectData.current[object.id].properties.oreGrade = formState!.oreGrade
+        objectData.current[object.id].properties.defaultOreGrade = formState!.oreGrade
+
       }
     }
 
@@ -293,6 +297,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           break
         case "Concentrator":
           formStateObject["oreQuantity"] = ""
+          formStateObject["oreGrade"] = ""
           setFormFields((prevFormField) => {
             return [...prevFormField, {
               type: "number",
@@ -300,7 +305,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               verboseName: "Quantity of Ore", 
               htmlType: "input",
               placeholder: "Quantity in metric tons"
-            }]
+            },{
+                type: "number",
+                name: "oreGrade", 
+                verboseName: "Ore Grade",
+                placeholder: "Grade e.g 0.45",
+                htmlType: "input"
+              }]
           })
           break;
 
@@ -393,6 +404,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             return false
           }
         }
+        
         return true
       }
       if (type === "to") {
@@ -440,6 +452,20 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
             return false
           }
+        }
+        if (activeObject.object?.model_name === "Concentrator") {
+          if (prevObject.properties.oreQuantity) activeObject.properties.oreQuantity = prevObject.properties.oreQuantity
+          else activeObject.properties.oreQuantity = activeObject.properties.defaultOreQuantity
+          if (prevObject.properties.oreGrade) activeObject.properties.oreGrade = prevObject.properties.oreGrade
+          else activeObject.properties.oreGrade = activeObject.properties.defaultOreGrade
+          // if (prevObject.properties.)
+        }
+        if (activeObject.object?.model_name === "Auxilliary" && activeObject.object?.type === "ore") {
+          if (prevObject.properties.maxOreSize) activeObject.properties.maxOreSize = prevObject.properties.maxOreSize
+          else activeObject.properties.maxOreSize = activeObject.properties.defaultMaxOreSize
+
+          if (prevObject.properties.oreQuantity) activeObject.properties.oreQuantity = prevObject.properties.oreQuantity
+          else activeObject.properties.oreQuantity = activeObject.properties.defaultOreQuantity
         }
         return true
       }
@@ -1925,6 +1951,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       
       element.classList.add('object-hover')
       
+      const isConcentrator = data.object?.model_name === 'Concentrator'
       tooltip.innerHTML = `
         <p><strong>Label:</strong> ${data.label} </p>
         <p><strong>Description:</strong> ${data.description}</p>
@@ -1932,11 +1959,42 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         ${data.properties.oreQuantity ? `<p><strong>Ore Quantity:</strong> ${data.properties.oreQuantity} ${parseFloat(data.properties.oreQuantity) > 1 ? "tons": "ton"}</p>`:''}
         ${data.properties.maxOreSize ? `<p><strong>Max. Ore Size:</strong> ${data.properties.maxOreSize}mm</p>`:''}
+
         ${data.properties.gape ? `<p><strong>Gape:</strong> ${data.properties.gape}mm</p>`:''}
         ${data.properties.set ? `<p><strong>Set:</strong> ${data.properties.set}mm</p>`:''}
         ${data.properties.aperture ? `<p><strong>Aperture:</strong> ${data.properties.aperture}mm</p>`:''}
         ${data.properties.crusherType ? `<p><strong>Crusher Type:</strong> ${data.properties.crusherType}</p>`:''}
       `
+      if (isConcentrator) {
+        const gangue_recoverable = data.object?.gangue_recoverable!
+        const valuable_recoverable = data.object?.valuable_recoverable!
+        const feed_quantity = parseInt(data.properties.oreQuantity!) || parseInt(data.properties.defaultOreQuantity!)
+
+        const valuable_in_feed = Number(data.properties.oreGrade!) || Number(data.properties.defaultOreGrade!)
+        const gangue_in_feed = 1 - valuable_in_feed
+        const valuable_in_product = (valuable_recoverable / 100) * (valuable_in_feed * feed_quantity)
+        const gangue_in_product = (1 - (gangue_recoverable / 100)) * (gangue_in_feed * feed_quantity)
+        const valuable_in_waste = (1 - (valuable_recoverable / 100)) * (valuable_in_feed * feed_quantity)
+        const gangue_in_waste = (gangue_recoverable / 100) * (gangue_in_feed * feed_quantity)
+
+
+        const content = `
+          <p><strong>Recovery(%) of valuable mineral:</strong> ${valuable_recoverable} </p>
+          <p><strong>Recovery(%) of gangue: </strong> ${gangue_recoverable} </p>
+          <h3>Ore Recovery</h3>
+          <div> 
+            <p><strong>Valuable(%) in feed:</strong> ${valuable_in_feed * 100} </p>
+            <p><strong>Gangue(%) in feed: </strong> ${gangue_in_feed * 100} </p>
+            <h4>Concentrate </h4>
+            <p><strong>Valuable Quantity: </strong> ${valuable_in_product.toFixed(2)}</p>
+            <p><strong>Gangue Quantity: </strong> ${gangue_in_product.toFixed(2)}</p>
+            <h4>Waste </h4>
+            <p><strong>Gangue Quantity: </strong> ${gangue_in_waste.toFixed(2)}</p>
+            <p><strong>Valuable Quantity: </strong> ${valuable_in_waste.toFixed(2)}</p>
+          </div>
+        `
+        tooltip.innerHTML += content
+      }
 
       
     }, [objectData])

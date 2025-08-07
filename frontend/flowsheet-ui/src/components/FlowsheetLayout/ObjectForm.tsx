@@ -17,7 +17,7 @@ const ObjectForm = ({formFields, position, handleFormState, saveForm, closeFormU
     return (
     <div className="absolute w-full h-full bg-[#00000080] z-30 ">
         <div className="relative w-full h-full">
-            <form action="" className={`object-form absolute bg-white p-5 pt-6 flex flex-col gap-y-6 rounded-lg max-w-[21rem]`} style={{top: `${formPositionY}px`, left: `${formPositionX}px`}} onSubmit={saveForm}>
+            <form action="" className={`object-form absolute bg-white p-5 pt-6 flex flex-col gap-y-6 rounded-lg min-w-[18rem] max-w-[21rem]`} style={{top: `${formPositionY}px`, left: `${formPositionX}px`}} onSubmit={saveForm}>
                 <div className='relative'>
                     <h2 className='text-xl text-[#1A1A1A] font-semibold'>{objectFormType} Property</h2>
                     <Image src={cancel} alt="cancel" width={20} height={20} className="absolute right-0 top-0 mt-1 cursor-pointer" onClick={() => closeFormUnsaved()}/>
@@ -111,27 +111,10 @@ const ObjectForm = ({formFields, position, handleFormState, saveForm, closeFormU
                     )
 
                 }
+   
+                
                 {
-                    objectFormType === "Concentrator" ? (<section className='flex flex-col gap-2'>
-                        <h2 className='text-sm font-medium text-[#17181A]'>Ore Quantity</h2>
-                        <div className='flex gap-2 flex-wrap'>
-
-                        {
-                            formFields.map(field => {
-                                return (
-                                    field.name === "oreQuantity" ? 
-                                    <input key={field.name} type={field.type} id={field.name} name={field.name} className="border border-[#DFE1E6] p-2 basis-[48%] flex-grow w-full rounded-sm text-sm" onChange={handleFormState} value={formState[field.name]} placeholder={field.placeholder?field.placeholder:field.verboseName}/> : ""
-                                    
-                                )
-                            })
-                        }
-                        </div>
-
-
-                    </section>): ""
-                }
-                {
-                    objectFormType === "Auxilliary" && formFields.length > 4 && formFields[3].name === "oreGrade" &&  (<section className='flex flex-col gap-2'>
+                   ((objectFormType === "Auxilliary"  && formFields.length > 4 && formFields[3].name === "oreGrade") || objectFormType === "Concentrator")  &&  (<section className='flex flex-col gap-2'>
                         <h2 className='text-sm font-medium text-[#17181A]'>Ore Property</h2>
                         <div className='flex gap-2 flex-wrap'>
 

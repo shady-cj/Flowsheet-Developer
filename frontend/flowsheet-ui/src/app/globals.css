@@ -315,7 +315,7 @@ body {
 
 .object-details-tooltip {
   position: absolute;
-  padding: 0.5rem;
+  padding: 1rem;
   white-space: nowrap;
   background-color: white;
   display: flex;
@@ -326,10 +326,15 @@ body {
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   z-index: 8;
 }
+.object-details-tooltip > div {
+  padding: 0.25rem;
+  padding-top: 0;
+  gap: 0.4rem;
+}
 
 
-.object-details-tooltip > p {
-  font-size: 0.6rem;
+.object-details-tooltip  p {
+  font-size: 0.7rem;
 }
 
 

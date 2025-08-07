@@ -81,6 +81,8 @@ export type singleObjectDataType = {
     image_url?: string,
     description?: string,
     type?: string
+    valuable_recoverable?: number,
+    gangue_recoverable?: number,
   },
   object_info: {
     object_model_name: string,
@@ -94,8 +96,11 @@ export type singleObjectDataType = {
     set?: string,
     aperture?: string,
     maxOreSize?: string,
+    defaultMaxOreSize?: string, //fallback value
     oreQuantity?: string,
+    defaultOreQuantity?: string,
     oreGrade?: string,
+    defaultOreGrade?: string, 
     crusherType?: "primary" | "secondary" | "tertiary",
     coordinates: objectCoords
   }

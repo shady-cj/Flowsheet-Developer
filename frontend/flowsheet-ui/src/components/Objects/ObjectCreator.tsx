@@ -5,6 +5,7 @@ import Grinder from "./Grinder"
 import Screener from "./Screener"
 import Auxilliary from "./Auxilliary"
 import Concentrator from "./Concentrator"
+import { ConcentratorImageObjectType } from "../FlowsheetLayout/FlowsheetSidebar"
 
 export const ObjectCreator = ({objectData, dataId}:{objectData: objectDataType, dataId: string}): JSX.Element => {
     const data = objectData[dataId]
@@ -22,6 +23,9 @@ export const ObjectCreator = ({objectData, dataId}:{objectData: objectDataType, 
             return <Screener screener={elementObject} />
         case "Auxilliary":
             return <Auxilliary auxilliary={elementObject} />
+        case "Concentrator":
+            return <Concentrator concentrator={elementObject as ConcentratorImageObjectType} />
+        // Add more cases for other object types as needed
         default:
             return <div></div>
 

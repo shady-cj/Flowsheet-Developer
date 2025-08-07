@@ -47,6 +47,8 @@ def object_formatter(obj):
         default.update(
             {
                 "description": obj.description,
+                "gangue_recoverable": obj.gangue_recoverable,
+                "valuable_recoverable": obj.valuable_recoverable,
             }
         )
     elif isinstance(obj, Auxilliary):
