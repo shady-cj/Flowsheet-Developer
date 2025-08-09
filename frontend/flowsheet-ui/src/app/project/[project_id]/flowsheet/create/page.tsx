@@ -21,7 +21,7 @@ const FlowsheetCreatePage = async ({params}: {params: Promise<{project_id: strin
           try {
               const response = await fetch(`${BASE_URL}/flowsheet_create/${route_params.project_id}`, {
                   headers: {"Authorization": `Bearer ${accessToken}`},
-                  next: {revalidate: 60} // validate atmost every minute
+                //   next: {revalidate: 60} // validate atmost every minute
               })
               result = await response.json()
               console.log("result of flowsheet create page", result)

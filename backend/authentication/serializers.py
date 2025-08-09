@@ -33,11 +33,11 @@ class PasswordChangeSerializer(serializers.Serializer):
         confirm_password = attrs.get("confirm_password")
         if new_password != confirm_password:
             raise serializers.ValidationError(
-                {"confirm_password": "New password and confirm password do not match."}
+                "New password and confirm password do not match."
             )
         if len(new_password) < 8:
             raise serializers.ValidationError(
-                {"new_password": "New password must be at least 8 characters long."}
+                "New password must be at least 8 characters long."
             )
         return attrs
 
@@ -49,5 +49,5 @@ class PasswordChangeSerializer(serializers.Serializer):
             user.save()
         else:
             raise serializers.ValidationError(
-                {"new_password": "New password cannot be the same as the old password."}
+                "New password cannot be the same as the old password."
             )
