@@ -9,6 +9,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
 import Loader from "../utils/loader";
+import { concentratorAnalysis } from "@/lib/utils/concentrator-analysis";
 
 
 export type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
@@ -1966,17 +1967,17 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         ${data.properties.crusherType ? `<p><strong>Crusher Type:</strong> ${data.properties.crusherType}</p>`:''}
       `
       if (isConcentrator) {
-        const gangue_recoverable = data.object?.gangue_recoverable!
-        const valuable_recoverable = data.object?.valuable_recoverable!
-        const feed_quantity = parseInt(data.properties.oreQuantity!) || parseInt(data.properties.defaultOreQuantity!)
-
-        const valuable_in_feed = Number(data.properties.oreGrade!) || Number(data.properties.defaultOreGrade!)
-        const gangue_in_feed = 1 - valuable_in_feed
-        const valuable_in_product = (valuable_recoverable / 100) * (valuable_in_feed * feed_quantity)
-        const gangue_in_product = (1 - (gangue_recoverable / 100)) * (gangue_in_feed * feed_quantity)
-        const valuable_in_waste = (1 - (valuable_recoverable / 100)) * (valuable_in_feed * feed_quantity)
-        const gangue_in_waste = (gangue_recoverable / 100) * (gangue_in_feed * feed_quantity)
-
+        const {
+          gangue_recoverable,
+          valuable_recoverable,
+          feed_quantity,
+          valuable_in_feed,
+          gangue_in_feed,
+          valuable_in_product,
+          gangue_in_product,
+          valuable_in_waste,
+          gangue_in_waste
+        } = concentratorAnalysis(data)
 
         const content = `
           <p><strong>Recovery(%) of valuable mineral:</strong> ${valuable_recoverable} </p>
