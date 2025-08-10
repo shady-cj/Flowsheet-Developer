@@ -6,7 +6,7 @@ import { fetchUser } from '@/lib/actions/auth';
 import { fetchFlowsheet } from '@/lib/actions/flowsheet';
 // import { objectDataType } from '../ProjectLayout/Canvas'
 
-import Report, { createReport } from '@/lib/utils/report';
+// import Report, { createReport } from '@/lib/utils/report';
 
 import generatePDF from 'react-to-pdf';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -79,6 +79,8 @@ export type singleObjectDataType = {
     name: string,
     model_name: string,
     image_url?: string,
+    image_height?: number,
+    image_width?: number,
     description?: string,
     type?: string
     valuable_recoverable?: number,
