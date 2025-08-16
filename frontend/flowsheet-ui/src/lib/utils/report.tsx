@@ -105,7 +105,19 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         gap: "6px",
         padding: "10px 14px"
-    }, 
+    },
+    flowsheetHeader: {
+        fontWeight: "bold",
+        fontSize: "24px",
+        textTransform: "capitalize",
+        margin: "10px 0"
+    },
+    flowsheetDescription: {
+        fontSize: "16px",
+        margin: "0 6px 10px 6px",
+        color: "rgba(0,0,0,0.7)"
+    },
+
     header: {
         fontWeight: "bold",
         fontSize: "20px",
@@ -141,7 +153,7 @@ const styles = StyleSheet.create({
 
     }, 
     imageContainer: {
-        margin: "4px"
+        margin: "10px 5px"
     }, 
     link: {
         color: "blue",
@@ -320,13 +332,20 @@ export const Report = ({objectData}: {objectData: objectDataType}) => {
 
 
 
-export const Report2 = ({objectData}: {objectData: objectDataType}) => {
+export const Report2 = ({objectData, flowsheetName, flowsheetDescription}: {objectData: objectDataType, flowsheetName?: string, flowsheetDescription?: string }) => {
     
     const data = sortReportData(objectData)
     const keys = Object.keys(data)
     return (
         <Document>
             <Page size="A4" style={styles.page}>
+                {
+                
+                    flowsheetName ? <Text style={styles.flowsheetHeader}>Report on <Text style={{color: "#D4AF37"}}>{flowsheetName}</Text></Text> : ""
+                }
+                {
+                    flowsheetDescription ? <Text style={styles.flowsheetDescription}>{flowsheetDescription}</Text>: ""
+                }
                 {
                     keys.map(key => {
                         const currentNodeList = data[key]
@@ -413,7 +432,7 @@ const CrushingComponents = ({currentNodeList}: {currentNodeList: singleObjectDat
                 currentNodeList.map(currentNode =>{
                      return (
                             <View style={styles.subsection} key={currentNode.id}> 
-                                <View style={styles.subsection}>
+                                <View style={styles.subsection} wrap={false}>
                                     <Text id={currentNode.oid} style={styles.title} break>
                                         {currentNode.label}
                                     </Text>
@@ -445,7 +464,7 @@ const MillingComponents = ({currentNodeList}: {currentNodeList: singleObjectData
                 currentNodeList.map(currentNode =>{
                      return (
                         <View style={styles.subsection} key={currentNode.id} > 
-                            <View style={styles.subsection}>
+                            <View style={styles.subsection} wrap={false}>
                                 <Text id={currentNode.oid} style={styles.title} break>
                                     {currentNode.label}
                                 </Text>
@@ -476,7 +495,7 @@ const ScreeningComponents = ({currentNodeList}: {currentNodeList: singleObjectDa
                 currentNodeList.map(currentNode =>{
                      return (
                         <View style={styles.subsection} key={currentNode.id}> 
-                            <View style={styles.subsection}>
+                            <View style={styles.subsection} wrap={false}>
                                 <Text id={currentNode.oid} style={styles.title} break>
                                     {currentNode.label}
                                 </Text>
@@ -504,7 +523,7 @@ const ConcentratorComponents = ({currentNodeList}: {currentNodeList: singleObjec
                 currentNodeList.map(currentNode =>{
                       return (
                             <View style={styles.subsection} key={currentNode.id}> 
-                                <View style={styles.subsection}>
+                                <View style={styles.subsection} wrap={false}>
                                     <Text id={currentNode.oid} style={styles.title} break>
                                         {currentNode.label}
                                     </Text>
@@ -569,7 +588,7 @@ const AuxilliaryComponents = ({currentNodeList}: {currentNodeList: singleObjectD
                 currentNodeList.map(currentNode => {
                     return (
                         <View style={styles.subsection} key={currentNode.id}> 
-                            <View style={styles.subsection}>
+                            <View style={styles.subsection} wrap={false}>
                                 <Text id={currentNode.oid} style={styles.title} break>
                                     {currentNode.label}
                                 </Text>
@@ -609,7 +628,7 @@ const ShapeComponents = ({currentNodeList}: {currentNodeList: singleObjectDataTy
                 if (currentNode.object_info.object_model_name === "Shape" && currentNode.object!.name !== "Line" && currentNode.object!.name !== "Text") {
                     return (
                         <View style={styles.subsection} key={currentNode.id}>
-                            <View style={styles.subsection}>
+                            <View style={styles.subsection} wrap={false}>
                                 <Text id={currentNode.oid} style={styles.title} break>
                                     {currentNode.label}
                                 </Text>
