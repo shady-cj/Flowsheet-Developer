@@ -10,7 +10,7 @@ import featureFlowsheet from "@/assets/feature-canvas.png"
 
 const Benefits = () => {
   return (
-    <section className="pt-44 px-24">
+    <section className="pt-44 px-24" id="features">
       <h1 className="text-5xl lg:text-[3.5rem] xl:text-7xl hero-text font-semibold text-center">Features &<br/> Benefits</h1>
       <div className="mt-32 w-full h-[35.625rem] bg-[#16191C] rounded-xl">
         <div className="pt-12 max-w-[1500px] ml-24 2xl:mx-auto flex h-full gap-12">

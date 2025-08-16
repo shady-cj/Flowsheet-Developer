@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 
-import { FlowsheetContext } from "../context/FlowsheetProvider"
+import { FlowsheetContext, objectDataType } from "../context/FlowsheetProvider"
 import { useContext, useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import exportImage from "@/assets/export.svg"
@@ -10,8 +10,8 @@ import arrowRight from "@/assets/arrow-right.svg"
 import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
 import { htmlToImageConvert } from '@/lib/utils/htmlConvertToImage';
-import Report from "@/lib/utils/report"
-import { PDFDownloadLink } from "@react-pdf/renderer"
+import {Report, Report2} from "@/lib/utils/report"
+import { PDFDownloadLink, pdf } from "@react-pdf/renderer"
 import { saveSettings } from "@/lib/actions/flowsheetcanvas"
 
 
@@ -20,13 +20,14 @@ export type saveFreqType = {
   saveInterval: number | null | undefined
 }
 
+
 const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
   const [showDropDown, setShowDropDown] = useState(false)
   const [openBondsBox, setOpenBondsBox] = useState(false)
   const [exportCanvas, setExportCanvas] = useState(false)
-  const pdfUrl = useRef<string | null>(null)
-  
-  
+  const [loadingPdf, setLoadingPdf] = useState(false)
+  const [pdfDownloaded, setPdfDownloaded] = useState(false)
+
 
   const { canvasRef,objectData, saveObjectData, isEdited, isSaving, canvasLoading,userObject, flowsheetObject,setFlowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
   const [saveFrequencySettings, setSaveFrequencySettings] = useState<saveFreqType>({
@@ -64,13 +65,31 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
     }
 
   }
-
+  const handlePDFDownload = async (objectData: objectDataType, flowsheetName?: string, flowsheetDescription?: string, fileName?: string) => {
+    setLoadingPdf(true)
+    const blob = await pdf(<Report2 objectData={objectData} flowsheetName={flowsheetName} flowsheetDescription={flowsheetDescription}/>).toBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName || "flowsheet.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+    setLoadingPdf(false)
+    setPdfDownloaded(true)
+    setTimeout(()=> {
+      setExportCanvas(false)
+      setPdfDownloaded(false)
+    }, 1000)
+  };
   useEffect(() => {
     setSaveFrequencySettings({
       frequencyType: flowsheetObject?.save_frequency_type,
       saveInterval: flowsheetObject?.save_frequency
     })
   }, [flowsheetObject])
+  useEffect(() => {
+    setPdfDownloaded(false)
+  }, [])
 
   return (
     <>
@@ -149,18 +168,25 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
       </header>
       
       <div className={`transition-all w-screen h-screen left-0 top-0 fixed bg-[#00000080] z-50 flex justify-center items-center ${exportCanvas ? "visible opacity-100": "invisible opacity-0"}`}>
-        {exportCanvas ? <div className="bg-white w-[30%] h-[30%] bg-white shadow-lg rounded-sm py-5 px-6">
+        {exportCanvas ? <div className="bg-white w-[30%] bg-white shadow-lg rounded-sm py-5 px-6">
           <p>Do you want to download an additional report of your design</p>
 
           <div className='flex justify-end gap-4 mt-3'>
             <button className='bg-red-400 rounded-lg py-2 px-4 text-white' onClick={() => setExportCanvas(false)}>No</button>
-
-            {/* <PDFDownloadLink document={<Report objectData={objectData.current}/>} onClick={()=> setExportCanvas(false)} className='bg-tertiary rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' fileName="somename.pdf">
+            <button className='bg-tertiary rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' onClick={() => handlePDFDownload(objectData.current,flowsheetObject?.name, flowsheetObject?.description, `${flowsheetObject?.name}.pdf`)}>
+              {
+                loadingPdf ? "Preparing PDF for download..." : pdfDownloaded ? "Downloaded PDF" : "Yes"
+              }
+               
+               
+            </button>
+            {/* <PDFDownloadLink document={<Report2 objectData={objectData.current}/>} onClick={()=> setExportCanvas(false)} className='bg-tertiary rounded-lg py-2 px-4 text-white flex items-center justify-center min-w-24' fileName={`${flowsheetObject?.name}.pdf`}>
               {({ blob, url, loading, error }) =>
-                loading ? 'Loading document...' : 'Yes'
+                loading ? "Preparing PDF..." : error ? "an error occured" :'Yes'
               }
             </PDFDownloadLink> */}
 
+  
           </div>
         </div>: ""}
       </div>

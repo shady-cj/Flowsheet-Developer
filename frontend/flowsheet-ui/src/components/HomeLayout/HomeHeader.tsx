@@ -9,7 +9,7 @@ const HomeHeader = () => {
            <Logo logoIcon={logoIcon}/>
             <nav className="flex items-center gap-x-10">
                 <Link href={"/"} className="font-normal text-base text-gray-3">Documentation</Link>
-                <Link href={"/"} className="font-normal text-base text-gray-3">Features</Link>
+                <Link href={"/#features"} className="font-normal text-base text-gray-3">Features</Link>
                 <div className="flex gap-4">
 
                   <Link href={"/login"} className="px-5 py-2 rounded-lg border border-[#C7CFD6] font-medium text-base text-[#0052CC]">Login</Link>
