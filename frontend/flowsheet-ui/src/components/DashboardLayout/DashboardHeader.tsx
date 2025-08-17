@@ -24,14 +24,15 @@ const DashboardHeader = () => {
   const [showDropDown, setShowDropDown] = useState(false)
   const feedbackScreenshotsFileSize = useRef(0)
   const descriptionRef = useRef<HTMLTextAreaElement>(null!)
-  const dropArea = useRef<HTMLLabelElement>(null!)
   const [sendingFeedbacks, setSendingFeedbacks] = useState(false)
-  const {user, loadingUser} = useContext(UserContext)
+  const context = useContext(UserContext)
   const [files, setFiles] = useState<{id: string, file: File}[] | []>([])
   const [previews, setPreviews] = useState<{id: string, preview: (ArrayBuffer | string | null)}[]>([])
   
   const [searchResult, setSearchResult] = useState<null | {projects: fetchedProjectType[], flowsheets: fetchedFlowsheetsType[]}>(null)
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
+  
+
   const Logout = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     await logout()
@@ -137,6 +138,12 @@ const DashboardHeader = () => {
       descriptionRef.current.value = ''
     }
   }, [showFeedbackForm])
+
+  if (!context) {
+    return null
+  }
+  const {user, loadingUser} = context
+  
   return (
     <>
     <header className="w-full sticky bg-grayVariant border-b border-[#DFE1E6] top-0 z-30 flex-initial text-white" id="dashboard-header">

@@ -29,7 +29,7 @@ export const fetchDashboardProjects = async (query: string | null, limit?: numbe
 
         })
         const result = await response.json()
-        console.log("result", result)
+        // console.log("result", result)
         if (response.status === 200) return result
         else {
             console.log(result);
@@ -85,7 +85,7 @@ export const updateProject = async (item: fetchedProjectType) => {
 
         })
         const result = await response.json()
-        console.log("project update result", result)
+        // console.log("project update result", result)
         if (response.status === 200) return result
         else {
             console.log(result);
@@ -112,7 +112,7 @@ export const updateFlowsheet = async (item: fetchedFlowsheetsType) => {
 
         })
         const result = await response.json()
-        console.log("flowsheet update result", result)
+        // console.log("flowsheet update result", result)
         if (response.status === 200) return result
         else {
             console.log(result);
