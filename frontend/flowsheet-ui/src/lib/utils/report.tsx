@@ -92,19 +92,25 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         display: "flex",
         flexDirection: "column",
-        gap: "24px",
+        gap: "10px",
         padding: "32px 24px"
+    },
+    viewSplitter: {
+        flexDirection: "column",
+        gap: 4
     },
     section: { 
         display: "flex",
         flexDirection: "column",
-        gap: "8px"
+        gap: "8px",
+        flexGrow: 1,
     },
     subsection: {
         display: "flex",
         flexDirection: "column",
         gap: "6px",
-        padding: "10px 14px"
+        padding: "10px 14px",
+        flexGrow: 1,
     },
     flowsheetHeader: {
         fontWeight: "bold",
@@ -140,7 +146,8 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: "10px",
-        lineHeight: "1.5"
+        lineHeight: 1.5,
+        marginBottom: 4
     },
     bold: {
         fontWeight: "bold",
@@ -221,14 +228,14 @@ const ConnectorComponents = ({currentNodeList, objectData}:{currentNodeList: sin
                      <View style={styles.subsection} key={currentNode.id}> 
                         <Text id={currentNode.oid} style={styles.title} break>{currentNode.label}</Text>
                         <Text style={styles.text}><Text style={styles.bold}>Description of operation:</Text> <Text style={styles.desc}>{currentNode.description}</Text></Text>
-                        <View>
+                        <View style={styles.viewSplitter}>
                             <View>
 
                                 { 
                                     currentNode.properties.prevObject.length && objectData[currentNode.properties.prevObject[0]] ? 
-                                    <View>
+                                    <View style={styles.viewSplitter}>
                                         <Text style={styles.miniSubtitle}>Source:</Text>
-                                        <View style={{padding: "10px 14px", gap: "6px"}}>
+                                        <View style={styles.subsection}>
                                             <Text style={styles.text}><Text style={styles.bold}>Label: </Text> <Link src={`#${currentNode.properties.prevObject[0]}`}>{objectData[currentNode.properties.prevObject[0]].label}</Link></Text>
                                             <Text style={styles.text}><Text style={styles.bold}>Name: </Text>{objectData[currentNode.properties.prevObject[0]].object_info.object_model_name}</Text>
                                         </View>
@@ -239,9 +246,9 @@ const ConnectorComponents = ({currentNodeList, objectData}:{currentNodeList: sin
                             <View>
                                 { 
                                     currentNode.properties.nextObject.length && objectData[currentNode.properties.nextObject[0]] ? 
-                                    <View>
+                                    <View style={styles.viewSplitter}>
                                         <Text style={styles.miniSubtitle}>Destination:</Text>
-                                        <View style={{padding: "10px 14px", gap:"6px"}}>
+                                        <View style={styles.subsection}>
                                             <Text style={styles.text}><Text style={styles.bold}>Label: </Text><Link src={`#${currentNode.properties.nextObject[0]}`}>{objectData[currentNode.properties.nextObject[0]].label}</Link></Text>
                                             <Text style={styles.text}><Text style={styles.bold}>Name: </Text>{objectData[currentNode.properties.nextObject[0]].object_info.object_model_name}</Text>
                                         </View>
@@ -265,7 +272,7 @@ const CrushingComponents = ({currentNodeList}: {currentNodeList: singleObjectDat
                 currentNodeList.map(currentNode =>{
                      return (
                             <View style={styles.subsection} key={currentNode.id}> 
-                                <View style={styles.subsection} wrap={false}>
+                                <View style={styles.viewSplitter} wrap={false}>
                                     <Text id={currentNode.oid} style={styles.title} break>
                                         {currentNode.label}
                                     </Text>
@@ -299,7 +306,7 @@ const MillingComponents = ({currentNodeList}: {currentNodeList: singleObjectData
                 currentNodeList.map(currentNode =>{
                      return (
                         <View style={styles.subsection} key={currentNode.id} > 
-                            <View style={styles.subsection} wrap={false}>
+                            <View style={styles.viewSplitter} wrap={false}>
                                 <Text id={currentNode.oid} style={styles.title} break>
                                     {currentNode.label}
                                 </Text>
@@ -332,7 +339,7 @@ const ScreeningComponents = ({currentNodeList}: {currentNodeList: singleObjectDa
                 currentNodeList.map(currentNode =>{
                      return (
                         <View style={styles.subsection} key={currentNode.id}> 
-                            <View style={styles.subsection} wrap={false}>
+                            <View style={styles.viewSplitter} wrap={false}>
                                 <Text id={currentNode.oid} style={styles.title} break>
                                     {currentNode.label}
                                 </Text>
@@ -363,7 +370,7 @@ const ConcentratorComponents = ({currentNodeList}: {currentNodeList: singleObjec
                 currentNodeList.map(currentNode =>{
                       return (
                             <View style={styles.subsection} key={currentNode.id}> 
-                                <View style={styles.subsection} wrap={false}>
+                                <View style={styles.viewSplitter} wrap={false}>
                                     <Text id={currentNode.oid} style={styles.title} break>
                                         {currentNode.label}
                                     </Text>
@@ -388,17 +395,22 @@ const ConcentratorComponents = ({currentNodeList}: {currentNodeList: singleObjec
                                             gangue_in_waste
                                         } = concentratorAnalysis(currentNode)
                                             return (
-                                            <View style={styles.subsection}>
-                                                <Text style={styles.text}>Quantity of ore going through the concentrator is <Text style={styles.bold}>{feed_quantity} tons</Text></Text>
-                                                <Text style={styles.text}>Grade of ore going through the concentrator is <Text style={styles.bold}>{currentNode.properties.oreGrade}</Text></Text>
-                                                <Text style={styles.text}>Concentrator recovery (%) of valuable mineral is <Text style={styles.bold}>{valuable_recoverable}%</Text></Text>
-                                                <Text style={styles.text}>Concentrator recovery (%) of gangue is <Text style={styles.bold}>{gangue_recoverable}%</Text></Text>
-                                                <Text style={styles.subtitle} break>Ore Recovery Analysis.</Text>
-                                                <View style={styles.subsection}>
+                                            <View style={styles.viewSplitter}>
+                                                <View style={styles.viewSplitter}> 
+                                                    <Text style={styles.text}>Quantity of ore going through the concentrator is <Text style={styles.bold}>{feed_quantity} tons</Text></Text>
+                                                    <Text style={styles.text}>Grade of ore going through the concentrator is <Text style={styles.bold}>{currentNode.properties.oreGrade}</Text></Text>
+                                                    <Text style={styles.text}>Concentrator recovery (%) of valuable mineral is <Text style={styles.bold}>{valuable_recoverable}%</Text></Text>
+                                                    <Text style={styles.text}>Concentrator recovery (%) of gangue is <Text style={styles.bold}>{gangue_recoverable}%</Text></Text>
+                                                </View>
+                                                <View>
+
+                                                    <Text style={styles.subtitle} break>Ore Recovery Analysis.</Text>
+                                                </View>
+                                                <View style={styles.viewSplitter}>
                                                     <Text style={styles.text}>Valuable ore (%) present in the feed going through the concentrator is <Text style={styles.bold}>{valuable_in_feed * 100}%</Text></Text>
                                                     <Text style={styles.text}>Gangue (%) present in the feed going through the concentrator is <Text style={styles.bold}>{gangue_in_feed * 100}%</Text></Text>
                                                     <Text style={styles.text}><Text style={styles.bold}>Concentrate</Text></Text>
-                                                    <View style={styles.subsection}>
+                                                    <View style={styles.viewSplitter}>
 
                                                         <View style={styles.subsection}>
                                                             <Text style={styles.text}>Quantity of valuable ore is <Text style={styles.bold}>{valuable_in_product.toFixed(2)} tons</Text></Text>
@@ -431,7 +443,7 @@ const AuxilliaryComponents = ({currentNodeList}: {currentNodeList: singleObjectD
                 currentNodeList.map(currentNode => {
                     return (
                         <View style={styles.subsection} key={currentNode.id}> 
-                            <View style={styles.subsection} wrap={false}>
+                            <View style={styles.viewSplitter} wrap={false}>
                                 <Text id={currentNode.oid} style={styles.title} break>
                                     {currentNode.label}
                                 </Text>
@@ -474,7 +486,7 @@ const ShapeComponents = ({currentNodeList}: {currentNodeList: singleObjectDataTy
                 if (currentNode.object_info.object_model_name === "Shape" && currentNode.object!.name !== "Line" && currentNode.object!.name !== "Text") {
                     return (
                         <View style={styles.subsection} key={currentNode.id}>
-                            <View style={styles.subsection} wrap={false}>
+                            <View style={styles.viewSplitter} wrap={false}>
                                 <Text id={currentNode.oid} style={styles.title} break>
                                     {currentNode.label}
                                 </Text>
