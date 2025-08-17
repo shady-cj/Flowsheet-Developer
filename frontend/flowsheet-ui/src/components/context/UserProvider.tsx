@@ -4,14 +4,14 @@ import {createContext, useEffect, useState} from "react"
 
 
 
-type userType = {
-    id: string,
-    email: string,
-    projects: string[]
-}
+export type userType = {
+  id: string, 
+  email: string,
+  projects: {id: string, name: string, description: string, creator: string}[]
+} | null
 
 type userContextType = {
-    user: userType | null, 
+    user: userType, 
     loadingUser: boolean
 }
 

@@ -3,6 +3,7 @@
 import Link from "next/link"
 
 import { FlowsheetContext, objectDataType } from "../context/FlowsheetProvider"
+import { UserContext } from "../context/UserProvider"
 import { useContext, useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import exportImage from "@/assets/export.svg"
@@ -13,6 +14,7 @@ import { htmlToImageConvert } from '@/lib/utils/htmlConvertToImage';
 import {Report, Report2} from "@/lib/utils/report"
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer"
 import { saveSettings } from "@/lib/actions/flowsheetcanvas"
+import Loader from "../utils/loader"
 
 
 export type saveFreqType = {
@@ -29,7 +31,8 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
   const [pdfDownloaded, setPdfDownloaded] = useState(false)
 
 
-  const { canvasRef,objectData, saveObjectData, isEdited, isSaving, canvasLoading,userObject, flowsheetObject,setFlowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
+  const { canvasRef,objectData, saveObjectData, isEdited, isSaving, canvasLoading, flowsheetObject,setFlowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
+  const { user, loadingUser} = useContext(UserContext)
   const [saveFrequencySettings, setSaveFrequencySettings] = useState<saveFreqType>({
     frequencyType: undefined,
     saveInterval: undefined,
@@ -151,10 +154,18 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
               </div>
           </nav>
           <div className="flex items-center gap-5">
-            <div className="bg-[#E381E3] font-semibold text-[#261A26] text-sm w-9 h-9 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
-            {userObject?.email.substring(0, 2).toLocaleUpperCase()}
-            </div>
+            {
+            loadingUser ? <div>
 
+                <Loader fullScreen={false} color="black" small={true} />
+              </div> : user ?
+              <div className="bg-[#E381E3] font-semibold text-[#261A26] text-sm w-9 h-9 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
+                {
+                  user?.email.substring(0, 2).toLocaleUpperCase()
+                }
+              </div>: <></>
+              
+            }
             <button className="bg-normalBlueVariant text-text-gray-2 py-2 px-3 flex gap-x-2 items-center rounded-lg text-sm" onClick={()=> {
               if (pageNotFound) return;
               htmlToImageConvert(canvasRef.current, objectData.current, flowsheetObject?.name);
@@ -168,7 +179,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
       </header>
       
       <div className={`transition-all w-screen h-screen left-0 top-0 fixed bg-[#00000080] z-50 flex justify-center items-center ${exportCanvas ? "visible opacity-100": "invisible opacity-0"}`}>
-        {exportCanvas ? <div className="bg-white w-[30%] bg-white shadow-lg rounded-sm py-5 px-6">
+        {exportCanvas ? <div className="bg-white w-[25%] bg-white shadow-lg rounded-sm py-5 px-6">
           <p>Do you want to download an additional report of your design</p>
 
           <div className='flex justify-end gap-4 mt-3'>

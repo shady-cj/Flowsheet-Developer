@@ -216,4 +216,4 @@ def upload_images_default(images, feedback_id):
         )
         image_urls.append(upload_result["secure_url"])
 
-    return image_urls
+    return None if len(image_urls) == 0 else image_urls

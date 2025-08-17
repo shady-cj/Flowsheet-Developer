@@ -6,11 +6,11 @@ import { useContext, useEffect } from "react"
 import { FlowsheetContext } from "../context/FlowsheetProvider"
 
 const Flowsheet = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
-  const {canvasLoading, getUser, getFlowsheet} = useContext(FlowsheetContext)
+  const {canvasLoading, getFlowsheet} = useContext(FlowsheetContext)
   useEffect(() => {
-    getUser();
+   
     getFlowsheet(params.project_id, params.flowsheet_id);
-  }, [getUser, getFlowsheet, params.flowsheet_id, params.project_id])
+  }, [getFlowsheet, params.flowsheet_id, params.project_id])
   return (
     <>
       <FlowsheetSidebar params={params} />

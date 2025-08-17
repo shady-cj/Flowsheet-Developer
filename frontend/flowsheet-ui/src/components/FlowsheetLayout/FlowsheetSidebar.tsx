@@ -35,6 +35,7 @@ import concentratorImage from "@/assets/concentrator.svg"
 import ConvertStringToShape from "../Shapes/ConvertStringToShape";
 import Concentrator from "../Objects/Concentrator";
 import Loader from "../utils/loader";
+import { UserContext } from "../context/UserProvider";
 
 export type genericImageObjectType = {
     id: string, 
@@ -81,7 +82,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
     const [auxilliaries, setAuxilliaries] = useState<AuxilliaryImageObjectType[]>([])
     const [addCustomComponent, setAddCustomComponent] = useState(false)
     const [loadComponent, setLoadComponent] = useState<{status: boolean, type: loadComponentType}>({status: true, type: ""})
-    const {userObject} = useContext(FlowsheetContext)
+    const {user} = useContext(UserContext)
 
 
     const [activeComponent, setActiveComponent] = useState<{properties: genericImageObjectType[] | AuxilliaryImageObjectType[] | ConcentratorImageObjectType[],  type: string}>({properties: [], type: ""})
@@ -249,7 +250,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                     <div className="flex flex-wrap gap-4 overflow-hidden p-2">
                         {
                             crushers.length > 0 && crushers.map(crusher=> {
-                                if (crusher.creator === userObject?.id) {
+                                if (crusher.creator === user?.id) {
                                     return (<ObjectComponentWrapper key={crusher.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(crusher.id, crusher.name, "Crusher")}>
                                             <Crusher  crusher={crusher} />
                                         </ObjectComponentWrapper>)
@@ -258,7 +259,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                         }
                          {
                             grinders.length > 0 && grinders.map(grinder=>{
-                                if (grinder.creator === userObject?.id) {
+                                if (grinder.creator === user?.id) {
                                     return (<ObjectComponentWrapper key={grinder.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(grinder.id, grinder.name, "Grinder")}>
                                             <Grinder grinder={grinder}/>
                                         </ObjectComponentWrapper>)
@@ -267,7 +268,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                         }
                         {
                             screeners.length > 0 && screeners.map(screener=>{
-                                if (screener.creator === userObject?.id)
+                                if (screener.creator === user?.id)
                                     return (<ObjectComponentWrapper key={screener.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(screener.id, screener.name, "Screener")}>
                                             <Screener  screener={screener}/>
                                         </ObjectComponentWrapper>)
@@ -275,7 +276,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                         }
                         {
                             auxilliaries.length > 0 && auxilliaries.map(auxilliary=>{
-                                if (auxilliary.creator === userObject?.id)
+                                if (auxilliary.creator === user?.id)
                                     return (<ObjectComponentWrapper key={auxilliary.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(auxilliary.id, auxilliary.name, "Auxilliary")}>
                                         <Auxilliary auxilliary={auxilliary}/>
                                     </ObjectComponentWrapper>)
@@ -283,7 +284,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                         }
                         {
                             concentrators.length > 0 && concentrators.map(concentrator=>{
-                                if (concentrator.creator === userObject?.id)
+                                if (concentrator.creator === user?.id)
                                     return (<ObjectComponentWrapper key={concentrator.id} showTrashIcon={true} handleTrashClick={() => handleObjectRemoval(concentrator.id, concentrator.name, "Concentrator")}>      
                                         <Concentrator concentrator={concentrator}/>
                                     </ObjectComponentWrapper>)

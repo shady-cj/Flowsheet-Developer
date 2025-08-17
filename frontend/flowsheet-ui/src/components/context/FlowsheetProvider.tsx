@@ -113,11 +113,11 @@ export type objectDataType = {
 }
 
 
-export type userType = {
-  id: string, 
-  email: string,
-  projects: {id: string, name: string, description: string, creator: string}[]
-} | null
+// export type userType = {
+//   id: string, 
+//   email: string,
+//   projects: {id: string, name: string, description: string, creator: string}[]
+// } | null
 
 // export type flowsheetType = {id: string, name: string, description: string, get_mins_ago: string, project: string} | null
 
@@ -129,7 +129,7 @@ type contextType = {
   isSaving: boolean,
   canvasRef: MutableRefObject<HTMLDivElement>,
   calculateBondsEnergy: MutableRefObject<Boolean>,
-  userObject: userType,
+  // userObject: userType,
   flowsheetObject: fetchedFlowsheetsType | null,
   Wvalue: string | null,
   communitionListForBondsEnergy: MutableRefObject<singleObjectDataType[]>,
@@ -142,7 +142,7 @@ type contextType = {
   setWvalue: Dispatch<SetStateAction<string | null>>,
   setFlowsheetObject: Dispatch<SetStateAction<fetchedFlowsheetsType | null>>,
   saveObjectData: (paramsId: string)=>void,
-  getUser: () => void,
+  // getUser: () => void,
   getFlowsheet: (projectID: string, flowsheetID: string) => void
   calculateEnergyUsed: () => void
 }
@@ -160,7 +160,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
   const hasInstance = useRef(false) // To check if the objectData has initially been created so it'll be updated instead of being recreated
   const [isEdited, setIsEdited] = useState(false) // To keep track of whether the canvas has been edited or not, if edited means it needs to be saved
   const [isSaving, setIsSaving] = useState(false) // To keep track of whether the canvas is being saved or not
-  const [userObject, setUserObject] = useState<userType>(null)
+  // const [userObject, setUserObject] = useState<userType>(null)
   const [flowsheetObject, setFlowsheetObject] = useState<fetchedFlowsheetsType | null>(null)
   const calculateBondsEnergy = useRef<Boolean>(false)
   const communitionListForBondsEnergy = useRef<singleObjectDataType[]>([])
@@ -219,9 +219,9 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
  
 
 
-  const getUser = useCallback(async () => {
-    setUserObject(await fetchUser())
-  }, [])
+  // const getUser = useCallback(async () => {
+  //   setUserObject(await fetchUser())
+  // }, [])
 
 
   const getFlowsheet = useCallback(async (projectID: string, flowsheetID: string) => {
@@ -236,8 +236,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
     <FlowsheetContext.Provider value={{
       canvasRef, canvasLoading, 
       setCanvasLoading, saveObjectData, 
-      objectData, hasInstance, userObject, 
-      getUser, flowsheetObject, setFlowsheetObject,
+      objectData, hasInstance, flowsheetObject, setFlowsheetObject,
       getFlowsheet, calculateBondsEnergy, 
     communitionListForBondsEnergy, workIndex, 
     calculateEnergyUsed, Wvalue, setWvalue,
