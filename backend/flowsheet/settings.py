@@ -153,8 +153,8 @@ SIMPLE_JWT = {
 # ======================================================================================================================
 # Django Email Configurations
 
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_HOST = getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = eval(getenv("EMAIL_PORT", 587))
 EMAIL_HOST_USER = getenv("EMAIL_HOST_USER")
