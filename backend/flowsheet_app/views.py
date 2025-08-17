@@ -35,6 +35,7 @@ from .models import (
     Project,
     FlowsheetObject,
     Flowsheet,
+    FeedBack,
 )
 from authentication.models import User
 from .utils import (
@@ -43,6 +44,7 @@ from .utils import (
     update_object_util,
     destroy_object_util,
     upload_preview_image,
+    upload_images_default,
 )
 from .mixins import ObjectPermissionMixin, UpdateCreatorMixin, handleCreationMixin
 from .permissions import FlowsheetObjectPermission, FlowsheetInstancePermission
@@ -139,6 +141,19 @@ class RetrieveUpdateAuxilliary(ObjectPermissionMixin, RetrieveUpdateAPIView):
 
     def get_queryset(self):
         return get_queryset_util(self, Auxilliary)
+
+
+class FeedbackView(APIView):
+    def post(self, request, format=None):
+        data = request.data
+        images = data.getlist("screenshots")
+        feedback = FeedBack.objects.create(description=data.get("description"))
+        image_urls = upload_images_default(images=images, feedback_id=feedback.id)
+        feedback.screenshots = image_urls
+        feedback.save()
+        return Response(
+            {"message": "Feedback sent successfully"}, status=status.HTTP_200_OK
+        )
 
 
 class DashboardSearch(APIView):

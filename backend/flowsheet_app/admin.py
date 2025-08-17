@@ -1,5 +1,16 @@
 from django.contrib import admin
-from .models import Shape, Concentrator, Grinder, Crusher, Auxilliary, Project, FlowsheetObject, Flowsheet, Screener
+from .models import (
+    Shape,
+    Concentrator,
+    Grinder,
+    Crusher,
+    Auxilliary,
+    Project,
+    FlowsheetObject,
+    Flowsheet,
+    Screener,
+    FeedBack,
+)
 
 # Register your models here.
 
@@ -12,5 +23,4 @@ admin.site.register(Project)
 admin.site.register(FlowsheetObject)
 admin.site.register(Flowsheet)
 admin.site.register(Screener)
-
-
+admin.site.register(FeedBack)

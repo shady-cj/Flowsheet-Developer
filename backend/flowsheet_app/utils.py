@@ -194,3 +194,26 @@ def upload_preview_image(image, flowsheet_id):
         decoded_data, folder=f"{flowsheet_id}_previews", resource_type="image"
     )
     return upload_result["secure_url"]
+
+
+def upload_images_default(images, feedback_id):
+
+    if not len(images):
+        return None
+
+    image_urls = []
+    for image in images:
+
+        input = Image.open(image)
+        # input.thumbnail((300, 300))
+        imageBuffer = BytesIO()
+        input.save(imageBuffer, format=input.format, optimize=True)
+        imageBuffer.seek(0)
+        upload_result = upload(
+            imageBuffer.getvalue(),
+            folder=f"feedback_images_{feedback_id}",
+            resource_type="image",
+        )
+        image_urls.append(upload_result["secure_url"])
+
+    return image_urls

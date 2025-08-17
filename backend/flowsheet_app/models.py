@@ -223,3 +223,8 @@ class FlowsheetObject(models.Model):
     properties = models.JSONField(blank=True, null=True)  # property of the objects
 
     # This model would be extended over time.
+
+
+class FeedBack(models.Model):
+    description = models.TextField()
+    screenshots = models.JSONField(null=True, blank=True)

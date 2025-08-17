@@ -222,3 +222,28 @@ export const dashboardSearch = async (query: string) => {
 
 
 
+export const sendFeedback = async (formData: FormData) => {
+    const accessToken = await getAccessToken()
+    console.log("form data", formData)
+    try {
+        console.log("form data", formData)
+        const response = await fetch(`${BASE_URL}/feedbacks/`, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "Authorization": `Bearer ${accessToken}`
+            }
+        })
+
+        const result = await response.json()
+        if (response.status === 200) return result
+        else {
+            console.log(result);
+            return null
+        }
+    } catch (err) {
+        // console.log('too many file')
+        console.log(err)
+        return null
+    }
+}

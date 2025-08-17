@@ -22,6 +22,7 @@ from .views import (
     UpdateFlowsheetPreview,
     DashboardSearch,
     DestroyFlowsheetObject,
+    FeedbackView,
 )
 
 urlpatterns = [
@@ -36,6 +37,7 @@ urlpatterns = [
     path("concentrators/<str:id>", RetrieveUpdateConcentrator.as_view()),
     path("auxilliary/", ListCreateAuxilliary.as_view()),
     path("auxilliary/<str:id>", RetrieveUpdateAuxilliary.as_view()),
+    path("feedbacks/", FeedbackView.as_view()),
     path("dashboard_search/", DashboardSearch.as_view()),
     path("flowsheets/", ListFlowsheet.as_view()),
     path("flowsheets/<str:project_id>", ListCreateFlowsheet.as_view()),
