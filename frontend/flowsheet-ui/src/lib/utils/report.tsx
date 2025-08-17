@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
 
     header: {
         fontWeight: "bold",
-        fontSize: "20px",
+        fontSize: "18px",
         textTransform: "capitalize",
         color: 'red'
     },
@@ -221,34 +221,34 @@ const ConnectorComponents = ({currentNodeList, objectData}:{currentNodeList: sin
                      <View style={styles.subsection} key={currentNode.id}> 
                         <Text id={currentNode.oid} style={styles.title} break>{currentNode.label}</Text>
                         <Text style={styles.text}><Text style={styles.bold}>Description of operation:</Text> <Text style={styles.desc}>{currentNode.description}</Text></Text>
-                        <>
+                        <View>
                             <View>
 
                                 { 
                                     currentNode.properties.prevObject.length && objectData[currentNode.properties.prevObject[0]] ? 
-                                    <>
+                                    <View>
                                         <Text style={styles.miniSubtitle}>Source:</Text>
-                                        <View style={{padding: "10px 14px"}}>
+                                        <View style={{padding: "10px 14px", gap: "6px"}}>
                                             <Text style={styles.text}><Text style={styles.bold}>Label: </Text> <Link src={`#${currentNode.properties.prevObject[0]}`}>{objectData[currentNode.properties.prevObject[0]].label}</Link></Text>
                                             <Text style={styles.text}><Text style={styles.bold}>Name: </Text>{objectData[currentNode.properties.prevObject[0]].object_info.object_model_name}</Text>
                                         </View>
-                                    </>
+                                    </View>
                                     : ""
                                 }
                             </View>
                             <View>
                                 { 
                                     currentNode.properties.nextObject.length && objectData[currentNode.properties.nextObject[0]] ? 
-                                    <>
+                                    <View>
                                         <Text style={styles.miniSubtitle}>Destination:</Text>
-                                        <View style={{padding: "10px 14px"}}>
+                                        <View style={{padding: "10px 14px", gap:"6px"}}>
                                             <Text style={styles.text}><Text style={styles.bold}>Label: </Text><Link src={`#${currentNode.properties.nextObject[0]}`}>{objectData[currentNode.properties.nextObject[0]].label}</Link></Text>
                                             <Text style={styles.text}><Text style={styles.bold}>Name: </Text>{objectData[currentNode.properties.nextObject[0]].object_info.object_model_name}</Text>
                                         </View>
-                                    </> : ""
+                                    </View> : ""
                                 }
                             </View>
-                        </>    
+                        </View>    
                     </View>
                 )
             })
@@ -272,15 +272,17 @@ const CrushingComponents = ({currentNodeList}: {currentNodeList: singleObjectDat
                                     <View style={{...styles.imageContainer, minHeight: currentNode.object!.image_height}}>
                                         <Image src={currentNode.object?.image_url} style={{height: currentNode.object!.image_height, width: currentNode.object!.image_width}} />
                                     </View>
-                                    <Text style={styles.text}><Text style={styles.bold}>Crusher Type:</Text> {currentNode.object!.name} </Text>
-                                    <Text style={styles.text}><Text style={styles.bold}>Description of operation:</Text> <Text style={styles.desc}>
-                                        {currentNode.description}
-                                    </Text>
-                                    </Text>
+                                    <View style={styles.subsection}>
+                                        <Text style={styles.text}><Text style={styles.bold}>Crusher Type:</Text> {currentNode.object!.name} </Text>
+                                        <Text style={styles.text}><Text style={styles.bold}>Description of operation:</Text> <Text style={styles.desc}>
+                                            {currentNode.description}
+                                        </Text>
+                                        </Text>
 
-                                    <Text style={styles.text}>The crusher component is used as a <Text style={styles.bold}>{currentNode.properties.crusherType}</Text> crusher in the design</Text>
-                                    <Text style={styles.text}>The crusher component has a gape of size <Text style={styles.bold}>{currentNode.properties.gape}</Text> thus maximum Diameter of feed in which 80% passes is <Text style={styles.bold}>{(parseFloat(currentNode.properties.gape!) * 0.8).toFixed(2)}</Text></Text>
-                                    <Text style={styles.text}>The crusher component has a set of size <Text style={styles.bold}>{currentNode.properties.set}</Text> thus maximum Diameter of product in which 80% passes is <Text style={styles.bold}>{(parseFloat(currentNode.properties.set!) * 0.8).toFixed(2)}</Text></Text>
+                                        <Text style={styles.text}>The crusher component is used as a <Text style={styles.bold}>{currentNode.properties.crusherType}</Text> crusher in the design</Text>
+                                        <Text style={styles.text}>The crusher component has a gape of size <Text style={styles.bold}>{currentNode.properties.gape}</Text> thus maximum Diameter of feed in which 80% passes is <Text style={styles.bold}>{(parseFloat(currentNode.properties.gape!) * 0.8).toFixed(2)}</Text></Text>
+                                        <Text style={styles.text}>The crusher component has a set of size <Text style={styles.bold}>{currentNode.properties.set}</Text> thus maximum Diameter of product in which 80% passes is <Text style={styles.bold}>{(parseFloat(currentNode.properties.set!) * 0.8).toFixed(2)}</Text></Text>
+                                    </View>
                                 </View>
                             </View>
                         ) 
@@ -304,13 +306,15 @@ const MillingComponents = ({currentNodeList}: {currentNodeList: singleObjectData
                                  <View style={{...styles.imageContainer, minHeight: currentNode.object!.image_height}}>
                                     <Image src={currentNode.object?.image_url} style={{height: currentNode.object!.image_height, width: currentNode.object!.image_width}}/>
                                 </View>
-                                <Text style={styles.text}><Text style={styles.bold}>Miller Type:</Text> {currentNode.object!.name} </Text>
-                                <Text style={styles.text}><Text style={styles.bold}>Description of operation:</Text> <Text style={styles.desc}>
-                                    {currentNode.description}
-                                </Text></Text>
+                                <View style={styles.subsection}>
+                                    <Text style={styles.text}><Text style={styles.bold}>Miller Type:</Text> {currentNode.object!.name} </Text>
+                                    <Text style={styles.text}><Text style={styles.bold}>Description of operation:</Text> <Text style={styles.desc}>
+                                        {currentNode.description}
+                                    </Text></Text>
 
-                                <Text style={styles.text}>The grinding component has a gape of size <Text style={styles.bold}>{currentNode.properties.gape}</Text> thus maximum Diameter of feed in which 80% passes is <Text style={styles.bold}>{(parseFloat(currentNode.properties.gape!) * 0.8).toFixed(2)}</Text></Text>
-                                <Text style={styles.text}>The grinding component has a set of size <Text style={styles.bold}>{currentNode.properties.set}</Text> thus maximum Diameter of product in which 80% passes is <Text style={styles.bold}>{(parseFloat(currentNode.properties.set!) * 0.8).toFixed(2)}</Text></Text>                                        </View>
+                                    <Text style={styles.text}>The grinding component has a gape of size <Text style={styles.bold}>{currentNode.properties.gape}</Text> thus maximum Diameter of feed in which 80% passes is <Text style={styles.bold}>{(parseFloat(currentNode.properties.gape!) * 0.8).toFixed(2)}</Text></Text>
+                                    <Text style={styles.text}>The grinding component has a set of size <Text style={styles.bold}>{currentNode.properties.set}</Text> thus maximum Diameter of product in which 80% passes is <Text style={styles.bold}>{(parseFloat(currentNode.properties.set!) * 0.8).toFixed(2)}</Text></Text>                                        </View>
+                                </View>
                         </View>
                     ) 
 
@@ -335,11 +339,14 @@ const ScreeningComponents = ({currentNodeList}: {currentNodeList: singleObjectDa
                                  <View style={{...styles.imageContainer, minHeight: currentNode.object!.image_height}}>
                                     <Image src={currentNode.object?.image_url} style={{height: currentNode.object!.image_height, width: currentNode.object!.image_width}}/>
                                 </View>
-                                <Text style={styles.text}><Text style={styles.bold}>Screen Type:</Text> {currentNode.object!.name} </Text>
-                                <Text style={styles.text}><Text style={styles.bold}>Description of operation: </Text><Text style={styles.desc}>
-                                    {currentNode.description}
-                                </Text></Text>
-                                <Text style={styles.text}>The Screener component has an aperture of size <Text style={styles.bold}>{currentNode.properties.aperture}</Text></Text>
+                                <View style={styles.subsection}>
+
+                                    <Text style={styles.text}><Text style={styles.bold}>Screen Type:</Text> {currentNode.object!.name} </Text>
+                                    <Text style={styles.text}><Text style={styles.bold}>Description of operation: </Text><Text style={styles.desc}>
+                                        {currentNode.description}
+                                    </Text></Text>
+                                    <Text style={styles.text}>The Screener component has an aperture of size <Text style={styles.bold}>{currentNode.properties.aperture}</Text></Text>
+                                </View>
                             </View>
                         </View>
                     ) 
@@ -381,7 +388,7 @@ const ConcentratorComponents = ({currentNodeList}: {currentNodeList: singleObjec
                                             gangue_in_waste
                                         } = concentratorAnalysis(currentNode)
                                             return (
-                                            <>
+                                            <View style={styles.subsection}>
                                                 <Text style={styles.text}>Quantity of ore going through the concentrator is <Text style={styles.bold}>{feed_quantity} tons</Text></Text>
                                                 <Text style={styles.text}>Grade of ore going through the concentrator is <Text style={styles.bold}>{currentNode.properties.oreGrade}</Text></Text>
                                                 <Text style={styles.text}>Concentrator recovery (%) of valuable mineral is <Text style={styles.bold}>{valuable_recoverable}%</Text></Text>
@@ -392,17 +399,20 @@ const ConcentratorComponents = ({currentNodeList}: {currentNodeList: singleObjec
                                                     <Text style={styles.text}>Gangue (%) present in the feed going through the concentrator is <Text style={styles.bold}>{gangue_in_feed * 100}%</Text></Text>
                                                     <Text style={styles.text}><Text style={styles.bold}>Concentrate</Text></Text>
                                                     <View style={styles.subsection}>
-                                                        <Text style={styles.text}>Quantity of valuable ore is <Text style={styles.bold}>{valuable_in_product.toFixed(2)} tons</Text></Text>
-                                                        <Text style={styles.text}>Quantity of gangue is <Text style={styles.bold}>{gangue_in_product.toFixed(2)} tons</Text></Text>
+
+                                                        <View style={styles.subsection}>
+                                                            <Text style={styles.text}>Quantity of valuable ore is <Text style={styles.bold}>{valuable_in_product.toFixed(2)} tons</Text></Text>
+                                                            <Text style={styles.text}>Quantity of gangue is <Text style={styles.bold}>{gangue_in_product.toFixed(2)} tons</Text></Text>
+                                                        </View>
+                                                        <Text style={styles.text}><Text style={styles.bold}>Waste</Text></Text>
+                                                        <View style={styles.subsection}>
+                                                            <Text style={styles.text}>Quantity of gangue is <Text style={styles.bold}>{gangue_in_waste.toFixed(2)} tons</Text></Text>
+                                                            <Text style={styles.text}>Quantity of valuable ore is <Text style={styles.bold}>{valuable_in_waste.toFixed(2)} tons</Text></Text>
+                                                        </View>
+                                                        <Text style={styles.text}>Mass balance around the concentrator is maintained.</Text>
                                                     </View>
-                                                    <Text style={styles.text}><Text style={styles.bold}>Waste</Text></Text>
-                                                    <View style={styles.subsection}>
-                                                        <Text style={styles.text}>Quantity of gangue is <Text style={styles.bold}>{gangue_in_waste.toFixed(2)} tons</Text></Text>
-                                                        <Text style={styles.text}>Quantity of valuable ore is <Text style={styles.bold}>{valuable_in_waste.toFixed(2)} tons</Text></Text>
-                                                    </View>
-                                                    <Text style={styles.text}>Mass balance around the concentrator is maintained.</Text>
                                                 </View>
-                                            </>)
+                                            </View>)
                                         })()
                                     }
                                 </View>
@@ -428,18 +438,21 @@ const AuxilliaryComponents = ({currentNodeList}: {currentNodeList: singleObjectD
                                  <View style={{...styles.imageContainer, minHeight: currentNode.object!.image_height}}>
                                     <Image src={currentNode.object?.image_url} style={{height: currentNode.object!.image_height, width: currentNode.object!.image_width}}/>
                                 </View>
-                                <Text style={styles.text}><Text style={styles.bold}>Auxilliary Component Type:</Text> {currentNode.object!.type} </Text>
-                                <Text style={styles.text}><Text style={styles.bold}>Auxilliary Component Name:</Text> {currentNode.object!.name} </Text>
-                                <Text style={styles.text}><Text style={styles.bold}>Description of operation: </Text><Text style={styles.desc}>
-                                    {currentNode.description}
-                                </Text></Text>
+                                <View style={styles.subsection}>
+                                    
+                                    <Text style={styles.text}><Text style={styles.bold}>Auxilliary Component Type:</Text> {currentNode.object!.type} </Text>
+                                    <Text style={styles.text}><Text style={styles.bold}>Auxilliary Component Name:</Text> {currentNode.object!.name} </Text>
+                                    <Text style={styles.text}><Text style={styles.bold}>Description of operation: </Text><Text style={styles.desc}>
+                                        {currentNode.description}
+                                    </Text></Text>
+                                </View>
                                 {
                                         currentNode.object!.type === "ORE" ? (
-                                            <>
+                                            <View style={styles.subsection}>
                                                 <Text style={styles.text}>Maximum Diameter of individual particle of Ore: <Text style={styles.bold}>{currentNode.properties.maxOreSize}</Text>mm</Text>
                                                 <Text style={styles.text}>Grade of the Ore: <Text style={styles.bold}>{currentNode.properties.oreGrade}</Text></Text>
                                                 <Text style={styles.text}>Quantity of the Ore: <Text style={styles.bold}>{currentNode.properties.oreQuantity}</Text> tons</Text>
-                                            </>
+                                            </View>
 
                                         ): ""
                                     }
