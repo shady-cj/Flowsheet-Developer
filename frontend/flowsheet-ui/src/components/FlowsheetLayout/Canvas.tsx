@@ -59,7 +59,13 @@ export type formStateObjectType = {[index: string]: string}
 
 const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
     // console.log('params', params, params.project_id, params.flowsheet_id)
-    const {canvasLoading, setCanvasLoading, saveObjectData, flowsheetObject, objectData, hasInstance,setIsEdited, canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed, pageNotFound, setPageNotFound} = useContext(FlowsheetContext)
+    const {
+        setCanvasLoading, saveObjectData, 
+        setIsEdited,calculateEnergyUsed, setPageNotFound,
+        flowsheetObject, objectData, hasInstance, 
+        canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, 
+        pageNotFound, canvasLoading, isEdited
+      } = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
     const mouseMoved = useRef(false)
@@ -2884,6 +2890,19 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         if (intervalRef) clearInterval(intervalRef)
       })
     }, [flowsheetObject, params.flowsheet_id, saveObjectData])
+
+    useEffect(() => {
+      const browserCloseWarning = (e: BeforeUnloadEvent) => {
+        if (isEdited) {
+          e.preventDefault()
+          e.returnValue = "";
+        }
+      }
+      window.addEventListener('beforeunload', browserCloseWarning)
+      return () => {
+        window.removeEventListener('beforeunload', browserCloseWarning)
+      }
+    },[isEdited])
 
   return (
     <>

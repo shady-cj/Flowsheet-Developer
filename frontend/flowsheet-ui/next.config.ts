@@ -1,6 +1,8 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next';
+console.log('Next config loaded with allowedDevOrigins');
+const nextConfig: NextConfig = {
     reactStrictMode: false,
+    allowedDevOrigins: ['192.168.137.162', 'http://192.168.137.162:3000', 'http://localhost:3000'],
     images: {
         remotePatterns: [
             {
