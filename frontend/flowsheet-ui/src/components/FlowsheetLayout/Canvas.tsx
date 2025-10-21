@@ -1244,7 +1244,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               isConnected = true
 
               if (mYAxis < objectOffsetY) {
-                const newObjectOffsetY = parseFloat((mYAxis - objectHeight + (extrasY/2)).toFixed(6))
+                const newObjectOffsetY = parseFloat((mYAxis + (extrasY/2)).toFixed(6))
                 if (newObjectOffsetY < 6)
                   return
                 obj.style.top = `${newObjectOffsetY}px`;
@@ -1343,9 +1343,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           // Dragging a component from the top to the L-coordinate of a line
           if (objectOffsetYBottom === lYAxis || ((lYAxis -  objectOffsetYBottom) <= 10 && (lYAxis > scaledObjectOffsetY))) {
-            if ((lXAxis >= scaledObjectOffsetX && mYAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
+            if ((lXAxis >= scaledObjectOffsetX && lYAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
+              isConnected = true
               if (lYAxis > objectOffsetYBottom) {
-                const newObjectOffsetY = parseFloat((lYAxis + (extrasY/2)).toFixed(6))
+                const newObjectOffsetY = parseFloat((lYAxis - objectHeight + (extrasY/2)).toFixed(6))
                 obj.style.top = `${newObjectOffsetY}px`;
                 objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
               }
