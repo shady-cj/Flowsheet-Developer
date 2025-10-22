@@ -484,11 +484,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
       objectData.current[line.id].properties.prevObject[0] = obj.id
       const nextObjectId = objectData.current[line.id].properties.nextObject[0]
-
-      console.log("line after --- ", objectData.current[line.id])
-      console.log("nextObject Id from line", nextObjectId)
-
-      
       
       if (nextObjectId && objectData.current[nextObjectId]) {
         // Adding line's next object attribute to the current object nextObject attribute
@@ -1280,7 +1275,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               // if (objectData.current[line.id].properties.prevObject[0])
               //   return
               MCoordinateConnection(obj, line)
-              console.log("object info after change", objectData.current[obj.id])
+  
             }
           }
           
@@ -1359,14 +1354,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           // Dragging a component from the bottom to the L-coordinate of a line
           if (scaledObjectOffsetY === lYAxis || ((lYAxis - scaledObjectOffsetY) >= -10 && (lYAxis < objectOffsetYBottom) )) {
             // Dragging the object in from bottom (L coordinates)
-            console.log('scaledObjectOffsetY', scaledObjectOffsetY)
-            console.log('lYAxis', lYAxis)
-            console.log('scaledObjectOffsetY', scaledObjectOffsetY)
-            console.log('objectOffsetYBottom', objectOffsetYBottom)
-            console.log(`Valid because ${scaledObjectOffsetY} == ${lYAxis} or (${lYAxis} - ${scaledObjectOffsetY} (${lYAxis - scaledObjectOffsetY}) >= -10 and ${lYAxis} < ${objectOffsetYBottom})`)
             if ((lXAxis >= scaledObjectOffsetX && lXAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
-              console.log('in zone')
-              console.log(`because ${lXAxis} >= ${scaledObjectOffsetX} and ${lXAxis} <= ${objectOffsetXRight}`)
+             
               isConnected = true
              
               // const objWidthMidpoint = objectWidth / 2
@@ -1387,7 +1376,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
          
         
-
+          // Dragging a component from the left to the L-coordinate of a line
           if (objectOffsetXRight === lXAxis || ((lXAxis - objectOffsetXRight) <= 10 && (lXAxis > scaledObjectOffsetX) )) {
             // Dragging the object in from the left (for L coordinates)
            
@@ -1413,7 +1402,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
           }
 
-
+          // Dragging a component from the right to the L-coordinate of a line
           if (scaledObjectOffsetX === lXAxis || ((lXAxis - scaledObjectOffsetX) >= -10 && (lXAxis < objectOffsetXRight) )) {
             // Dragging the object in from the right (for L coordinates)
             if ((lYAxis >= scaledObjectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
@@ -1435,9 +1424,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
 
           
+
           // check if there's disconnection between the lines and the shape
+            // isConnected doesn't mean that there's an active connection or valid connection
+            // it just means that the line and the current shape (obj) are in contact or within range
+            // it's not a check for validating a "from and to" of a line connection together..
 
           if (!isConnected) {
+
+            // Note: 
             /**
              * 
              * STEPS TO CAREFULLY DISCONNECTING THE LINES
@@ -1464,14 +1459,30 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             let getCurrentLinePrevObjectId: string | null = objectData.current[line.id].properties.prevObject[0]
             let getCurrentLineNextObjectId: string | null = objectData.current[line.id].properties.nextObject[0]
 
+            const tempCurrentLinePrevObjectId = getCurrentLinePrevObjectId
+            const tempCurrentLineNextObjectId = getCurrentLineNextObjectId
+
             // Check if the id still exists.
-            if (!objectData.current[getCurrentLineNextObjectId])  {
-              objectData.current[obj.id].properties.nextObject.splice(0, 1)
+            if (getCurrentLineNextObjectId && !objectData.current[getCurrentLineNextObjectId])  {
+              objectData.current[line.id].properties.nextObject = []
               getCurrentLineNextObjectId = null
+
+              if (tempCurrentLinePrevObjectId && objectData.current[tempCurrentLinePrevObjectId]?.properties.nextObject.includes(tempCurrentLineNextObjectId))  {
+                const getIndex = objectData.current[tempCurrentLinePrevObjectId].properties.nextObject.indexOf(tempCurrentLineNextObjectId)
+                objectData.current[tempCurrentLinePrevObjectId].properties.nextObject.splice(getIndex, 1)
+              }
+
+
             }
-            if (!objectData.current[getCurrentLinePrevObjectId]) {
-              objectData.current[obj.id].properties.prevObject.splice(0, 1)
+            if (tempCurrentLinePrevObjectId && !objectData.current[tempCurrentLinePrevObjectId]) {
+              objectData.current[line.id].properties.prevObject.splice(0, 1)
               getCurrentLinePrevObjectId = null
+
+              if (tempCurrentLineNextObjectId && objectData.current[tempCurrentLineNextObjectId]?.properties.prevObject.includes(tempCurrentLinePrevObjectId))  {
+                const getIndex = objectData.current[tempCurrentLineNextObjectId].properties.prevObject.indexOf(tempCurrentLinePrevObjectId)
+                objectData.current[tempCurrentLineNextObjectId].properties.prevObject.splice(getIndex, 1)
+              }
+
             }
 
 
@@ -1486,20 +1497,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
               // removing the current object from the line next object attribute in case there's a nextObjectId
              
-              if (nextObjectId && objectData.current[obj.id].properties.nextObject.includes(nextObjectId)){
+              if (nextObjectId && objectData.current[obj.id]?.properties.nextObject.includes(nextObjectId)){
                 const indexOfNextObjectId = objectData.current[obj.id].properties.nextObject.indexOf(nextObjectId)
                 objectData.current[obj.id].properties.nextObject.splice(indexOfNextObjectId, 1)
               }
 
               // removing the current object id from the nextObject's prevObject id arrays
-              if (nextObjectId && objectData.current[nextObjectId].properties.prevObject.includes(obj.id)){
+              if (nextObjectId && objectData.current[nextObjectId]?.properties.prevObject.includes(obj.id)){
                 const indexOfCurrentObjectId = objectData.current[nextObjectId].properties.prevObject.indexOf(obj.id)
                 objectData.current[nextObjectId].properties.prevObject.splice(indexOfCurrentObjectId, 1)
-              }
-
-
-             
-                
+              }  
             }
             // 2. disconnection from the lines L coordinates
             else if (getCurrentLineNextObjectId === obj.id) {
@@ -1511,13 +1518,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
                // removing the prev object from the current object  previous object attribute in case there's a prevObjectId
-               if (prevObjectId && objectData.current[obj.id].properties.prevObject.includes(prevObjectId)) {
+               if (prevObjectId && objectData.current[obj.id]?.properties.prevObject.includes(prevObjectId)) {
                  const getPrevObjectIndex = objectData.current[obj.id].properties.prevObject.indexOf(prevObjectId)
                  objectData.current[obj.id].properties.prevObject.splice(getPrevObjectIndex, 1)
                }
 
                // removing the current object id from the prevObject's nextObject id arrays
-               if (prevObjectId && objectData.current[prevObjectId].properties.nextObject.includes(obj.id)) {
+               if (prevObjectId && objectData.current[prevObjectId]?.properties.nextObject.includes(obj.id)) {
                  const getNextObjectIndex = objectData.current[prevObjectId].properties.nextObject.indexOf(obj.id)
                  objectData.current[prevObjectId].properties.nextObject.splice(getNextObjectIndex, 1)
                }
@@ -1530,12 +1537,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
 
           
-          console.log('is connected (shape-to-line)', isConnected)
-          console.log("line data", objectData.current[line.id])
-          console.log("shape data", objectData.current[obj.id])
-          console.log("\n")
-          console.log("\n")
+      
           if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
+            // here's the check for a valid connection
             path!.setAttribute("stroke", "#4D4D4D")
             arrow.setAttribute("fill", "#4D4D4D")
           } else {

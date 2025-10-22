@@ -233,13 +233,13 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
                   }}>Calculate</button>
                 </div>
           </section>
-          <section className={`flex flex-col gap-3 ${Wvalue !== null ? "visible opacity-100 h-full" : "invisible opacity-0 h-0"}`}>
+          <section className={`flex flex-col gap-3 ${Wvalue !== null && communitionListForBondsEnergy.current.length > 1 ? "visible opacity-100 h-full" : "invisible opacity-0 h-0"}`}>
                 {
-                  communitionListForBondsEnergy.current.length && (communitionListForBondsEnergy.current[0].oid === communitionListForBondsEnergy.current[1].oid ? <h2 className="text-lg">
+                  communitionListForBondsEnergy.current.length > 1 && (communitionListForBondsEnergy.current[0].oid === communitionListForBondsEnergy.current[1].oid ? <h2 className="text-lg">
                     Bonds Energy summary at <b>{communitionListForBondsEnergy.current[0].label}</b> </h2> : <h2 className="text-lg">Bonds Energy summary between <b>{communitionListForBondsEnergy.current[0].label}</b> and <b>{communitionListForBondsEnergy.current[1].label}</b></h2>)
                 }
                 <p><b>Df</b> = <b>{communitionListForBondsEnergy.current.length && (parseFloat(communitionListForBondsEnergy.current[0].properties.gape!) * 0.8).toFixed(2)}</b></p>
-                <p><b>Dp</b> = <b>{communitionListForBondsEnergy.current.length && (parseFloat(communitionListForBondsEnergy.current[1].properties.set!) * 0.8).toFixed(2)}</b></p>
+                <p><b>Dp</b> = <b>{communitionListForBondsEnergy.current.length > 1 && (parseFloat(communitionListForBondsEnergy.current[1].properties.set!) * 0.8).toFixed(2)}</b></p>
                 <p><b>Work Index</b> = <b>{workIndex.current && parseFloat(workIndex.current!.value)}kJ/Kg</b></p>
                 <p>Energy used for communition between the two point in the circuit is <b>{Wvalue}kW h/short ton</b></p>
                 <div className='flex justify-end gap-4 mt-3'>
