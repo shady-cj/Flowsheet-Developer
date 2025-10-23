@@ -10,7 +10,6 @@ import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
 import Loader from "../utils/loader";
 import { concentratorAnalysis } from "@/lib/utils/concentrator-analysis";
-import { get } from "http";
 
 
 export type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
@@ -1679,9 +1678,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const pointY = parseFloat((e.clientY - objectY).toFixed(6))
       const pointID = pointStore.current[point.id]
       const pointDetails = pointID[1] // point here is expected to be ["L", :any number]
-      console.log("point details", pointDetails)
+
+      // console.log('object', object)
+      // console.log('pointX', pointX)
+      // console.log('pointY', pointY)
+      // console.log("pointId", pointID)
+      // console.log("point details", pointDetails)
+      // console.log('pointStore', pointStore)
      
       const objectDetails = objectData.current[object.id].properties.coordinates
+      // console.log('objectDetails', objectDetails)
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
       point.style.left = `${pointX}px`
       point.style.top = `${pointY}px`
@@ -1694,7 +1700,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
       let otherPoint: string, otherPointDetails: ["M"] | ["L", number, number?]
      
-      if (pointDetails.length < 3 && pointID[0].next === null) {
+      if (pointDetails.length && pointDetails[0] === "L" && pointDetails.length < 3 && pointID[0].next === null) {
         isLast = true
         arrow.style.left = `${pointX}px`
         arrow.style.top = `${pointY}px`
@@ -1860,7 +1866,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       // Ability of a line to have multiple breakpoints on a line instead of just the regular straight line (That's why we are using the svg path element)
       const pointDetails = pointStore.current[point.id][1]
 
-      if (pointDetails.length < 3) {
+      if (pointDetails.length && pointDetails[0] === "L" && pointDetails.length < 3) {
         const object = currentObject.current
         const newPoint = document.createElement("span")
         const newPointUid = "point-"+crypto.randomUUID()
