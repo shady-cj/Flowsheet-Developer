@@ -530,6 +530,530 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
     }, [objectData])
 
+
+    const cleanUpInvalidConnections = useCallback((line: HTMLElement, obj: HTMLElement, coordinateCheck?: string) => {
+       // Note: 
+          /**
+           * 
+           * STEPS TO CAREFULLY DISCONNECTING THE LINES
+               * 1. check the current line previous and next object to remove it
+               * 2. if it's the line's previous object that is equivalent to the current object id (M coordinates)
+               *     - remove the current object id from the previous object id arrays of the line
+               *     - get the line's nextObject id
+               *     - remove the line's nextObject id from the current object's nextObject id arrays
+               *     - remove the object id from nextObject's previous id arrays
+               * 3. if it's the line's next object id that is equivalent to the current object id (L coordinates)
+               *     - remove the current object id from the next object id arrays of the line
+               *     - get the line's previous object id
+               *     - remove the line's previous object id from the current object's prevObject id arrays
+               *     - remove the current object id from the previous object's nextObject id arrays
+               *    
+               *      
+               */
+          // There is a disconnection or there was never a connection
+          // Scenarios: 
+          // 1. disconnection from the lines M coordinates
+          // 2. disconnection from the lines L coordinates
+          // 3. no connection existed in the first place
+
+          let getCurrentLinePrevObjectId: string | null = objectData.current[line.id].properties.prevObject[0]
+          let getCurrentLineNextObjectId: string | null = objectData.current[line.id].properties.nextObject[0]
+
+          const tempCurrentLinePrevObjectId = getCurrentLinePrevObjectId
+          const tempCurrentLineNextObjectId = getCurrentLineNextObjectId
+
+          // Check if the id still exists.
+          if (getCurrentLineNextObjectId && !objectData.current[getCurrentLineNextObjectId])  {
+              objectData.current[line.id].properties.nextObject = []
+              getCurrentLineNextObjectId = null
+
+              if (tempCurrentLinePrevObjectId && objectData.current[tempCurrentLinePrevObjectId]?.properties.nextObject.includes(tempCurrentLineNextObjectId))  {
+                  const getIndex = objectData.current[tempCurrentLinePrevObjectId].properties.nextObject.indexOf(tempCurrentLineNextObjectId)
+                  objectData.current[tempCurrentLinePrevObjectId].properties.nextObject.splice(getIndex, 1)
+              }
+
+
+          }
+          if (getCurrentLinePrevObjectId && !objectData.current[getCurrentLinePrevObjectId]) {
+              objectData.current[line.id].properties.prevObject = []
+              getCurrentLinePrevObjectId = null
+
+              if (tempCurrentLineNextObjectId && objectData.current[tempCurrentLineNextObjectId]?.properties.prevObject.includes(tempCurrentLinePrevObjectId))  {
+                  const getIndex = objectData.current[tempCurrentLineNextObjectId].properties.prevObject.indexOf(tempCurrentLinePrevObjectId)
+                  objectData.current[tempCurrentLineNextObjectId].properties.prevObject.splice(getIndex, 1)
+              }
+
+          }
+
+
+          // 1. disconnection from the lines M coordinates         
+          
+          if ((!coordinateCheck || coordinateCheck === "M") && getCurrentLinePrevObjectId === obj.id) {
+              // remove current obj id as the line's prevObject 
+              objectData.current[line.id].properties.prevObject = []
+
+              // getting the line's nextObject id
+              const nextObjectId = objectData.current[line.id].properties.nextObject[0]
+
+              // removing the current object from the line next object attribute in case there's a nextObjectId
+              
+              if (nextObjectId && objectData.current[obj.id]?.properties.nextObject.includes(nextObjectId)){
+                  const indexOfNextObjectId = objectData.current[obj.id].properties.nextObject.indexOf(nextObjectId)
+                  objectData.current[obj.id].properties.nextObject.splice(indexOfNextObjectId, 1)
+              }
+
+              // removing the current object id from the nextObject's prevObject id arrays
+              if (nextObjectId && objectData.current[nextObjectId]?.properties.prevObject.includes(obj.id)){
+                  const indexOfCurrentObjectId = objectData.current[nextObjectId].properties.prevObject.indexOf(obj.id)
+                  objectData.current[nextObjectId].properties.prevObject.splice(indexOfCurrentObjectId, 1)
+              }  
+          }
+          // 2. disconnection from the lines L coordinates
+          else if ((!coordinateCheck || coordinateCheck === "L") && getCurrentLineNextObjectId === obj.id) {
+              // remove current obj id as the line's nextObject 
+              objectData.current[line.id].properties.nextObject = []
+
+              // getting the line's prevObject id
+              const prevObjectId = objectData.current[line.id].properties.prevObject[0]
+
+
+              // removing the prev object from the current object  previous object attribute in case there's a prevObjectId
+              if (prevObjectId && objectData.current[obj.id]?.properties.prevObject.includes(prevObjectId)) {
+                  const getPrevObjectIndex = objectData.current[obj.id].properties.prevObject.indexOf(prevObjectId)
+                  objectData.current[obj.id].properties.prevObject.splice(getPrevObjectIndex, 1)
+              }
+
+              // removing the current object id from the prevObject's nextObject id arrays
+              if (prevObjectId && objectData.current[prevObjectId]?.properties.nextObject.includes(obj.id)) {
+                  const getNextObjectIndex = objectData.current[prevObjectId].properties.nextObject.indexOf(obj.id)
+                  objectData.current[prevObjectId].properties.nextObject.splice(getNextObjectIndex, 1)
+              }
+
+          }
+
+          // 3. no connection existed in the first place 
+          // Nothing happens
+    }, [objectData])
+
+
+    const componentToLineConnection = useCallback((obj: HTMLElement, line: HTMLElement, type: string | null,  coordinateCheck?: "M" | "L") => {
+      // Connection between component/object -> line and line -> component/object
+      let isConnected = false // to keep track of disconnections
+      const objectOffsetX = obj.offsetLeft
+      const objectOffsetY = obj.offsetTop
+      const objectOffsetYBottom = obj.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
+      const objectOffsetXRight = obj.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
+      const objectHeight = obj.getBoundingClientRect().height
+      const objectWidth = obj.getBoundingClientRect().width
+      const offsetLineX = (line as HTMLElement).offsetLeft
+      const offsetLineY = (line as HTMLElement).offsetTop
+      const lineData = objectData.current[line.id].properties.coordinates
+      const coordinates = lineData.lineCoordinates!
+      const M = coordinates.M
+      const L = coordinates.L[coordinates.L.length - 1]
+      const mXAxis = M[0] + offsetLineX
+      const mYAxis = M[1] + offsetLineY
+      const lXAxis = L[0] + offsetLineX
+      const lYAxis = L[1] + offsetLineY
+
+
+        
+      // Getting the scale of the shape
+      const scale = +getComputedStyle(obj).transform.replace("matrix(", "").split(",")[0].trim() // Since scale x,y would be the same
+      const extrasX = objectWidth - (objectWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
+      const extrasY = objectHeight - (objectHeight / scale)
+      const scaledObjectOffsetY = objectOffsetY - (extrasY / 2)
+      const scaledObjectOffsetX = objectOffsetX - (extrasX / 2)
+
+      // Same as 
+      // const scaledObjectOffsetX = objectOffsetX - canvasRef.current.getBoundingClientRect().x
+      // const scaledObjectOffsetY = objectOffsetY - canvasRef.current.getBoundingClientRect().y
+
+
+      // M COORDINATE CHECKS 
+
+    
+      
+      if (!coordinateCheck || coordinateCheck === "M") {
+
+        // Scenario 1:
+            // Dragging a component from the bottom to the M-coordinate of a line
+            // or
+            // Dragging the M-coordinate of a line to the top side of a component
+        if (scaledObjectOffsetY === mYAxis || ((mYAxis - scaledObjectOffsetY >= -10) &&  mYAxis < objectOffsetYBottom)) {
+            if ((scaledObjectOffsetX <= mXAxis && objectOffsetXRight >= mXAxis) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
+                isConnected = true
+  
+                if (!type) 
+                    return isConnected
+                if (mYAxis < scaledObjectOffsetY) {
+                    if (type === "shapeToLine") {
+                        const newObjectOffsetY = parseFloat((mYAxis + (extrasY/2)).toFixed(6))
+                        if (newObjectOffsetY < 6)
+                            return
+                        obj.style.top = `${newObjectOffsetY}px`;
+                        objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+                    } else {
+                        const newLineOffsetY = parseFloat((scaledObjectOffsetY - M[1]).toFixed(6))
+                        if (newLineOffsetY < 6)
+                            return
+  
+                        line.style.top = `${newLineOffsetY}px`;
+                        objectData.current[line.id].properties.coordinates.lastY = newLineOffsetY
+                    
+                    }
+                }
+                MCoordinateConnection(obj, line)
+            }
+        }
+  
+  
+        // Scenario 2:
+  
+            // Dragging a component from the top to the M-coordinate of a line
+            // or
+            // Dragging the M-coordinate of a line to the bottom side of a component
+  
+        if (objectOffsetYBottom === mYAxis || ((mYAxis - objectOffsetYBottom) <= 10 && (mYAxis > scaledObjectOffsetY) )) {
+  
+            if ((mXAxis >= scaledObjectOffsetX && mXAxis <= objectOffsetXRight) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
+               
+                isConnected = true
+  
+                if (!type) 
+                    return isConnected
+  
+            
+                // const objWidthMidpoint = objectWidth / 2
+                // const newObjectOffsetX = mXAxis - objWidthMidpoint + (extrasX/2)
+                if (mYAxis > objectOffsetYBottom) {
+  
+                    if (type === "shapeToLine")
+                    {
+                        const newObjectOffsetY = parseFloat((mYAxis - objectHeight + (extrasY/2)).toFixed(6))
+                        if (newObjectOffsetY < 6)
+                            return
+                        obj.style.top = `${newObjectOffsetY}px`;
+                        // obj.style.left = `${newObjectOffsetX}px`;
+                        // objectData.current[obj.id].lastX = newObjectOffsetX
+                        objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+                    } else {
+                        const newLineOffsetY = parseFloat((objectOffsetYBottom - M[1]).toFixed(6))
+                        if (newLineOffsetY < 6)
+                            return
+            
+                        line.style.top = `${newLineOffsetY}px`;
+  
+                        objectData.current[line.id].properties.coordinates.lastY = newLineOffsetY
+  
+                    }
+                }
+      
+                MCoordinateConnection(obj, line)
+  
+            }
+        }
+  
+  
+        // Scenario 3
+            // Dragging a component from the left to the M-coordinate of a line
+            // or
+            // Dragging the M-coordinate of a line to right side of a component
+        if (objectOffsetXRight === mXAxis || ((mXAxis - objectOffsetXRight) <= 10  && (mXAxis > scaledObjectOffsetX) )) {
+            if ((mYAxis >= scaledObjectOffsetY && mYAxis <= objectOffsetYBottom) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
+                isConnected = true
+               
+                if (!type) 
+                    return isConnected
+  
+                if (mXAxis > objectOffsetXRight) {
+  
+                    if (type === "shapeToLine") {
+  
+                        // const objHeightMidpoint = objectHeight / 2
+                        const newObjectOffsetX = parseFloat((mXAxis - objectWidth + (extrasX/2)).toFixed(6))
+                        // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
+                        if (newObjectOffsetX < 6)
+                            return
+                        // obj.style.top = `${newObjectOffsetY}px`;
+                        obj.style.left = `${newObjectOffsetX}px`;
+                        objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
+                        // objectData.current[obj.id].lastY = newObjectOffsetY
+                    } else {
+                        const newLineOffsetX = parseFloat((objectOffsetXRight - M[0]).toFixed(6))
+              
+                        if (newLineOffsetX < 6)
+                            return
+                        // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
+                        // obj.style.top = `${newLineOffsetY}px`;
+                        line.style.left = `${newLineOffsetX}px`;
+                        objectData.current[line.id].properties.coordinates.lastX = newLineOffsetX
+                        // objectData.current[obj.id].lastY = newLineOffsetY
+                    }
+  
+                }
+  
+  
+                MCoordinateConnection(obj, line)
+  
+            }
+        }
+  
+  
+        // Scenario 4
+            // Dragging a component from the right to the M-coordinate of a line
+            // or
+            // Dragging the M-coordinate of a line to left side of a component
+  
+        if (scaledObjectOffsetX === mXAxis || ((mXAxis - scaledObjectOffsetX) >= -10 && (mXAxis < objectOffsetXRight) )) {
+            // Dragging the object in from the right (for M coordinates)
+            if ((mYAxis >= scaledObjectOffsetY && mYAxis <= objectOffsetYBottom) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
+  
+                isConnected = true
+               
+                if (!type) 
+                    return isConnected
+                // const objHeightMidpoint = objectHeight / 2
+  
+                if (mXAxis < scaledObjectOffsetX) {
+  
+                    if (type === "shapeToLine")
+                    {
+  
+                        const newObjectOffsetX = parseFloat((mXAxis + (extrasX/2)).toFixed(6))
+  
+                        if (newObjectOffsetX < 6)
+                            return;
+                        // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
+                        // obj.style.top = `${newObjectOffsetY}px`;
+                        
+                        obj.style.left = `${newObjectOffsetX}px`;
+                        objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
+                        // objectData.current[obj.id].lastY = newObjectOffsetY
+                    } else {
+                        const newLineOffsetX = parseFloat((scaledObjectOffsetX - M[0]).toFixed(6))
+                        // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
+                        if (newLineOffsetX < 6)
+                            return
+                        // obj.style.top = `${newLineOffsetY}px`;
+                        line.style.left = `${newLineOffsetX}px`;
+                        objectData.current[line.id].properties.coordinates.lastX = newLineOffsetX
+                    }
+                }
+  
+                
+                MCoordinateConnection(obj, line)
+  
+            }
+        }
+      }
+
+      // L COORDINATE CHECKS
+
+      if (!coordinateCheck || coordinateCheck === "L") {
+
+        // Scenario 5
+            // Dragging a component from the top to the L-coordinate of a line
+            // or
+            // Dragging the L-coordinate of a line to the bottom side of a component
+        if (objectOffsetYBottom === lYAxis || ((lYAxis -  objectOffsetYBottom) <= 10 && (lYAxis > scaledObjectOffsetY))) {
+    
+            if ((lXAxis >= scaledObjectOffsetX && lXAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
+                isConnected = true
+                
+                if (!type) 
+                    return isConnected
+                if (lYAxis > objectOffsetYBottom) {
+                    if (type === "shapeToLine") {
+                        const newObjectOffsetY = parseFloat((lYAxis - objectHeight + (extrasY/2)).toFixed(6))
+                        obj.style.top = `${newObjectOffsetY}px`;
+                        objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+                    } else {
+                        const newLineOffsetY = parseFloat((objectOffsetYBottom - L[1]).toFixed(6))
+                        line.style.top = `${newLineOffsetY}px`;
+                        objectData.current[line.id].properties.coordinates.lastY = newLineOffsetY
+              
+                    }
+                }
+                LCoordinateConnection(obj, line)
+            }
+        }
+  
+  
+        // Scenario 6
+            // Dragging a component from the bottom to the L-coordinate of a line
+            // or
+            // Dragging the L-coordinate of a line to the top side of a component
+        if (scaledObjectOffsetY === lYAxis || ((lYAxis - scaledObjectOffsetY) >= -10 && (lYAxis < objectOffsetYBottom) )) {
+  
+            if ((lXAxis >= scaledObjectOffsetX && lXAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
+                
+                isConnected = true
+              
+                if (!type) 
+                    return isConnected
+                // const objWidthMidpoint = objectWidth / 2
+                // const newObjectOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
+                if (lYAxis < scaledObjectOffsetY) {
+  
+                    if (type === "shapeToLine") {
+  
+                        const newObjectOffsetY = parseFloat((lYAxis + (extrasY/2)).toFixed(6))
+                        if (newObjectOffsetY < 6)
+                            return
+                        obj.style.top = `${newObjectOffsetY}px`;
+                        // obj.style.left = `${newObjectOffsetX}px`;
+                        // objectData.current[obj.id].lastX = newObjectOffsetX
+                        objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+                    } else {
+                        const newLineOffsetY = parseFloat((scaledObjectOffsetY - L[1]).toFixed(6))
+                        if (newLineOffsetY < 6)
+                            return
+                        line.style.top = `${newLineOffsetY}px`;
+                        // obj.style.left = `${newLineOffsetX}px`;
+                        // objectData.current[obj.id].lastX = newLineOffsetX
+                        objectData.current[line.id].properties.coordinates.lastY = newLineOffsetY
+                    }
+                }
+                LCoordinateConnection(obj, line)
+                
+            }
+        }
+  
+  
+        // Scenario 7
+            // Dragging a component from the left to the L-coordinate of a line
+            // or
+            // Dragging the L-coordinate of a line to the right side of a component
+        if (objectOffsetXRight === lXAxis || ((lXAxis - objectOffsetXRight) <= 10 && (lXAxis > scaledObjectOffsetX) )) {
+  
+            if ((lYAxis >= scaledObjectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
+                isConnected = true
+                
+                if (!type) 
+                    return isConnected
+            
+                // const objHeightMidpoint = objectHeight / 2
+  
+                if (lYAxis > objectOffsetXRight) {
+                    if (type === "shapeToLine") {
+  
+                        const newObjectOffsetX = parseFloat((lXAxis - objectWidth + (extrasX/2)).toFixed(6))
+                        // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
+                        if (newObjectOffsetX < 6)
+                            return
+                        // obj.style.top = `${newObjectOffsetY}px`;
+                        obj.style.left = `${newObjectOffsetX}px`;
+                        objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
+                        // objectData.current[obj.id].lastY = newObjectOffsetY
+                    } else {
+                        // const shapeHeightMidpoint = shapeHeight / 2
+                        const newLineOffsetX = parseFloat((objectOffsetXRight - L[0]).toFixed(6))
+                        // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
+                        // obj.style.top = `${newLineOffsetY}px`;
+                        if (newLineOffsetX < 6)
+                            return
+                        line.style.left = `${newLineOffsetX}px`;
+                        objectData.current[line.id].properties.coordinates.lastX = newLineOffsetX
+                        // objectData.current[obj.id].lastY = newLineOffsetY
+                
+                    }
+  
+                }
+  
+  
+                LCoordinateConnection(obj, line)
+            }
+        }
+  
+        // Scenario 8
+            // Dragging a component from the right to the L-coordinate of a line
+            // or 
+            // Dragging the L-coordinate of a line to the left side of a component
+        if (scaledObjectOffsetX === lXAxis || ((lXAxis - scaledObjectOffsetX) >= -10 && (lXAxis < objectOffsetXRight) )) {
+            
+            if ((lYAxis >= scaledObjectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
+                isConnected = true
+                
+                if (!type) 
+                    return isConnected
+                // const objHeightMidpoint = objectHeight / 2
+  
+                if (lXAxis < scaledObjectOffsetX) {
+  
+                    if (type === "shapeToLine") {
+  
+                        const newObjectOffsetX = parseFloat((lXAxis + (extrasX/2)).toFixed(6))
+                        // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
+                        // obj.style.top = `${newObjectOffsetY}px`;
+                        obj.style.left = `${newObjectOffsetX}px`;
+                        objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
+                    // objectData.current[obj.id].lastY = newObjectOffsetY
+                    } else {
+                        const newLineOffsetX = parseFloat((scaledObjectOffsetX - L[0]).toFixed(6))
+                        // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
+                        if (newLineOffsetX < 6)
+                            return
+                        // obj.style.top = `${newLineOffsetY}px`;
+                        line.style.left = `${newLineOffsetX}px`;
+                        objectData.current[line.id].properties.coordinates.lastX = newLineOffsetX
+                        // objectData.current[obj.id].lastY = newLineOffsetY
+                    }
+                }
+                LCoordinateConnection(obj, line)
+            }
+        }
+      }
+
+
+
+
+      // check if there's disconnection between the lines and the shape
+          // isConnected doesn't mean that there's an active connection or valid connection
+          // it just means that the line and the current shape (obj) are in contact or within range
+          // it's not a check for validating a "from and to" of a line connection together..
+
+      if (!isConnected) {
+        cleanUpInvalidConnections(line, obj, coordinateCheck)
+          
+      }
+
+      return isConnected
+
+    }, [objectData, canvasRef, checkAndSetConnection, MCoordinateConnection, LCoordinateConnection, cleanUpInvalidConnections])
+
+
+
+
+    const showAndValidateLineConnection = useCallback((line: HTMLElement) => {
+        const path = line.querySelector("svg.line-svg path")
+        const arrow = line.querySelector("svg.arrow-indicator polygon") as SVGPolygonElement
+        if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
+            // here's the check for a valid connection
+
+            // A check to ensure to ensure both the previous and next objects are within the right range.
+            const prevObjectElement = document.getElementById(objectData.current[line.id].properties.prevObject[0])
+            const nextObjectElement = document.getElementById(objectData.current[line.id].properties.nextObject[0])
+
+            const isPrevObjConnected = prevObjectElement && componentToLineConnection(prevObjectElement, line, null, "M")
+            const isNextObjConnected = nextObjectElement && componentToLineConnection(nextObjectElement, line, null, "L")
+              
+
+            if (isPrevObjConnected && isNextObjConnected) {
+                path!.setAttribute("stroke", "#4D4D4D")
+                arrow.setAttribute("fill", "#4D4D4D")
+                return;
+            }
+
+        }
+        path!.setAttribute("stroke", "#beb4b4")
+        arrow.setAttribute("fill", "#beb4b4")
+
+
+    }, [componentToLineConnection, objectData])
+
+
+
     const DrawLineToShape = useCallback((obj: HTMLElement, point: HTMLSpanElement) => {
       for (const shapeId in objectData.current) {
         // if the obj is the same as the current shape iteration then continue (i.e not supporting line joining to itself)
@@ -581,8 +1105,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const scaledShapeOffsetX = shapeOffsetX - (extrasX / 2)
 
 
-
-
         // scenario 1: Drawing from the top:
         if (lYAxis === scaledShapeOffsetY || ((lYAxis - scaledShapeOffsetY) >= -10 && (lYAxis < shapeOffsetYBottom) )) {
           
@@ -599,32 +1121,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               point.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
               arrowContainer.style.top = `${coordinates.L[coordinates.L.length - 1][1]}px`
               path?.setAttribute("d", pathDString)
-            }
-
-
+            }            
             
-            objectData.current[obj.id].properties.nextObject[0] = shapeId
-
-            const prevObject = objectData.current[obj.id].properties.prevObject[0]
-
-            // for (const prevObj of prevObject ) {
-
-
-            // }
-            if (prevObject && objectData.current[prevObject]) {
-              if (!objectData.current[shapeId].properties.prevObject.includes(prevObject))
-                objectData.current[shapeId].properties.prevObject.push(prevObject)
-      
-              
-              if (!objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-                objectData.current[prevObject].properties.nextObject.push(shapeId)
-            } else if (prevObject && !objectData.current[prevObject]) {
-              // Delete prev Object because it doesn't exist anymore
-                if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
-                  const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
-                  objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
-                }
-            }
+            LCoordinateConnection(shape, obj)
           }
         }
 
@@ -648,26 +1147,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
 
 
-            objectData.current[obj.id].properties.nextObject[0] = shapeId
-
-            const prevObject = objectData.current[obj.id].properties.prevObject[0]
-            // for (const prevObj of prevObject ) {
-
-            // }
-            if (prevObject && objectData.current[prevObject]) {
-              if (!objectData.current[shapeId].properties.prevObject.includes(prevObject))
-                objectData.current[shapeId].properties.prevObject.push(prevObject)
-      
-              
-              if (!objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-                objectData.current[prevObject].properties.nextObject.push(shapeId)
-            } else if (prevObject && !objectData.current[prevObject]) {
-              // Delete prev Object because it doesn't exist anymore
-                if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
-                  const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
-                  objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
-                }
-            }
+            LCoordinateConnection(shape, obj)
 
           }
         }
@@ -691,26 +1171,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
 
 
-            objectData.current[obj.id].properties.nextObject[0] = shapeId
-
-            const prevObject = objectData.current[obj.id].properties.prevObject[0]
-            // for (const prevObj of prevObject ) {
-
-            // }
-            if (prevObject && objectData.current[prevObject]) {
-              if (!objectData.current[shapeId].properties.prevObject.includes(prevObject))
-                objectData.current[shapeId].properties.prevObject.push(prevObject)
-      
-              
-              if (!objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-                objectData.current[prevObject].properties.nextObject.push(shapeId)
-            } else if (prevObject && !objectData.current[prevObject]) {
-              // Delete prev Object because it doesn't exist anymore
-                if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
-                  const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
-                  objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
-                }
-            }
+            LCoordinateConnection(shape, obj)
 
           }
         }
@@ -733,26 +1194,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             }
 
 
-            objectData.current[obj.id].properties.nextObject[0] = shapeId
-
-            const prevObject = objectData.current[obj.id].properties.prevObject[0]
-            // for (const prevObj of prevObject ) {
-
-            // }
-            if (prevObject && objectData.current[prevObject]) {
-              if (!objectData.current[shapeId].properties.prevObject.includes(prevObject))
-                objectData.current[shapeId].properties.prevObject.push(prevObject)
-      
-              
-              if (!objectData.current[prevObject].properties.nextObject.includes(shapeId)) 
-                objectData.current[prevObject].properties.nextObject.push(shapeId)
-            } else if (prevObject && !objectData.current[prevObject]) {
-              // Delete prev Object because it doesn't exist anymore
-                if (objectData.current[shapeId].properties.prevObject.includes(prevObject)) {
-                  const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObject)
-                  objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
-                }
-            }
+            LCoordinateConnection(shape, obj)
 
           }
         }
@@ -780,6 +1222,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
 
         // console.log('is connected', isConnected)
+      
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
           path!.setAttribute("stroke", "#4D4D4D")
           arrow.setAttribute("fill", "#4D4D4D")
@@ -789,7 +1232,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         }
       }
-    }, [objectData,canvasRef, checkAndSetConnection])
+    }, [objectData,canvasRef, checkAndSetConnection, LCoordinateConnection])
 
 
 
@@ -804,783 +1247,35 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         if (shape.getAttribute("data-variant") === "text" || shape.getAttribute("data-variant") === "line")
           continue
 
-        let isConnected = false // to detect when line is disconnected
-        const shapeOffsetX = shape.offsetLeft
-        const shapeOffsetY = shape.offsetTop
-        const shapeOffsetYBottom = shape.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
-        const shapeOffsetXRight = shape.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
-        const shapeWidth =  shape.getBoundingClientRect().width
-        const shapeHeight =  shape.getBoundingClientRect().height
+      
 
-
-
-        const path = obj.querySelector("svg.line-svg path")
-        const arrow = obj.querySelector("svg.arrow-indicator polygon") as SVGPolygonElement
-        const offsetLineX = obj.offsetLeft
-        const offsetLineY = obj.offsetTop
-        const lineData = objectData.current[obj.id].properties.coordinates
-        const coordinates = lineData.lineCoordinates!
-        const M = coordinates.M
-        const L = coordinates.L[coordinates.L.length - 1]
-        const mXAxis = M[0] + offsetLineX
-        const mYAxis = M[1] + offsetLineY
-        const lXAxis = L[0] + offsetLineX
-        const lYAxis = L[1] + offsetLineY
-
-        // Getting the scale of the shape
-        const scale = +getComputedStyle(shape).transform.replace("matrix(", "").split(",")[0].trim()
-        const extrasX = shapeWidth - (shapeWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
-        const extrasY = shapeHeight - (shapeHeight / scale)
-        const scaledShapeOffsetY = shapeOffsetY - (extrasY / 2)
-        const scaledShapeOffsetX = shapeOffsetX - (extrasX / 2)
-
-        
-        // Dragging the M-coordinate of a line to the top side of a component
-        if (scaledShapeOffsetY === mYAxis || ((mYAxis - scaledShapeOffsetY >= -10) &&  (mYAxis < shapeOffsetYBottom) )) {
-          // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
-          //   console.log("Dragging the M-coordinate of a line to the top side of a component")
-          //     console.log("in range here ====")
-          //     console.log("mYAxis === scaledShapedOffsetY", mYAxis, scaledShapeOffsetY)
-          //     console.log("mYAxis - scaledShapeOffsetY >= -10", mYAxis - scaledShapeOffsetY)
-          //     console.log("mYAxis < shapeOffsetYBottom", mYAxis, shapeOffsetYBottom)
-          //     console.log("check and set connection feedback", checkAndSetConnection("from", obj.id, shapeId))
-          //     console.log("isConnected already ?", isConnected)
-          //  }
-          if ((scaledShapeOffsetX <= mXAxis && shapeOffsetXRight >= mXAxis) && checkAndSetConnection("from", obj.id, shapeId) && !isConnected) {
-
-            isConnected = true
-
-            // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
-            //       console.log("Got connected...")
-            //       console.log("obj top before", obj.style.top)
-            //       console.log('mYAxis < scaledShapeOffsetY', mYAxis, scaledShapeOffsetY)
-            // }
-            if (mYAxis < scaledShapeOffsetY) {
-              
-              const newLineOffsetY = parseFloat((scaledShapeOffsetY - M[1]).toFixed(6))
-              if (newLineOffsetY < 6)
-                return
-
-              obj.style.top = `${newLineOffsetY}px`;
-              objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
-            }
-
-            MCoordinateConnection(shape, obj)
-         }
-        }
-
-
-        // Dragging the M-coordinate of a line to the bottom side of a component
-
-        if (shapeOffsetYBottom === mYAxis || ((mYAxis - shapeOffsetYBottom) <= 10 && (mYAxis > scaledShapeOffsetY) )) {
-          //  if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
-          //     console.log("Dragging the M-coordinate of a line to the bottom side of a component")
-          //     console.log("in range here ====")
-          //     console.log("mXAxis >= scaledShapedOffsetX", mXAxis, scaledShapeOffsetX)
-          //     console.log("mXAxis <= shapeOffsetXRight", mXAxis, shapeOffsetXRight)
-          //     console.log("check and set connection feedback", checkAndSetConnection("from", obj.id, shapeId))
-          //     console.log("isConnected already ?", isConnected)
-          //  }
-          // Dragging the line in from the bottom (M coordinates)
-          if ((mXAxis >= scaledShapeOffsetX && mXAxis <= shapeOffsetXRight) && checkAndSetConnection("from", obj.id, shapeId) && !isConnected) {
-
-            
-            // console.log("Dragging the line in from the bottom (M coordinates)")
-            isConnected = true
-            if (mYAxis > shapeOffsetYBottom) {
-
-              const newLineOffsetY = parseFloat((shapeOffsetYBottom - M[1]).toFixed(6))
-              
-              obj.style.top = `${newLineOffsetY}px`;
-
-              objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
-
-            }
-            // obj.style.left = `${newLineOffsetX}px`;
-            // objectData.current[obj.id].lastX = newLineOffsetX
-
-            MCoordinateConnection(shape, obj)
-            
-          }
-        }
-
-        
-        // Dragging the M-coordinate of a line to left side of a component
-        if (scaledShapeOffsetX === mXAxis || ((mXAxis - scaledShapeOffsetX) >= -10 && (mXAxis < shapeOffsetXRight)) ) {
-          // Dragging the line in from the left (for M coordinates)
-          if ((mYAxis >= scaledShapeOffsetY && mYAxis <= shapeOffsetYBottom) && checkAndSetConnection("from", obj.id, shapeId) && !isConnected) {
-            // console.log("Dragging the line in from the left (for M coordinates)")
-            isConnected = true
-            // const shapeHeightMidpoint = shapeHeight / 2
-            if (mXAxis < scaledShapeOffsetX) {
-              
-              const newLineOffsetX = parseFloat((scaledShapeOffsetX - M[0]).toFixed(6))
-              // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
-              if (newLineOffsetX < 6)
-                return
-              // obj.style.top = `${newLineOffsetY}px`;
-              obj.style.left = `${newLineOffsetX}px`;
-              objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
-            }
-            // objectData.current[obj.id].lastY = newLineOffsetY
-
-            MCoordinateConnection(shape, obj)
-            
-          }
-        }
-
-
-        // Dragging the M-coordinate of a line to right side of a component
-        if (shapeOffsetXRight === mXAxis || ((mXAxis - shapeOffsetXRight) <= 10 && (mXAxis > scaledShapeOffsetX) )) {
-          // Dragging the line in from the right (for M coordinates)
-          if ((mYAxis >= scaledShapeOffsetY && mYAxis <= shapeOffsetYBottom) && checkAndSetConnection("from", obj.id, shapeId) && !isConnected) {
-            // console.log("Dragging the line in from the right (for M coordinates)")
-            isConnected = true
-            // const shapeHeightMidpoint = shapeHeight / 2
-            if (mXAxis > shapeOffsetXRight) {
-
-              const newLineOffsetX = parseFloat((shapeOffsetXRight - M[0]).toFixed(6))
-          
-              // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - M[1] - (extrasY/2)
-              // obj.style.top = `${newLineOffsetY}px`;
-              obj.style.left = `${newLineOffsetX}px`;
-              objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
-              // objectData.current[obj.id].lastY = newLineOffsetY
-            }
-
-
-            
-            MCoordinateConnection(shape, obj)
-          }
-        }
-
-
-       
-        // Dragging the L-coordinate of a line to the top side of a component
-        if (scaledShapeOffsetY === lYAxis || ((lYAxis - scaledShapeOffsetY) >= -10 && (lYAxis < shapeOffsetYBottom) )) {
-
-          // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
-          //   console.log("Dragging the L-coordinate of a line to the top side of a component")
-          //     console.log("in range here ====")
-          //     console.log("lYAxis === scaledShapedOffsetY", lYAxis, scaledShapeOffsetY)
-          //     console.log("lYAxis - scaledShapeOffsetY >= -10", lYAxis - scaledShapeOffsetY)
-          //     console.log("lYAxis < shapeOffsetYBottom", lYAxis, shapeOffsetYBottom)
-          //     console.log("check and set connection feedback", checkAndSetConnection("from", obj.id, shapeId))
-          //     console.log("isConnected already ?", isConnected)
-          //  }
-          if ((lXAxis >= scaledShapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId) && !isConnected) {
-            
-            isConnected = true
-
-            
-            // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
-            //       console.log("Got connected...")
-            //       console.log('lYAxis < scaledShapeOffsetY', lYAxis, scaledShapeOffsetY)
-            //       console.log("lXAxis >= scaledShapeOffsetX", lXAxis, scaledShapeOffsetX)
-            //       console.log("lXAxis <= shapeOffsetXRight", lXAxis, shapeOffsetXRight)
-            // }
-            
-            // const objWidthMidpoint = ShapeWidth / 2
-            // const newShapeOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
-            if (lYAxis < scaledShapeOffsetY) {
-
-              const newLineOffsetY = parseFloat((scaledShapeOffsetY - L[1]).toFixed(6))
-              if (newLineOffsetY < 6)
-                return
-              obj.style.top = `${newLineOffsetY}px`;
-              // obj.style.left = `${newLineOffsetX}px`;
-              // objectData.current[obj.id].lastX = newLineOffsetX
-              objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
-            }
-            LCoordinateConnection(shape, obj)
-            
-          }
-        }
-
-         // Dragging the L-coordinate of a line to the bottom side of a component
-        if (shapeOffsetYBottom === lYAxis || ((lYAxis -  shapeOffsetYBottom) <= 10 && (lYAxis > scaledShapeOffsetY))) {
-
-            //  if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
-          //   console.log("Dragging the L-coordinate of a line to the bottom side of a component")
-          //     console.log("in range here ====")
-          //     console.log("lYAxis === shapedOffsetYBottom", lYAxis, shapeOffsetYBottom)
-          //     console.log("lYAxis - shapeOffsetYBottom >= -10", lYAxis - shapeOffsetYBottom)
-          //     console.log("lYAxis > scaledShapeOffsetY", lYAxis, scaledShapeOffsetY)
-          //     console.log("check and set connection feedback", checkAndSetConnection("from", obj.id, shapeId))
-          //     console.log("isConnected already ?", isConnected)
-          //  }
-          if ((lXAxis >= scaledShapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId) && !isConnected) {
-            isConnected = true
-
-
-            
-            // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
-            //       console.log("Got connected...")
-            //       console.log('lYAxis < shapeOffsetYBottom', lYAxis, shapeOffsetYBottom)
-            //       console.log("lXAxis >= scaledShapeOffsetX", lXAxis, scaledShapeOffsetX)
-            //       console.log("lXAxis <= shapeOffsetXRight", lXAxis, shapeOffsetXRight)
-            // }
-            if (lYAxis > shapeOffsetYBottom) {
-              const newLineOffsetY = parseFloat((shapeOffsetYBottom - L[1]).toFixed(6))
-              obj.style.top = `${newLineOffsetY}px`;
-              objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
-            }
-            LCoordinateConnection(shape, obj)
-          }
-        }
+        componentToLineConnection(shape, obj, "lineToShape")
+        showAndValidateLineConnection(obj)
         
 
-        // Dragging the L-coordinate of a line to the left side of a component
-        if (scaledShapeOffsetX === lXAxis || ((lXAxis - scaledShapeOffsetX) >= -10 && (lXAxis < shapeOffsetXRight) )) {
-          // Dragging the line in from the left (for L coordinates)
-          if ((lYAxis >= scaledShapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId) && !isConnected) {
-            // console.log("Dragging the line in from the left (for L coordinates)")
-            isConnected = true
-            // const shapeHeightMidpoint = shapeHeight / 2
-            if (lXAxis < scaledShapeOffsetX) {
-             
-              const newLineOffsetX = parseFloat((scaledShapeOffsetX - L[0]).toFixed(6))
-              // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
-              if (newLineOffsetX < 6)
-                return
-              // obj.style.top = `${newLineOffsetY}px`;
-              obj.style.left = `${newLineOffsetX}px`;
-              objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
-              // objectData.current[obj.id].lastY = newLineOffsetY
-            }
-
-
-
-            LCoordinateConnection(shape, obj)
-          }
-        }
-
-        // Dragging the L-coordinate of a line to the right side of a component
-        if (shapeOffsetXRight === lXAxis || ((lXAxis - shapeOffsetXRight) <= 10 && (lXAxis > scaledShapeOffsetX) )) {
-          // Dragging the line in from the right (for L coordinates)
-          if ((lYAxis >= scaledShapeOffsetY && lYAxis <= shapeOffsetYBottom) && checkAndSetConnection("to", obj.id, shapeId) && !isConnected) {
-            // console.log("Dragging the line in from the right (for L coordinates)")
-            isConnected = true
-
-
-            if (lXAxis > shapeOffsetXRight) {
-              // const shapeHeightMidpoint = shapeHeight / 2
-            const newLineOffsetX = parseFloat((shapeOffsetXRight - L[0]).toFixed(6))
-            // const newLineOffsetY = shapeOffsetY + shapeHeightMidpoint - L[1] - (extrasY/2)
-            // obj.style.top = `${newLineOffsetY}px`;
-            obj.style.left = `${newLineOffsetX}px`;
-            objectData.current[obj.id].properties.coordinates.lastX = newLineOffsetX
-            // objectData.current[obj.id].lastY = newLineOffsetY
-            
-            }
-            
-            LCoordinateConnection(shape, obj)
-          }
-        }
-
-        if (!isConnected) {
-          // console.log('got here (not isConnected)')
-          // console.log(objectData.current[shapeId])
-          /**
-           * 
-           * STEPS TO CAREFULLY DISCONNECTING THE LINES
-             * 1. check the current obj previous and next shape to remove it
-             * 2. if it's the obj's previous shape that is equivalent to the current shape id (M coordinates)
-             *     - remove the current shape id from the previous shape id arrays of the obj
-             *     - get the obj's nextObject id
-             *     - remove the obj's nextObject id from the current shape's nextObject id arrays
-             *     - remove the shape id from nextObject's previous id arrays
-             * 3. if it's the obj's next shape id that is equivalent to the current shape id (L coordinates)
-             *     - remove the current shape id from the next shape id arrays of the obj
-             *     - get the obj's previous shape id
-             *     - remove the obj's previous shape id from the current shape's prevObject id arrays
-             *     - remove the current shape id from the previous shape's nextObject id arrays
-             *    
-             *      
-             */
-          // There is a disconnection or there was never a connection
-          // Scenarios: 
-          // 1. disconnection from the lines M coordinates
-          // 2. disconnection from the lines L coordinates
-          // 3. no connection existed in the first place
-
-          let getCurrentLinePrevObjectId: string | null = objectData.current[obj.id].properties.prevObject[0]
-          let getCurrentLineNextObjectId: string | null = objectData.current[obj.id].properties.nextObject[0]
-          
-          const tempCurrentLinePrevObjectId = getCurrentLinePrevObjectId
-          const tempCurrentLineNextObjectId = getCurrentLineNextObjectId
-
-          // Check if the id still exists.
-          if (getCurrentLineNextObjectId && !objectData.current[getCurrentLineNextObjectId])  {
-         
-              objectData.current[obj.id].properties.nextObject = []
-              getCurrentLineNextObjectId = null
-
-              if (tempCurrentLinePrevObjectId && objectData.current[tempCurrentLinePrevObjectId]?.properties.nextObject.includes(tempCurrentLineNextObjectId))  {
-                const getIndex = objectData.current[tempCurrentLinePrevObjectId].properties.nextObject.indexOf(tempCurrentLineNextObjectId)
-                objectData.current[tempCurrentLinePrevObjectId].properties.nextObject.splice(getIndex, 1)
-              }
-
-          }
-          if (getCurrentLinePrevObjectId && !objectData.current[getCurrentLinePrevObjectId]) {
-            objectData.current[obj.id].properties.prevObject = []
-            getCurrentLinePrevObjectId = null
-            if (tempCurrentLineNextObjectId && objectData.current[tempCurrentLineNextObjectId]?.properties.prevObject.includes(tempCurrentLinePrevObjectId))  {
-                const getIndex = objectData.current[tempCurrentLineNextObjectId].properties.prevObject.indexOf(tempCurrentLinePrevObjectId)
-                objectData.current[tempCurrentLineNextObjectId].properties.prevObject.splice(getIndex, 1)
-              }
-          }
-
-          // 1. disconnection from the lines M coordinates         
-          
-          if (getCurrentLinePrevObjectId === shapeId) {
-            // remove current shape id as the line's prevObject 
-            objectData.current[obj.id].properties.prevObject = []
-
-            // getting the line's nextObject id
-            const nextObjectId = objectData.current[obj.id].properties.nextObject[0]
-
-            // removing the previous object from the current shape's next object attribute in case there's a nextObjectId
-           
-            if (nextObjectId && objectData.current[shapeId]?.properties.nextObject.includes(nextObjectId)){
-              const indexOfNextObjectId = objectData.current[shapeId].properties.nextObject.indexOf(nextObjectId)
-              objectData.current[shapeId].properties.nextObject.splice(indexOfNextObjectId, 1)
-            }
-            // removing the current shape id from the nextObject's prevObject id arrays
-            if (nextObjectId && objectData.current[nextObjectId]?.properties.prevObject.includes(shapeId)){
-              const indexOfCurrentObjectId = objectData.current[nextObjectId].properties.prevObject.indexOf(shapeId)
-              objectData.current[nextObjectId].properties.prevObject.splice(indexOfCurrentObjectId, 1)
-            }
-          }
-          // 2. disconnection from the lines L coordinates
-          else if (getCurrentLineNextObjectId === shapeId) {
-            // remove current shape id as the line's nextObject 
-            objectData.current[obj.id].properties.nextObject = []
-
-            // getting the line's prevObject id
-            const prevObjectId = objectData.current[obj.id].properties.prevObject[0]
-
-
-             // removing the prev object id from the current shape  previous object attribute in case there's a prevObjectId
-             if (prevObjectId && objectData.current[shapeId]?.properties.prevObject.includes(prevObjectId)) {
-               const getPrevObjectIndex = objectData.current[shapeId].properties.prevObject.indexOf(prevObjectId)
-               objectData.current[shapeId].properties.prevObject.splice(getPrevObjectIndex, 1)
-             }
-
-             // removing the current shape id from the prevObject's nextObject id arrays
-             if (prevObjectId && objectData.current[prevObjectId]?.properties.nextObject.includes(shapeId)) {
-               const getNextObjectIndex = objectData.current[prevObjectId].properties.nextObject.indexOf(shapeId)
-               objectData.current[prevObjectId].properties.nextObject.splice(getNextObjectIndex, 1)
-             }
-
-          }
-
-          // 3. no connection existed in the first place 
-          // Nothing happens
-          
-        }
-
-
-        // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
-         
-        //     console.log("obj top before at the very end.", obj.style.top)
-            
-        //     console.log('is connected (line-to-shape)', isConnected)
-        //     console.log("line data", objectData.current[obj.id])
-        //     console.log("shape data", objectData.current[shape.id])
-        //     console.log("\n")
-        //     console.log("\n")
-        // }
-     
-
-        if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
-
-            // perform one last 
-            path!.setAttribute("stroke", "#4D4D4D")
-            arrow.setAttribute("fill", "#4D4D4D")
-            
-          } else {
-            path!.setAttribute("stroke", "#beb4b4")
-            arrow.setAttribute("fill", "#beb4b4")
-          }
-        }
-    }, [objectData, canvasRef, checkAndSetConnection, MCoordinateConnection, LCoordinateConnection])
+      }
+    }, [componentToLineConnection, showAndValidateLineConnection, objectData])
 
 
 
 
 
-    const ShapeToLine = useCallback((obj: HTMLElement) => {
+    const ShapeToLine = useCallback((obj: HTMLElement, isDeleted: Boolean = false) => {
+
         // Get all the lines
         const lines = document.querySelectorAll("[data-variant=line]")
         lines.forEach(line => {
-          // For each line check if the currentObject been dragged/move is in contact with the any line or with 5px range
-          let isConnected = false // to keep track of disconnections
-          const objectOffsetX = obj.offsetLeft
-          const objectOffsetY = obj.offsetTop
-          const objectOffsetYBottom = obj.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
-          const objectOffsetXRight = obj.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
-          const objectHeight = obj.getBoundingClientRect().height
-          const objectWidth = obj.getBoundingClientRect().width
+          // For Each line check if object is within proximity
+          if (isDeleted)
+            cleanUpInvalidConnections(line as HTMLElement, obj)
+          else 
+            componentToLineConnection(obj, line as HTMLElement, "shapeToLine")
+          
+          showAndValidateLineConnection(line as HTMLElement)
 
           
-          const path = line.querySelector("svg.line-svg path")
-          const arrow = line.querySelector("svg.arrow-indicator polygon") as SVGPolygonElement
-          const offsetLineX = (line as HTMLElement).offsetLeft
-          const offsetLineY = (line as HTMLElement).offsetTop
-          const lineData = objectData.current[line.id].properties.coordinates
-          const coordinates = lineData.lineCoordinates!
-          const M = coordinates.M
-          const L = coordinates.L[coordinates.L.length - 1]
-          const mXAxis = M[0] + offsetLineX
-          const mYAxis = M[1] + offsetLineY
-          const lXAxis = L[0] + offsetLineX
-          const lYAxis = L[1] + offsetLineY
-
-          // Getting the scale of the shape
-          const scale = +getComputedStyle(obj).transform.replace("matrix(", "").split(",")[0].trim() // Since scale x,y would be the same
-          const extrasX = objectWidth - (objectWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
-          const extrasY = objectHeight - (objectHeight / scale)
-          const scaledObjectOffsetY = objectOffsetY - (extrasY / 2)
-          const scaledObjectOffsetX = objectOffsetX - (extrasX / 2)
-         
-
-      
-          // Dragging a component from the bottom to the M-coordinate of a line
-          if (scaledObjectOffsetY === mYAxis || ((mYAxis - scaledObjectOffsetY >= -10) &&  mYAxis < objectOffsetYBottom)) {
-            if ((scaledObjectOffsetX <= mXAxis && objectOffsetXRight >= mXAxis) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
-              // console.log("scaledObjectOffsetX", scaledObjectOffsetX)
-              // console.log("mXAXis", mXAxis)
-              // console.log("dragging component from the bottom to the M coordinate")
-              // console.log("shape", obj)
-              // console.log("is connected here")
-              isConnected = true
-
-              if (mYAxis < scaledObjectOffsetY) {
-                const newObjectOffsetY = parseFloat((mYAxis + (extrasY/2)).toFixed(6))
-                if (newObjectOffsetY < 6)
-                  return
-                obj.style.top = `${newObjectOffsetY}px`;
-                objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
-              }
-
-              MCoordinateConnection(obj, line)
-            }
-          }
-
-
-          // Dragging a component from the top to the M-coordinate of a line
-          if (objectOffsetYBottom === mYAxis || ((mYAxis - objectOffsetYBottom) <= 10 && (mYAxis > scaledObjectOffsetY) )) {
-    
-            // dragging the object from the top.
-            if ((mXAxis >= scaledObjectOffsetX && mXAxis <= objectOffsetXRight) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
-              // console.log("dragging component from the top to the M coordinate")
-              // console.log("shape", obj)
-              // console.log("is connected here")
-              isConnected = true
-
-             
-              // const objWidthMidpoint = objectWidth / 2
-              // const newObjectOffsetX = mXAxis - objWidthMidpoint + (extrasX/2)
-              if (mYAxis > objectOffsetYBottom) {
-
-                const newObjectOffsetY = parseFloat((mYAxis - objectHeight + (extrasY/2)).toFixed(6))
-                // console.log(mYAxis, "myaxis")
-                if (newObjectOffsetY < 6)
-                  return
-                obj.style.top = `${newObjectOffsetY}px`;
-                // obj.style.left = `${newObjectOffsetX}px`;
-                // objectData.current[obj.id].lastX = newObjectOffsetX
-                objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
-              }
-              // if (objectData.current[line.id].properties.prevObject[0])
-              //   return
-              MCoordinateConnection(obj, line)
-  
-            }
-          }
-          
-          
-          // Dragging a component from the left to the M-coordinate of a line
-          if (objectOffsetXRight === mXAxis || ((mXAxis - objectOffsetXRight) <= 10  && (mXAxis > scaledObjectOffsetX) )) {
-            // Dragging the object in from the left (for M coordinates)
-            if ((mYAxis >= scaledObjectOffsetY && mYAxis <= objectOffsetYBottom) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
-              isConnected = true
-              
-
-              if (mXAxis > objectOffsetXRight) {
-
-                // const objHeightMidpoint = objectHeight / 2
-                const newObjectOffsetX = parseFloat((mXAxis - objectWidth + (extrasX/2)).toFixed(6))
-                // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
-                if (newObjectOffsetX < 6)
-                  return
-                // obj.style.top = `${newObjectOffsetY}px`;
-                obj.style.left = `${newObjectOffsetX}px`;
-                objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
-                // objectData.current[obj.id].lastY = newObjectOffsetY
-              }
-              // if (objectData.current[line.id].properties.prevObject[0])
-              //   return
-
-
-              MCoordinateConnection(obj, line)
-
-            }
-          }
-          
-
-          // Dragging a component from the right to the M-coordinate of a line
-          if (scaledObjectOffsetX === mXAxis || ((mXAxis - scaledObjectOffsetX) >= -10 && (mXAxis < objectOffsetXRight) )) {
-            // Dragging the object in from the right (for M coordinates)
-            if ((mYAxis >= scaledObjectOffsetY && mYAxis <= objectOffsetYBottom) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
-
-              isConnected = true
-              
-              // const objHeightMidpoint = objectHeight / 2
-
-              if (mXAxis < scaledObjectOffsetX) {
-
-                const newObjectOffsetX = parseFloat((mXAxis + (extrasX/2)).toFixed(6))
-                // const newObjectOffsetY = mYAxis - objHeightMidpoint + (extrasY/2)
-                // obj.style.top = `${newObjectOffsetY}px`;
-                obj.style.left = `${newObjectOffsetX}px`;
-                objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
-                // objectData.current[obj.id].lastY = newObjectOffsetY
-              }
-
-               
-              MCoordinateConnection(obj, line)
-
-            }
-          }
-          
-
-              
-          console.log("lYAxis and objectOffsetYBottom", lYAxis, objectOffsetYBottom)
-          console.log("lxAxis and scaledObjectOffsetX", lXAxis, scaledObjectOffsetX)
-          console.log("lYAxis and scaledObjectOffsetY", lYAxis, scaledObjectOffsetX)
-
-          // Dragging a component from the top to the L-coordinate of a line
-          if (objectOffsetYBottom === lYAxis || ((lYAxis -  objectOffsetYBottom) <= 10 && (lYAxis > scaledObjectOffsetY))) {
-            console.log("i'm in here")
-            if ((lXAxis >= scaledObjectOffsetX && lXAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
-              isConnected = true
-              if (lYAxis > objectOffsetYBottom) {
-                const newObjectOffsetY = parseFloat((lYAxis - objectHeight + (extrasY/2)).toFixed(6))
-                obj.style.top = `${newObjectOffsetY}px`;
-                objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
-              }
-              LCoordinateConnection(obj, line)
-            }
-          }
-
-
-
-          // Dragging a component from the bottom to the L-coordinate of a line
-          if (scaledObjectOffsetY === lYAxis || ((lYAxis - scaledObjectOffsetY) >= -10 && (lYAxis < objectOffsetYBottom) )) {
-            // Dragging the object in from bottom (L coordinates)
-            if ((lXAxis >= scaledObjectOffsetX && lXAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
-             
-              isConnected = true
-             
-              // const objWidthMidpoint = objectWidth / 2
-              // const newObjectOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
-              if (lYAxis < scaledObjectOffsetY) {
-
-                const newObjectOffsetY = parseFloat((lYAxis + (extrasY/2)).toFixed(6))
-                // console.log(mYAxis, "myaxis")
-  
-                obj.style.top = `${newObjectOffsetY}px`;
-                // obj.style.left = `${newObjectOffsetX}px`;
-                // objectData.current[obj.id].lastX = newObjectOffsetX
-                objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
-              }
-              LCoordinateConnection(obj, line)
-              
-            }
-          }
-         
-        
-          // Dragging a component from the left to the L-coordinate of a line
-          if (objectOffsetXRight === lXAxis || ((lXAxis - objectOffsetXRight) <= 10 && (lXAxis > scaledObjectOffsetX) )) {
-            // Dragging the object in from the left (for L coordinates)
-           
-            if ((lYAxis >= scaledObjectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
-              isConnected = true
-
-            
-              // const objHeightMidpoint = objectHeight / 2
-
-              if (lYAxis > objectOffsetXRight) {
-                const newObjectOffsetX = parseFloat((lXAxis - objectWidth + (extrasX/2)).toFixed(6))
-                // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
-                if (newObjectOffsetX < 6)
-                  return
-                // obj.style.top = `${newObjectOffsetY}px`;
-                obj.style.left = `${newObjectOffsetX}px`;
-                objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
-                // objectData.current[obj.id].lastY = newObjectOffsetY
-              }
-
-
-              LCoordinateConnection(obj, line)
-            }
-          }
-
-          // Dragging a component from the right to the L-coordinate of a line
-          if (scaledObjectOffsetX === lXAxis || ((lXAxis - scaledObjectOffsetX) >= -10 && (lXAxis < objectOffsetXRight) )) {
-            // Dragging the object in from the right (for L coordinates)
-            if ((lYAxis >= scaledObjectOffsetY && lYAxis <= objectOffsetYBottom) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
-              isConnected = true
-              
-              // const objHeightMidpoint = objectHeight / 2
-
-              if (lXAxis < scaledObjectOffsetX) {
-
-                const newObjectOffsetX = parseFloat((lXAxis + (extrasX/2)).toFixed(6))
-                // const newObjectOffsetY = lYAxis - objHeightMidpoint + (extrasY/2)
-                // obj.style.top = `${newObjectOffsetY}px`;
-                obj.style.left = `${newObjectOffsetX}px`;
-                objectData.current[obj.id].properties.coordinates.lastX = newObjectOffsetX
-                // objectData.current[obj.id].lastY = newObjectOffsetY
-              }
-              LCoordinateConnection(obj, line)
-            }
-          }
-
-          
-
-          // check if there's disconnection between the lines and the shape
-            // isConnected doesn't mean that there's an active connection or valid connection
-            // it just means that the line and the current shape (obj) are in contact or within range
-            // it's not a check for validating a "from and to" of a line connection together..
-
-          if (!isConnected) {
-
-            // Note: 
-            /**
-             * 
-             * STEPS TO CAREFULLY DISCONNECTING THE LINES
-               * 1. check the current line previous and next object to remove it
-               * 2. if it's the line's previous object that is equivalent to the current object id (M coordinates)
-               *     - remove the current object id from the previous object id arrays of the line
-               *     - get the line's nextObject id
-               *     - remove the line's nextObject id from the current object's nextObject id arrays
-               *     - remove the object id from nextObject's previous id arrays
-               * 3. if it's the line's next object id that is equivalent to the current object id (L coordinates)
-               *     - remove the current object id from the next object id arrays of the line
-               *     - get the line's previous object id
-               *     - remove the line's previous object id from the current object's prevObject id arrays
-               *     - remove the current object id from the previous object's nextObject id arrays
-               *    
-               *      
-               */
-            // There is a disconnection or there was never a connection
-            // Scenarios: 
-            // 1. disconnection from the lines M coordinates
-            // 2. disconnection from the lines L coordinates
-            // 3. no connection existed in the first place
-
-            let getCurrentLinePrevObjectId: string | null = objectData.current[line.id].properties.prevObject[0]
-            let getCurrentLineNextObjectId: string | null = objectData.current[line.id].properties.nextObject[0]
-
-            const tempCurrentLinePrevObjectId = getCurrentLinePrevObjectId
-            const tempCurrentLineNextObjectId = getCurrentLineNextObjectId
-
-            // Check if the id still exists.
-            if (getCurrentLineNextObjectId && !objectData.current[getCurrentLineNextObjectId])  {
-              objectData.current[line.id].properties.nextObject = []
-              getCurrentLineNextObjectId = null
-
-              if (tempCurrentLinePrevObjectId && objectData.current[tempCurrentLinePrevObjectId]?.properties.nextObject.includes(tempCurrentLineNextObjectId))  {
-                const getIndex = objectData.current[tempCurrentLinePrevObjectId].properties.nextObject.indexOf(tempCurrentLineNextObjectId)
-                objectData.current[tempCurrentLinePrevObjectId].properties.nextObject.splice(getIndex, 1)
-              }
-
-
-            }
-            if (getCurrentLinePrevObjectId && !objectData.current[getCurrentLinePrevObjectId]) {
-              objectData.current[line.id].properties.prevObject = []
-              getCurrentLinePrevObjectId = null
-
-              if (tempCurrentLineNextObjectId && objectData.current[tempCurrentLineNextObjectId]?.properties.prevObject.includes(tempCurrentLinePrevObjectId))  {
-                const getIndex = objectData.current[tempCurrentLineNextObjectId].properties.prevObject.indexOf(tempCurrentLinePrevObjectId)
-                objectData.current[tempCurrentLineNextObjectId].properties.prevObject.splice(getIndex, 1)
-              }
-
-            }
-
-
-            // 1. disconnection from the lines M coordinates         
-            
-            if (getCurrentLinePrevObjectId === obj.id) {
-              // remove current obj id as the line's prevObject 
-              objectData.current[line.id].properties.prevObject = []
-
-              // getting the line's nextObject id
-              const nextObjectId = objectData.current[line.id].properties.nextObject[0]
-
-              // removing the current object from the line next object attribute in case there's a nextObjectId
-             
-              if (nextObjectId && objectData.current[obj.id]?.properties.nextObject.includes(nextObjectId)){
-                const indexOfNextObjectId = objectData.current[obj.id].properties.nextObject.indexOf(nextObjectId)
-                objectData.current[obj.id].properties.nextObject.splice(indexOfNextObjectId, 1)
-              }
-
-              // removing the current object id from the nextObject's prevObject id arrays
-              if (nextObjectId && objectData.current[nextObjectId]?.properties.prevObject.includes(obj.id)){
-                const indexOfCurrentObjectId = objectData.current[nextObjectId].properties.prevObject.indexOf(obj.id)
-                objectData.current[nextObjectId].properties.prevObject.splice(indexOfCurrentObjectId, 1)
-              }  
-            }
-            // 2. disconnection from the lines L coordinates
-            else if (getCurrentLineNextObjectId === obj.id) {
-              // remove current obj id as the line's nextObject 
-              objectData.current[line.id].properties.nextObject = []
-
-              // getting the line's prevObject id
-              const prevObjectId = objectData.current[line.id].properties.prevObject[0]
-
-
-               // removing the prev object from the current object  previous object attribute in case there's a prevObjectId
-               if (prevObjectId && objectData.current[obj.id]?.properties.prevObject.includes(prevObjectId)) {
-                 const getPrevObjectIndex = objectData.current[obj.id].properties.prevObject.indexOf(prevObjectId)
-                 objectData.current[obj.id].properties.prevObject.splice(getPrevObjectIndex, 1)
-               }
-
-               // removing the current object id from the prevObject's nextObject id arrays
-               if (prevObjectId && objectData.current[prevObjectId]?.properties.nextObject.includes(obj.id)) {
-                 const getNextObjectIndex = objectData.current[prevObjectId].properties.nextObject.indexOf(obj.id)
-                 objectData.current[prevObjectId].properties.nextObject.splice(getNextObjectIndex, 1)
-               }
-
-            }
-
-            // 3. no connection existed in the first place 
-            // Nothing happens
-            
-          }
-
-          
-          
-        console.log('is connected (shape-to-line)', isConnected)
-        console.log("line data", objectData.current[line.id])
-        console.log("shape data", objectData.current[obj.id])
-        console.log("\n")
-        console.log("\n")
-      
-          if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
-            // here's the check for a valid connection
-            path!.setAttribute("stroke", "#4D4D4D")
-            arrow.setAttribute("fill", "#4D4D4D")
-          } else {
-            path!.setAttribute("stroke", "#beb4b4")
-            arrow.setAttribute("fill", "#beb4b4")
-          }
-      
         })
-    }, [objectData,canvasRef, checkAndSetConnection, MCoordinateConnection, LCoordinateConnection])
+    }, [componentToLineConnection, showAndValidateLineConnection, cleanUpInvalidConnections])
 
 
     const LineConnector = useCallback((obj: HTMLElement, point?: HTMLSpanElement) => {
@@ -1624,7 +1319,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             coords.offsetTop = Math.abs((point as HTMLElement).offsetTop) + 6
           
         } else if ((objOffsetLeft + (point as HTMLElement).offsetLeft) > (canvasContainerContentWidth - 20) || (objOffsetTop + (point as HTMLElement).offsetTop) > (canvasContainerContentHeight - 20)) {
-            console.log("additon", (objOffsetLeft + (point as HTMLElement).offsetLeft))
+            // console.log("additon", (objOffsetLeft + (point as HTMLElement).offsetLeft))
         
           if ((objOffsetLeft + (point as HTMLElement).offsetLeft) > (canvasContainerContentWidth - 20)) {
 
@@ -1756,9 +1451,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         if (objectData.current[element.id].properties.crusherType === "primary") 
           primaryCrusherInUse.current = false
         delete objectData.current[element.id]
+
+        if (element.getAttribute("data-variant") !== "line") {
+          ShapeToLine(element, true)
+        }
         setIsEdited(true)
       }
-    }, [objectData, setIsEdited])
+    }, [objectData, setIsEdited, ShapeToLine])
 
 
 
@@ -2682,6 +2381,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const CanvasContainer = canvasRef.current
       const CanvasParentContainer = document.getElementById("canvas-parent-container")!
       const objects = document.querySelectorAll(".objects")
+
       if (pageNotFound) return;
       // console.log(objects)
       const invokeLoadObjects = async () => {
