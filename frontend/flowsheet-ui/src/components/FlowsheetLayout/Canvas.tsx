@@ -800,6 +800,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           continue
         const shape = document.getElementById(shapeId) as HTMLElement;
         if (!shape) continue
+
+        // console.log("data variant", shape.getAttribute("data-variant"))
         if (shape.getAttribute("data-variant") === "text" || shape.getAttribute("data-variant") === "line")
           continue
 
@@ -836,34 +838,62 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         
         // Dragging the M-coordinate of a line to the top side of a component
         if (scaledShapeOffsetY === mYAxis || ((mYAxis - scaledShapeOffsetY >= -10) &&  (mYAxis < shapeOffsetYBottom) )) {
+          // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
+          //   console.log("Dragging the M-coordinate of a line to the top side of a component")
+          //     console.log("in range here ====")
+          //     console.log("mYAxis === scaledShapedOffsetY", mYAxis, scaledShapeOffsetY)
+          //     console.log("mYAxis - scaledShapeOffsetY >= -10", mYAxis - scaledShapeOffsetY)
+          //     console.log("mYAxis < shapeOffsetYBottom", mYAxis, shapeOffsetYBottom)
+          //     console.log("check and set connection feedback", checkAndSetConnection("from", obj.id, shapeId))
+          //     console.log("isConnected already ?", isConnected)
+          //  }
           if ((scaledShapeOffsetX <= mXAxis && shapeOffsetXRight >= mXAxis) && checkAndSetConnection("from", obj.id, shapeId) && !isConnected) {
+
             isConnected = true
 
+            // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
+            //       console.log("Got connected...")
+            //       console.log("obj top before", obj.style.top)
+            //       console.log('mYAxis < scaledShapeOffsetY', mYAxis, scaledShapeOffsetY)
+            // }
             if (mYAxis < scaledShapeOffsetY) {
+              
               const newLineOffsetY = parseFloat((scaledShapeOffsetY - M[1]).toFixed(6))
               if (newLineOffsetY < 6)
                 return
+
               obj.style.top = `${newLineOffsetY}px`;
               objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
             }
 
             MCoordinateConnection(shape, obj)
-          }
+         }
         }
 
 
         // Dragging the M-coordinate of a line to the bottom side of a component
 
         if (shapeOffsetYBottom === mYAxis || ((mYAxis - shapeOffsetYBottom) <= 10 && (mYAxis > scaledShapeOffsetY) )) {
+          //  if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
+          //     console.log("Dragging the M-coordinate of a line to the bottom side of a component")
+          //     console.log("in range here ====")
+          //     console.log("mXAxis >= scaledShapedOffsetX", mXAxis, scaledShapeOffsetX)
+          //     console.log("mXAxis <= shapeOffsetXRight", mXAxis, shapeOffsetXRight)
+          //     console.log("check and set connection feedback", checkAndSetConnection("from", obj.id, shapeId))
+          //     console.log("isConnected already ?", isConnected)
+          //  }
           // Dragging the line in from the bottom (M coordinates)
           if ((mXAxis >= scaledShapeOffsetX && mXAxis <= shapeOffsetXRight) && checkAndSetConnection("from", obj.id, shapeId) && !isConnected) {
+
+            
             // console.log("Dragging the line in from the bottom (M coordinates)")
             isConnected = true
             if (mYAxis > shapeOffsetYBottom) {
 
               const newLineOffsetY = parseFloat((shapeOffsetYBottom - M[1]).toFixed(6))
-             
+              
               obj.style.top = `${newLineOffsetY}px`;
+
               objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
 
             }
@@ -929,21 +959,39 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
        
         // Dragging the L-coordinate of a line to the top side of a component
         if (scaledShapeOffsetY === lYAxis || ((lYAxis - scaledShapeOffsetY) >= -10 && (lYAxis < shapeOffsetYBottom) )) {
+
+          // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
+          //   console.log("Dragging the L-coordinate of a line to the top side of a component")
+          //     console.log("in range here ====")
+          //     console.log("lYAxis === scaledShapedOffsetY", lYAxis, scaledShapeOffsetY)
+          //     console.log("lYAxis - scaledShapeOffsetY >= -10", lYAxis - scaledShapeOffsetY)
+          //     console.log("lYAxis < shapeOffsetYBottom", lYAxis, shapeOffsetYBottom)
+          //     console.log("check and set connection feedback", checkAndSetConnection("from", obj.id, shapeId))
+          //     console.log("isConnected already ?", isConnected)
+          //  }
           if ((lXAxis >= scaledShapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId) && !isConnected) {
             
             isConnected = true
+
+            
+            // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
+            //       console.log("Got connected...")
+            //       console.log('lYAxis < scaledShapeOffsetY', lYAxis, scaledShapeOffsetY)
+            //       console.log("lXAxis >= scaledShapeOffsetX", lXAxis, scaledShapeOffsetX)
+            //       console.log("lXAxis <= shapeOffsetXRight", lXAxis, shapeOffsetXRight)
+            // }
             
             // const objWidthMidpoint = ShapeWidth / 2
             // const newShapeOffsetX = lXAxis - objWidthMidpoint + (extrasX/2)
             if (lYAxis < scaledShapeOffsetY) {
 
-              const newObjectOffsetY = parseFloat((lYAxis + (extrasY/2)).toFixed(6))
-              // console.log(mYAxis, "myaxis")
-
-              obj.style.top = `${newObjectOffsetY}px`;
-              // obj.style.left = `${newObjectOffsetX}px`;
-              // objectData.current[obj.id].lastX = newObjectOffsetX
-              objectData.current[obj.id].properties.coordinates.lastY = newObjectOffsetY
+              const newLineOffsetY = parseFloat((scaledShapeOffsetY - L[1]).toFixed(6))
+              if (newLineOffsetY < 6)
+                return
+              obj.style.top = `${newLineOffsetY}px`;
+              // obj.style.left = `${newLineOffsetX}px`;
+              // objectData.current[obj.id].lastX = newLineOffsetX
+              objectData.current[obj.id].properties.coordinates.lastY = newLineOffsetY
             }
             LCoordinateConnection(shape, obj)
             
@@ -952,8 +1000,27 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
          // Dragging the L-coordinate of a line to the bottom side of a component
         if (shapeOffsetYBottom === lYAxis || ((lYAxis -  shapeOffsetYBottom) <= 10 && (lYAxis > scaledShapeOffsetY))) {
-          if ((lXAxis >= scaledShapeOffsetX && lYAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId) && !isConnected) {
+
+            //  if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
+          //   console.log("Dragging the L-coordinate of a line to the bottom side of a component")
+          //     console.log("in range here ====")
+          //     console.log("lYAxis === shapedOffsetYBottom", lYAxis, shapeOffsetYBottom)
+          //     console.log("lYAxis - shapeOffsetYBottom >= -10", lYAxis - shapeOffsetYBottom)
+          //     console.log("lYAxis > scaledShapeOffsetY", lYAxis, scaledShapeOffsetY)
+          //     console.log("check and set connection feedback", checkAndSetConnection("from", obj.id, shapeId))
+          //     console.log("isConnected already ?", isConnected)
+          //  }
+          if ((lXAxis >= scaledShapeOffsetX && lXAxis <= shapeOffsetXRight) && checkAndSetConnection("to", obj.id, shapeId) && !isConnected) {
             isConnected = true
+
+
+            
+            // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
+            //       console.log("Got connected...")
+            //       console.log('lYAxis < shapeOffsetYBottom', lYAxis, shapeOffsetYBottom)
+            //       console.log("lXAxis >= scaledShapeOffsetX", lXAxis, scaledShapeOffsetX)
+            //       console.log("lXAxis <= shapeOffsetXRight", lXAxis, shapeOffsetXRight)
+            // }
             if (lYAxis > shapeOffsetYBottom) {
               const newLineOffsetY = parseFloat((shapeOffsetYBottom - L[1]).toFixed(6))
               obj.style.top = `${newLineOffsetY}px`;
@@ -1115,7 +1182,21 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
 
 
+        // if (shape.id === "4dce8019-e2f4-4bea-9926-574d96e34265") {
+         
+        //     console.log("obj top before at the very end.", obj.style.top)
+            
+        //     console.log('is connected (line-to-shape)', isConnected)
+        //     console.log("line data", objectData.current[obj.id])
+        //     console.log("shape data", objectData.current[shape.id])
+        //     console.log("\n")
+        //     console.log("\n")
+        // }
+     
+
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
+
+          // perform one last 
           path!.setAttribute("stroke", "#4D4D4D")
           arrow.setAttribute("fill", "#4D4D4D")
           
@@ -1165,9 +1246,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const scaledObjectOffsetX = objectOffsetX - (extrasX / 2)
          
 
+      
           // Dragging a component from the bottom to the M-coordinate of a line
           if (scaledObjectOffsetY === mYAxis || ((mYAxis - scaledObjectOffsetY >= -10) &&  mYAxis < objectOffsetYBottom)) {
             if ((scaledObjectOffsetX <= mXAxis && objectOffsetXRight >= mXAxis) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
+              // console.log("scaledObjectOffsetX", scaledObjectOffsetX)
+              // console.log("mXAXis", mXAxis)
+              // console.log("dragging component from the bottom to the M coordinate")
+              // console.log("shape", obj)
+              // console.log("is connected here")
               isConnected = true
 
               if (mYAxis < scaledObjectOffsetY) {
@@ -1188,6 +1275,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     
             // dragging the object from the top.
             if ((mXAxis >= scaledObjectOffsetX && mXAxis <= objectOffsetXRight) && checkAndSetConnection("from", line.id, obj.id) && !isConnected) {
+              // console.log("dragging component from the top to the M coordinate")
+              // console.log("shape", obj)
+              // console.log("is connected here")
               isConnected = true
 
              
@@ -1267,10 +1357,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
           
 
+              
+          console.log("lYAxis and objectOffsetYBottom", lYAxis, objectOffsetYBottom)
+          console.log("lxAxis and scaledObjectOffsetX", lXAxis, scaledObjectOffsetX)
+          console.log("lYAxis and scaledObjectOffsetY", lYAxis, scaledObjectOffsetX)
 
           // Dragging a component from the top to the L-coordinate of a line
           if (objectOffsetYBottom === lYAxis || ((lYAxis -  objectOffsetYBottom) <= 10 && (lYAxis > scaledObjectOffsetY))) {
-            if ((lXAxis >= scaledObjectOffsetX && lYAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
+            console.log("i'm in here")
+            if ((lXAxis >= scaledObjectOffsetX && lXAxis <= objectOffsetXRight) && checkAndSetConnection("to", line.id, obj.id) && !isConnected) {
               isConnected = true
               if (lYAxis > objectOffsetYBottom) {
                 const newObjectOffsetY = parseFloat((lYAxis - objectHeight + (extrasY/2)).toFixed(6))
@@ -1469,6 +1564,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
 
           
+          
+        console.log('is connected (shape-to-line)', isConnected)
+        console.log("line data", objectData.current[line.id])
+        console.log("shape data", objectData.current[obj.id])
+        console.log("\n")
+        console.log("\n")
       
           if (objectData.current[line.id].properties.nextObject[0] && objectData.current[line.id].properties.prevObject[0]) {
             // here's the check for a valid connection
@@ -1569,6 +1670,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       if ((e.clientX - containerX) < 7 || (e.clientY - containerY) < 7) {
         return
       }
+
+      console.log('i was called')
       let isLast = false // if point is the last point
       const object = currentObject.current
       const objectX = object.getBoundingClientRect().x
@@ -1958,6 +2061,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           // newEl.style.zIndex = "5"
 
           // defaultElementLabel = "Text"
+          newEl.setAttribute("data-variant", "text")
           const contentEditableDiv = document.createElement("div")
           const textControl = document.createElement("div")
 
@@ -2035,7 +2139,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         })
 
 
-          contentEditableDiv.setAttribute("data-variant", "text")
+          // contentEditableDiv.setAttribute("data-variant", "text")
           contentEditableDiv.setAttribute("data-placeholder", "Text")
           contentEditableDiv.classList.add("shape-text-base-styles")
           contentEditableDiv.innerHTML = objectData.current[dataId].description
@@ -2284,7 +2388,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       // Text
       if (elementObjectType === "Shape" && elementObjectName === "Text") {
         // newEl.style.zIndex = "5"
+
+        newEl.setAttribute("data-variant", "text")
         defaultElementLabel = "Text"
+        
         const contentEditableDiv = document.createElement("div")
         const textControl = document.createElement("div")
 
@@ -2366,7 +2473,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
         
-        contentEditableDiv.setAttribute("data-variant", "text")
+        // contentEditableDiv.setAttribute("data-variant", "text")
         contentEditableDiv.setAttribute("data-placeholder", "Text")
         contentEditableDiv.classList.add("placeholder-style")
         contentEditableDiv.classList.add("shape-text-base-styles")
