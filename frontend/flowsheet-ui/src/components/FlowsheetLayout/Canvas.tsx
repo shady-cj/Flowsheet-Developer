@@ -1196,15 +1196,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         if (objectData.current[obj.id].properties.nextObject[0] && objectData.current[obj.id].properties.prevObject[0]) {
 
-          // perform one last 
-          path!.setAttribute("stroke", "#4D4D4D")
-          arrow.setAttribute("fill", "#4D4D4D")
-          
-        } else {
-          path!.setAttribute("stroke", "#beb4b4")
-          arrow.setAttribute("fill", "#beb4b4")
+            // perform one last 
+            path!.setAttribute("stroke", "#4D4D4D")
+            arrow.setAttribute("fill", "#4D4D4D")
+            
+          } else {
+            path!.setAttribute("stroke", "#beb4b4")
+            arrow.setAttribute("fill", "#beb4b4")
+          }
         }
-      }
     }, [objectData, canvasRef, checkAndSetConnection, MCoordinateConnection, LCoordinateConnection])
 
 
@@ -1671,7 +1671,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         return
       }
 
-      console.log('i was called')
       let isLast = false // if point is the last point
       const object = currentObject.current
       const objectX = object.getBoundingClientRect().x
@@ -1680,6 +1679,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const pointY = parseFloat((e.clientY - objectY).toFixed(6))
       const pointID = pointStore.current[point.id]
       const pointDetails = pointID[1] // point here is expected to be ["L", :any number]
+      console.log("point details", pointDetails)
      
       const objectDetails = objectData.current[object.id].properties.coordinates
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
