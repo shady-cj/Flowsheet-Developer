@@ -20,7 +20,7 @@ const ProjectPage = async ({params}: {params: Promise<{project_id: string}>}) =>
           })
           
           result = await response.json()
-          console.log(result.project)
+          // console.log(result.project)
       } catch (err) {
           throw err
       }

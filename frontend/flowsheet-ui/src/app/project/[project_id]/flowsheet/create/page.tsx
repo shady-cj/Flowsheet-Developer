@@ -24,7 +24,7 @@ const FlowsheetCreatePage = async ({params}: {params: Promise<{project_id: strin
                 //   next: {revalidate: 60} // validate atmost every minute
               })
               result = await response.json()
-              console.log("result of flowsheet create page", result)
+              // console.log("result of flowsheet create page", result)
     
           } catch (err) {
               throw err

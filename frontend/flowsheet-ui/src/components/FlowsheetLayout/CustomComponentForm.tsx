@@ -142,7 +142,7 @@ const CustomComponentForm = ({setAddCustomComponent, setLoadComponent}: {setAddC
    
   return (
     <section className="w-screen h-screen left-0 top-0 fixed bg-[#00000080] z-50 flex justify-center items-center">
-           <div className="bg-white w-1/3 min-h-[60%] shadow-lg rounded-md">
+           <div className="bg-white w-1/3 max-h-[80%] shadow-lg rounded-md">
                 <div className="py-6 px-5">
                     <h2 className="text-xl text-[#1A1A1A] font-medium">
                         Custom Component

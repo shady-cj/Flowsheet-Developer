@@ -10,7 +10,7 @@ const ProjectList = ({projects, revalidate, result}: {projects: fetchedProjectTy
     const router = useRouter()
     const searchParams = useSearchParams()
     const firstLoad = React.useRef(true)
-    console.log("projects", projects)
+    // console.log("projects", projects)
 
     const scrollOnLoad = (scrollTo: number) => {
         const container = document.getElementById("project-list__main")

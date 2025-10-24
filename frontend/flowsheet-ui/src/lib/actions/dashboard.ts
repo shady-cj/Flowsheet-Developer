@@ -32,7 +32,7 @@ export const fetchDashboardProjects = async (query: string | null, limit?: numbe
         // console.log("result", result)
         if (response.status === 200) return result
         else {
-            console.log(result);
+            // console.log(result);
             return null
         }
     } catch (err) {
@@ -60,7 +60,7 @@ export const fetchDashboardFlowsheets = async (query: string | null, limit?: num
         // console.log("flowsheet ---- result", result)
         if (response.status === 200) return result
         else {
-            console.log(result);
+            // console.log(result);
             return null
         }
     } catch (err) {
@@ -88,7 +88,7 @@ export const updateProject = async (item: fetchedProjectType) => {
         // console.log("project update result", result)
         if (response.status === 200) return result
         else {
-            console.log(result);
+            // console.log(result);
             return null
         }
     } catch (err) {
@@ -115,7 +115,7 @@ export const updateFlowsheet = async (item: fetchedFlowsheetsType) => {
         // console.log("flowsheet update result", result)
         if (response.status === 200) return result
         else {
-            console.log(result);
+            // console.log(result);
             return null
         }
     } catch (err) {
@@ -173,7 +173,7 @@ export const editEntity = async (editData: editType) => {
             body: JSON.stringify({name: editData.name, description: editData.description})
         })
         const result = await response.json()
-        console.log("result", result)
+        // console.log("result", result)
         if (response.status === 200) {
             return {
                 success: true,
@@ -207,7 +207,7 @@ export const dashboardSearch = async (query: string) => {
 
         })
         const result = await response.json()
-        console.log("search results", result)
+        // console.log("search results", result)
         if (response.status === 200) return result
         else {
             console.log(result);

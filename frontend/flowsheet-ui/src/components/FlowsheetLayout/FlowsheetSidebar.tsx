@@ -130,7 +130,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                 setAuxilliaries(await fetchObjects("auxilliary"))
                 setConcentrators(await(fetchObjects("concentrators")))
             } else {
-                console.log("load component", loadComponent)
+                // console.log("load component", loadComponent)
                 const result = await fetchObjects(loadComponent.type)
                 switch (loadComponent.type) {
                     case "crushers":

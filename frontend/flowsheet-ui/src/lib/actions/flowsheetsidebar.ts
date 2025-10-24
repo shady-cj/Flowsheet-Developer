@@ -52,7 +52,7 @@ export async function createCustomComponent(formData: FormData, category: string
             }
         })
         const result = await response.json()
-        console.log(result)
+        // console.log(result)
         if (response.status === 201) {
             return {success: "Custom component created succesfully"};
 
@@ -85,7 +85,7 @@ export async function removeObject(objectId: string, objectType: string) {
         })
         
         if (response.status === 204) {
-            console.log('success')
+            // console.log('success')
             return {"message": "Object was deleted successfully", success: true}
         } else if (response.status === 200) {
             const result = await response.json()

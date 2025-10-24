@@ -1,3 +1,4 @@
+"use server"
 import GoogleProvider from 'next-auth/providers/google'
 import { oauthSignin } from './actions/auth'
 const nextAuthConfig = {    
@@ -22,7 +23,7 @@ const nextAuthConfig = {
             const provider = account.provider
             // console.log("details", email, provider)
             const response = await oauthSignin({email, provider})
-            console.log(response)
+            // console.log(response)
             if (response.error) {
                  return `/login?error=${encodeURIComponent(response.error || 'Authentication failed')}`
             }

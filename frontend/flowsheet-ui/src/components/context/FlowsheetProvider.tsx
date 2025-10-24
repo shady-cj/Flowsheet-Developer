@@ -199,7 +199,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
     }
     const Wi = parseFloat(workIndex.current!.value)
     const isValidPath = validateCommunitionPaths(communitionListForBondsEnergy.current, objectData.current)
-    console.log("is valid path", isValidPath)
+    // console.log("is valid path", isValidPath)
     if (!isValidPath) {
       communitionListForBondsEnergy.current = []
       alert("Invalid connection between two points")
@@ -226,7 +226,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
 
   const getFlowsheet = useCallback(async (projectID: string, flowsheetID: string) => {
     const flowsheetData = await fetchFlowsheet(projectID, flowsheetID)
-    console.log("flowsheetData", flowsheetData)
+    // console.log("flowsheetData", flowsheetData)
     setFlowsheetObject(flowsheetData)
   }, [])
 

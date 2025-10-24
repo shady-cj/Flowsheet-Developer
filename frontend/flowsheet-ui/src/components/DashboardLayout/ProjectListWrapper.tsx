@@ -42,7 +42,9 @@ export default async function ProjectListWrapper({searchParams}: {searchParams: 
         if (response.status === 200) {
             data = results!.results
         } else {
-            console.log("error fetching projects", results)
+            // console.log("error fetching projects", results)
+            // alert("Error loading project lists")
+            throw Error("Error loading project lists")
         }
         
     } catch (err) {

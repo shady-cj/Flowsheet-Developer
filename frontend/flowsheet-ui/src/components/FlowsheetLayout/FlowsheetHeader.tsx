@@ -40,7 +40,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
   const [showSaveSettings, setShowSaveSettings] = useState(false)
 
   const updateSaveSettings = async () => {
-    console.log("save settings", saveFrequencySettings)
+    // console.log("save settings", saveFrequencySettings)
     if (saveFrequencySettings.frequencyType === "AUTO") {
       
       if (!saveFrequencySettings.saveInterval) {

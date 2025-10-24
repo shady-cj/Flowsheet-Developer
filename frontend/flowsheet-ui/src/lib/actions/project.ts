@@ -31,7 +31,7 @@ export async function createProject(prevState: any, formData: FormData) {
 
         })
         const result = await response.json()
-        console.log("created result", result)
+        // console.log("created result", result)
         if (response.status === 201) {
             revalidatePath("/projects")
             return {success: "Created Successfully", result}

@@ -11,7 +11,7 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
     // generatePDF(reportRef, {filename: 'page.pdf'})
     
     const [maxWidth, maxHeight] = getMaxWidthAndHeight(objectData) 
-    console.log("canvas ref",canvasRef)
+    // console.log("canvas ref",canvasRef)
     // console.log("object data", objectData)
     // console.log(canvasRef)
     // console.log(logo)

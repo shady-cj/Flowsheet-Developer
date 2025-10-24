@@ -70,7 +70,7 @@ export async function createFlowsheet(prevState: any, formData: FormData) {
 
         })
         const result = await response.json()
-        console.log("created result", result)
+        // console.log("created result", result)
         if (response.status === 201) {
             revalidatePath(`/project/${projectId}`)
             return {success: "Created Successfully", result}

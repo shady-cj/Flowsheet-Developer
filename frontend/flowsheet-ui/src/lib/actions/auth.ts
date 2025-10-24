@@ -148,11 +148,11 @@ export async function fetchUser() {
         const result = await response.json()
         if (response.status === 200) return result
         else {
-            console.log(result);
+            // console.log(result);
             return null
         }
     } catch (err) {
-        console.log(err)
+        // console.log(err)
         return null
     }
 }

@@ -1496,7 +1496,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             objectData.current[obj.id].y_coordinate = parseFloat((obj?.offsetTop as number).toFixed(6))
             LineConnector(obj)
           }
-          console.log(objectData.current)
+          // console.log(objectData.current)
           const tooltip = obj?.querySelector(".object-details-tooltip")
 
           tooltip?.classList.remove("show-tooltip")
@@ -1547,7 +1547,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         if (["Grinder", "Crusher"].includes(objectData.current[obj.id].object_info.object_model_name)) {
           communitionListForBondsEnergy.current.push(objectData.current[obj.id])
           if (communitionListForBondsEnergy.current.length >= 2) {
-            console.log("calcuate bonds energy", communitionListForBondsEnergy.current)
+            // console.log("calcuate bonds energy", communitionListForBondsEnergy.current)
             calculateBondsEnergy.current = false
             // Calculate it here
             calculateEnergyUsed()
@@ -1636,10 +1636,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       else {
         element.innerHTML = ""
         element.classList.add("placeholder-style")
-      }
-
-      
-      
+      }              
     }, [objectData])
   
 
@@ -2006,7 +2003,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const resizePanels = newEl.querySelectorAll(".resize-panel");
           resizePanels.forEach((panel) => {
             panel.addEventListener('mousedown', (e)=> {
-              console.log(e, 'mousedown')
+              // console.log(e, 'mousedown')
               onPanelResize.current = true
               currentPanel.current = panel as HTMLSpanElement
             })
@@ -2310,7 +2307,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const resizePanels = newEl.querySelectorAll(".resize-panel");
         resizePanels.forEach((panel) => {
           panel.addEventListener('mousedown', (e)=> {
-            console.log(e, 'mousedown')
+            // console.log(e, 'mousedown')
             onPanelResize.current = true;
             currentPanel.current = panel as HTMLSpanElement
           })

@@ -28,7 +28,7 @@ const FormCreate = ({title, nameField, descriptionField, action, param, buttonTi
     const router = useRouter()
     const [state, formAction] = useActionState(action, null)
     if (state?.success) {
-        console.log("after submission state", state)
+        // console.log("after submission state", state)
 
         if (param?.type === "flowsheet") {
             const projectId = state.result.project 
