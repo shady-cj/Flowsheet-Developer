@@ -665,9 +665,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const scaledObjectOffsetY = objectOffsetY - (extrasY / 2)
       const scaledObjectOffsetX = objectOffsetX - (extrasX / 2)
 
-      // Same as 
-      // const scaledObjectOffsetX = objectOffsetX - canvasRef.current.getBoundingClientRect().x
-      // const scaledObjectOffsetY = objectOffsetY - canvasRef.current.getBoundingClientRect().y
+  
 
 
       // M COORDINATE CHECKS 
@@ -1666,7 +1664,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
 
-    const showObjectDetailsToolTip = useCallback((element: HTMLDivElement, tooltip: HTMLDivElement, dataId: string) => {
+    const showObjectDetailsToolTip = useCallback((element: HTMLDivElement, tooltip: HTMLDivElement, dataId: string, e: MouseEvent) => {
      
       // console.log(element.style.top, element.style.left, element.style.width)
       const data = objectData.current[dataId]
@@ -1682,10 +1680,35 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       // }
       if (onMouseDown.current && element.id === currentObject.current?.id) {
           tooltip.classList.remove("show-tooltip")
-        tooltip.classList.add("hide-tooltip")
+          tooltip.classList.add("hide-tooltip")
+
       } else {
-        tooltip.classList.remove("hide-tooltip")
-     tooltip.classList.add("show-tooltip")
+          const elementOffsetX = element.getBoundingClientRect().x - canvasRef.current.getBoundingClientRect().x
+          const elementOffsetY = element.getBoundingClientRect().y - canvasRef.current.getBoundingClientRect().y
+          const cursorOffsetX = e.clientX - canvasRef.current.getBoundingClientRect().x
+          const cursorOffsetY = e.clientY - canvasRef.current.getBoundingClientRect().y
+
+          const differenceX = cursorOffsetX - elementOffsetX
+          const differenceY = cursorOffsetY - elementOffsetY
+
+          let tooltipOffsetX: number
+          let tooltipOffsetY: number
+
+
+          if ((elementOffsetX + tooltip.getBoundingClientRect().width + differenceX - 50) > (canvasContainerContentWidth - 250))
+            tooltipOffsetX = differenceX - tooltip.getBoundingClientRect().width - 50 
+          else
+            tooltipOffsetX = differenceX + 50
+          
+          if ((elementOffsetY + differenceY - 50) < 20)
+              tooltipOffsetY = differenceY + 20
+          else
+              tooltipOffsetY = differenceY - 50
+
+          tooltip.classList.remove("hide-tooltip")
+          tooltip.classList.add("show-tooltip")
+          tooltip.style.left = `${tooltipOffsetX}px`
+          tooltip.style.top = `${tooltipOffsetY}px`
       }
       
       // object-hover is a class added when mouse enters an object area.
@@ -1738,7 +1761,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
 
       
-    }, [objectData])
+    }, [objectData, canvasRef])
 
 
 
@@ -2031,8 +2054,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const tooltipWrapper = document.createElement("div")
           tooltipWrapper.classList.add('object-details-tooltip')
           tooltipWrapper.classList.add("hide-tooltip")
+
+          
           newEl.appendChild(tooltipWrapper)
-          newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl, tooltipWrapper, dataId))
+          newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl, tooltipWrapper, dataId, e))
           newEl.addEventListener("mouseleave", (e)=> {
             tooltipWrapper.classList.remove("show-tooltip")
             tooltipWrapper.classList.add("hide-tooltip")
@@ -2356,7 +2381,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         tooltipWrapper.classList.add('object-details-tooltip')
         tooltipWrapper.classList.add("hide-tooltip")
         newEl.appendChild(tooltipWrapper)
-        newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl as HTMLDivElement, tooltipWrapper, uuid4))
+        newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl as HTMLDivElement, tooltipWrapper, uuid4, e))
         newEl.addEventListener("mouseleave", (e)=> {
           tooltipWrapper.classList.remove("show-tooltip")
           tooltipWrapper.classList.add("hide-tooltip")
