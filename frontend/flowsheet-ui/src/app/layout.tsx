@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Flowsheet",
-  description: "Flowsheet generator application",
+  description: "Flowsheet Designer Software",
 };
 
 export default function RootLayout({

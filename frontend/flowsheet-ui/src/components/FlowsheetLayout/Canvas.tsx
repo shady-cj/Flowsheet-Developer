@@ -2000,6 +2000,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             <span class="resize-panel resize-panel-bl"></span>
           `
           )
+          // remove all flex classes
+          // flex-1 flex items-center justify-center
+          newEl.classList.remove("flex")
+          newEl.classList.remove("flex-1")
+          newEl.classList.remove("items-center")
+          newEl.classList.remove("justify-center")
+
+        
+
           const resizePanels = newEl.querySelectorAll(".resize-panel");
           resizePanels.forEach((panel) => {
             panel.addEventListener('mousedown', (e)=> {
@@ -2296,37 +2305,47 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         pointStore.current[point2Uid] = [{prev: point1Uid, next: null}, ["L", 0]]
         
       }else {
-        newEl.insertAdjacentHTML(
-          'beforeend',`
-          <span class="resize-panel resize-panel-tl"></span>
-          <span class="resize-panel resize-panel-tr"></span>
-          <span class="resize-panel resize-panel-br"></span>
-          <span class="resize-panel resize-panel-bl"></span>
-        `
-        )
-        const resizePanels = newEl.querySelectorAll(".resize-panel");
-        resizePanels.forEach((panel) => {
-          panel.addEventListener('mousedown', (e)=> {
-            // console.log(e, 'mousedown')
-            onPanelResize.current = true;
-            currentPanel.current = panel as HTMLSpanElement
+
+          // remove all flex classes
+          // flex-1 flex items-center justify-center
+          newEl.classList.remove("flex")
+          newEl.classList.remove("flex-1")
+          newEl.classList.remove("items-center")
+          newEl.classList.remove("justify-center")
+
+          newEl.insertAdjacentHTML(
+            'beforeend',`
+            <span class="resize-panel resize-panel-tl"></span>
+            <span class="resize-panel resize-panel-tr"></span>
+            <span class="resize-panel resize-panel-br"></span>
+            <span class="resize-panel resize-panel-bl"></span>
+          `
+          )
+          const resizePanels = newEl.querySelectorAll(".resize-panel");
+          resizePanels.forEach((panel) => {
+            panel.addEventListener('mousedown', (e)=> {
+              // console.log(e, 'mousedown')
+              onPanelResize.current = true;
+              currentPanel.current = panel as HTMLSpanElement
+            })
+        
           })
-       
-        })
-        newEl.addEventListener("focus", (e) => {
-          (e.target as HTMLElement).style.outline = "2px solid #006644";
-          resizePanels.forEach(panel=> {
-            panel.classList.add('resize-panel-show')
+          newEl.addEventListener("focus", (e) => {
+            (e.target as HTMLElement).style.outline = "2px solid #006644";
+            resizePanels.forEach(panel=> {
+              panel.classList.add('resize-panel-show')
+            })
           })
-        })
-        newEl.addEventListener("focusout", (e)=> {
-          (e.target as HTMLElement).style.outline = "none";
-          resizePanels.forEach(panel=> {
-            panel.classList.remove('resize-panel-show')
+          newEl.addEventListener("focusout", (e)=> {
+            (e.target as HTMLElement).style.outline = "none";
+            resizePanels.forEach(panel=> {
+              panel.classList.remove('resize-panel-show')
+            })
           })
-        })
-        newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
+          newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
       }
+
+      
       const uuid4 = crypto.randomUUID()
       // newEl.style.border = "1px solid red"
 
