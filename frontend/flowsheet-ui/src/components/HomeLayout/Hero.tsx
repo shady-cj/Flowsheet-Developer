@@ -5,11 +5,11 @@ const Hero = () => {
   return (
     <div className="flex-auto">
         <main className="w-full mx-auto bg-[#F5F7FA] pl-24 pt-16 landing-page-main flex">
-          <div className="flex w-full gap-9 max-w-[1500px] h-[580px] lg:h-[560px] xl:h-[650px] 2xl:mx-auto">
+          <div className="flex w-full gap-9 max-w-[2000px] h-[580px] lg:h-[560px] xl:h-[650px] 2xl:mx-auto">
             <div className="flex basis-[40%] flex-col justify-between gap-12 border border-[#C7CFD6] rounded-xl py-12 px-8 bg-[#E9ECF0] shrink-0">
               <div className="flex flex-col gap-6">
                 <h1 className="font-semibold text-5xl lg:text-[3.5rem] xl:text-7xl hero-text">Visualize your mineral processing workflow</h1>
-                <p className="font-inter text-normal xl:text-lg text-[#505F79] font-normal tracking-normal xl:tracking-wide">
+                <p className="font-inter text-normal xl:text-lg text-[#505F79] font-normal tracking-normal xl:tracking-wide max-w-[80%] 2xl:max-w-[60%] 2xl:py-4">
                     Increase efficiency, reduce cost and optimize mineral processing operation with our flowsheet modelling software
                 </p>
               </div>

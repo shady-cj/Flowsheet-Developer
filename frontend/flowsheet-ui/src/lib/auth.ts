@@ -1,4 +1,3 @@
-"use server"
 import GoogleProvider from 'next-auth/providers/google'
 import { oauthSignin } from './actions/auth'
 const nextAuthConfig = {    
