@@ -114,7 +114,8 @@ In the mineral processing industry, flowsheets are essential for:
 
 Every operation and piece of equipment in your flowsheet should be carefully documented - ProFlo makes this easy by requiring descriptions for each component and connection, ensuring your flowsheet serves as comprehensive technical documentation.
 
-![Example Flowsheet](./docs/images/example-flowsheet.png)
+<img width="830" height="666" alt="Copper_Processing_Flowsheet" src="https://github.com/user-attachments/assets/b3a7e73e-0bd4-4a2a-a003-2ad70143a7d8" />
+
 
 ---
 
@@ -141,7 +142,8 @@ Getting started with ProFlo is easy! You have two options for creating your acco
 4. Confirm your password
 5. Click **"Register Account"**
 
-![Sign Up Page](./docs/images/signup-page.png)
+<img width="814" height="437" alt="sign up" src="https://github.com/user-attachments/assets/4718a889-8823-4d2e-81f9-36d579b4b8b7" />
+
 
 **Option 2: Sign up with Google**
 
@@ -165,7 +167,8 @@ Once you've created your account, logging in is simple:
    - **Google OAuth:** Click **"Continue with Google"** and select your account
 3. You'll be taken to your dashboard
 
-![Login Page](./docs/images/login-page.png)
+<img width="944" height="437" alt="login page" src="https://github.com/user-attachments/assets/8920f39c-bf4e-4ec7-b9a4-41645188ebb5" />
+
 
 ### Password Recovery
 
@@ -185,7 +188,8 @@ Forgot your password? No problem!
 
 Your dashboard is home base in ProFlo. This is where you'll manage all your projects and flowsheets, access recent work, and start new designs.
 
-![Dashboard Overview](./docs/images/dashboard-overview.png)
+<img width="952" height="436" alt="normal dashboard view" src="https://github.com/user-attachments/assets/09830449-749c-4281-b101-0203dcb396cc" />
+
 
 ### Navigation Overview
 
@@ -217,7 +221,9 @@ The **Home** tab shows all your projects and flowsheets in one place. You can to
 - Shows project name, edit date, and star status
 - Click **"Open »"** to view project details and all flowsheets within it
 
-![Home View](./docs/images/dashboard-home.png)
+<img width="741" height="405" alt="preview page" src="https://github.com/user-attachments/assets/ff2b80be-bc78-4741-9c9c-5424a8d82b20" />
+
+
 
 **Pagination:** If you have many projects or flowsheets, they'll be organized across multiple pages for easier browsing.
 
@@ -230,7 +236,6 @@ The **Recents** tab shows your most recently edited work. Like the Home view, yo
 
 This is perfect for quickly jumping back to what you were working on!
 
-![Recent View](./docs/images/dashboard-recents.png)
 
 ### Starred View
 
@@ -241,13 +246,12 @@ The **Starred** tab shows items you've marked as important. Star your most criti
 
 To star an item, just click the star icon on any flowsheet or project card.
 
-![Starred View](./docs/images/dashboard-starred.png)
-
 ### Quick Navigation Sidebar
 
 At the bottom of the left sidebar, you'll see a dropdown toggle (Projects/Flowsheets) that shows your **top 5 most recently opened items**. This serves as a quick navigation menu - click any item to jump directly to it without searching.
 
-![Quick Navigation](./docs/images/quick-nav-sidebar.png)
+<img width="208" height="205" alt="quick access to flowsheet" src="https://github.com/user-attachments/assets/5e3c69cd-d9ee-46ac-b33b-fb1bba6da418" />
+
 
 ### Searching Projects and Flowsheets
 
@@ -260,7 +264,8 @@ Looking for something specific? Use the search bar at the top of the dashboard:
    - **Flowsheets** section
 4. Click any result to open it
 
-![Search Results](./docs/images/search-results.png)
+<img width="395" height="215" alt="search result" src="https://github.com/user-attachments/assets/50599bdb-da70-4597-9a19-ef3737696c2f" />
+
 
 ---
 
@@ -293,7 +298,8 @@ You can create a project in two ways:
    - **Description** (required): Describe the project's purpose, scope, or any important context
 3. Click **"Create Project"**
 
-![Create Project Form](./docs/images/create-project-form.png)
+<img width="960" height="405" alt="new project page" src="https://github.com/user-attachments/assets/0fe48aee-4a92-4f7b-b987-52fd71d918db" />
+
 
 **Method 2: From the Projects List**
 
@@ -322,7 +328,8 @@ When you open a project, you'll see:
 - Each card shows a thumbnail, name, edit date, and star status
 - Click **"Open »"** on any flowsheet to start editing
 
-![Project Detail Page](./docs/images/project-detail.png)
+<img width="941" height="439" alt="project detail page" src="https://github.com/user-attachments/assets/a3b1e396-a73b-4746-ba56-688d83ff6080" />
+
 
 **Adding Flowsheets:** Click **"Add new flowsheet"** to create a new flowsheet within this project (more on this in the next section).
 
@@ -334,7 +341,8 @@ Each project card has a **three-dot menu** (⋮) with options:
 - **Delete:** Permanently remove the project and all its flowsheets (use with caution!)
 - **Share:** Copy a shareable URL to the project
 
-![Project Menu Options](./docs/images/project-menu.png)
+<img width="744" height="257" alt="edit-card" src="https://github.com/user-attachments/assets/82f27797-eb61-4d37-9687-621f36fa51e7" />
+
 
 **Note:** All project properties (name, description) are **locked after creation**. If you need to make changes, you'll need to delete and recreate the project. This is an intentional design decision to maintain documentation integrity.
 
@@ -353,7 +361,8 @@ Flowsheets always belong to a project - they can't exist on their own. This keep
 3. Select the project where you want to create the flowsheet
 4. You'll be taken to the flowsheet creation form
 
-![Choose Project Dropdown](./docs/images/choose-project-dropdown.png)
+<img width="282" height="166" alt="add flowsheet on dashboard page" src="https://github.com/user-attachments/assets/14ab9147-bb99-485a-b976-6f743caea7a7" />
+
 
 **Method 2: From Within a Project**
 
@@ -369,7 +378,8 @@ Fill in the following details:
 - **Description** (required): Describe what this flowsheet represents, its purpose, or any important notes
 - **Flowsheet Footprint** (optional): Choose an existing flowsheet to use as a template (see next section)
 
-![Create Flowsheet Form](./docs/images/create-flowsheet-form.png)
+<img width="960" height="443" alt="create flowsheet page" src="https://github.com/user-attachments/assets/03721351-59de-48aa-a22d-d788bdde0db2" />
+
 
 Click **"Create Flowsheet"** and you'll be taken directly to the design canvas!
 
@@ -392,7 +402,10 @@ Here's a powerful time-saving feature: **Flowsheet Footprints** let you create a
 
 **Example:** You have a flowsheet called "Primary Crushing - Option A" with a jaw crusher. You want to explore using a gyratory crusher instead. Create a new flowsheet with "Option A" as the footprint, swap the crusher, and save it as "Primary Crushing - Option B". Both designs are now documented separately!
 
-![Flowsheet Footprint Dropdown](./docs/images/flowsheet-footprint.png)
+<img width="623" height="234" alt="footprint-examples" src="https://github.com/user-attachments/assets/b5472724-37db-4d48-a607-48af5a35dc37" />
+
+You have access to footprints of all flowsheets across all the projects on your dashboard
+
 
 ### Managing Flowsheets
 
@@ -402,7 +415,8 @@ Like projects, each flowsheet card has a **three-dot menu** (⋮) with options:
 - **Delete:** Permanently remove the flowsheet
 - **Share:** Copy a shareable URL to the flowsheet
 
-![Flowsheet Menu Options](./docs/images/flowsheet-menu.png)
+<img width="744" height="257" alt="edit-card" src="https://github.com/user-attachments/assets/82f27797-eb61-4d37-9687-621f36fa51e7" /><img width="956" height="433" alt="flowsheet design page" src="https://github.com/user-attachments/assets/ad5b1153-7962-48ff-8dd1-46b2e4970c9b" />
+
 
 **Important Note on Editing:** Once you create a flowsheet and set its properties (name, description), these are **permanently locked**. You cannot edit them later. This is an intentional design decision to ensure documentation integrity - once an operation is defined and saved, its documentation shouldn't change arbitrarily.
 
@@ -414,7 +428,8 @@ If you need to make changes, delete the flowsheet and create a new one (or use t
 
 This is where the magic happens! The design canvas is your workspace for creating mineral processing flowsheets.
 
-![Flowsheet Canvas Interface](./docs/images/canvas-interface.png)
+<img width="956" height="433" alt="flowsheet design page" src="https://github.com/user-attachments/assets/b30405c9-dd3f-42dc-b8bf-4973c9df8361" />
+
 
 ### Understanding the Interface
 
@@ -458,9 +473,11 @@ Industry-specific mineral processing equipment, organized by function:
 - **Concentrators:** Ore enrichment and separation equipment
 
 **3. Personalized Objects**
-Your custom-uploaded components appear here, organized by category.
+Your custom-uploaded components appear here, and also shows in the component category they belong.
 
-![Component Sidebar](./docs/images/component-sidebar.png)
+<img width="467" height="792" alt="image" src="https://github.com/user-attachments/assets/4e46571d-952a-44bb-9c61-f780c47bbf94" />
+
+
 
 ### The Canvas Workspace
 
@@ -491,7 +508,8 @@ ProFlo provides these standard shapes:
 - **Arrow:** For directional indicators (note: different from connector lines!)
 - **Text:** For labels, notes, and descriptions
 
-![Standard Shapes Panel](./docs/images/standard-shapes.png)
+<img width="460" height="200" alt="image" src="https://github.com/user-attachments/assets/118a739f-c030-4248-bafe-47e001cead57" />
+
 
 ### Adding Shapes to Canvas
 
@@ -514,7 +532,8 @@ When you drop a shape on the canvas, you'll be prompted to set its properties:
 - **Label** (required): A name or identifier for this shape
 - **Description** (required): Describe what this shape represents or its purpose in your flowsheet
 
-![Shape Properties Dialog](./docs/images/shape-properties.png)
+<img width="409" height="240" alt="shape property" src="https://github.com/user-attachments/assets/4b54057e-45b0-4a81-b5c4-26d8ff7520ae" />
+
 
 **Why required?** Remember, ProFlo is a documentation tool. Every element in your flowsheet should have a clear purpose and description. This ensures your flowsheet serves as comprehensive technical documentation for field implementation.
 
@@ -523,6 +542,8 @@ When you drop a shape on the canvas, you'll be prompted to set its properties:
 - **Description:** "500-ton capacity surge bin between primary and secondary crushing"
 
 **Important:** Once you save the properties, they're **permanently locked**. You cannot edit them later. If you need to make changes, delete the shape and add a new one.
+
+**Note:** To delete an element on the canvas, click on the element and press the backspace or delete key on the keyboard
 
 ### Using Text Components
 
@@ -542,9 +563,11 @@ The **Text** component is special - it's the only shape that doesn't require lab
 - Add specifications or callouts
 - Indicate equipment quantities (e.g., "4 units")
 
-![Text Component Example](./docs/images/text-component-example.png)
+<img width="368" height="265" alt="image" src="https://github.com/user-attachments/assets/186d9250-c2e3-4dd4-97f2-4c7565ad6b59" />
 
-**Pro Tip:** When you have multiple identical pieces of equipment, use one component to represent the specification and add a text element saying "x4 units" or "4 parallel trains" to indicate quantity. This keeps your documentation clear while avoiding cluttered diagrams.
+**Note:** To delete a text component, clear the text in it, then press the backspace button on your keyboard when the text box is empty.
+
+**Pro Tip:** When you have multiple identical pieces of equipment (e.g set of crushers in a primary crushing unit), use one component to represent the specification and add a text element saying "x4 units" or "4 parallel trains" to indicate quantity. This keeps your documentation clear while avoiding cluttered diagrams.
 
 ---
 
@@ -564,7 +587,8 @@ ProFlo organizes components into five categories based on their function in mine
 
 Each category appears as a button in the Components section of the sidebar.
 
-![Components Section](./docs/images/components-section.png)
+<img width="481" height="300" alt="image" src="https://github.com/user-attachments/assets/5d84ae38-7e67-4f69-acba-7eb960e83659" />
+
 
 ### Adding Components to Canvas
 
@@ -581,7 +605,8 @@ Each component type has its own specific properties based on its function in min
 
 Crushers handle the initial stages of size reduction - breaking down large ore into smaller pieces.
 
-![Crusher Component](./docs/images/crusher-component.png)
+<img width="463" height="800" alt="image" src="https://github.com/user-attachments/assets/156bde74-779b-4e24-b9cd-67f3b60db4b2" />
+
 
 **When you add a crusher, you'll set these properties:**
 
@@ -594,7 +619,7 @@ Crushers handle the initial stages of size reduction - breaking down large ore i
   - **Tertiary** - Third stage crushing (fine reduction)
 - **Description** (required): Describe this crushing operation
 
-![Crusher Properties Form](./docs/images/crusher-properties.png)
+<img width="434" height="374" alt="crusher property" src="https://github.com/user-attachments/assets/e62dd00f-cf4f-4a4e-b5c6-7678c39959c6" />
 
 **Important Rules:**
 
@@ -604,7 +629,6 @@ Crushers handle the initial stages of size reduction - breaking down large ore i
 1. Creating one primary crusher with the correct specifications
 2. Using a **Text component** to annotate: "4 units in parallel" or "x3 primary crushers"
 
-This documents the quantity while maintaining the specification standard.
 
 **Future Enhancement:** We're considering allowing multiple primary crushers with matching gape/set specifications. [Share your feedback](#we-want-your-feedback) on this!
 
@@ -617,8 +641,6 @@ This documents the quantity while maintaining the specification standard.
 
 Grinders (also called mills) handle finer size reduction - typically after crushing, breaking ore into smaller particles for concentration.
 
-![Grinder Component](./docs/images/grinder-component.png)
-
 **Grinder properties are similar to crushers:**
 
 - **Label** (required): Name for this grinder (e.g., "Ball Mill 1", "SAG Mill")
@@ -626,7 +648,8 @@ Grinders (also called mills) handle finer size reduction - typically after crush
 - **Set in mm** (required): Product size after grinding
 - **Description** (required): Describe this grinding operation
 
-![Grinder Properties Form](./docs/images/grinder-properties.png)
+<img width="1294" height="724" alt="image" src="https://github.com/user-attachments/assets/190fd624-87ac-4ed5-97ff-b9946141ba88" />
+
 
 **Key Difference from Crushers:** Grinders don't have Primary/Secondary/Tertiary designation. Most milling operations occur in the tertiary (fine reduction) stage, so the classification isn't necessary.
 
@@ -634,15 +657,13 @@ Grinders (also called mills) handle finer size reduction - typically after crush
 
 Screeners (also called screens or sizers) separate particles by size - classifying ore into different size fractions.
 
-![Screener Component](./docs/images/screener-component.png)
-
 **Screener properties:**
 
 - **Label** (required): Name for this screener (e.g., "Grizzly Screen", "Vibrating Screen A")
 - **Screener Aperture in mm** (required): The screen opening size - particles smaller than this pass through (undersize), larger particles are retained (oversize)
 - **Description** (required): Describe this screening operation
 
-![Screener Properties Form](./docs/images/screener-properties.png)
+<img width="1128" height="689" alt="image" src="https://github.com/user-attachments/assets/ad8320c8-e320-4b13-8181-eb8db082564e" />
 
 **Current Limitation:** In Version 1, ProFlo only tracks **undersize output** (particles that pass through the screen). In real operations, screeners have two outputs:
 - **Undersize** - passes through the screen
@@ -658,11 +679,10 @@ This is a known limitation we're working to improve. For now, when designing wit
 
 Auxiliaries are supporting equipment that don't perform size reduction or separation, but are essential to the process flow.
 
-![Auxiliary Components](./docs/images/auxiliary-components.png)
 
 **Types of Auxiliaries:**
 
-ProFlo recognizes several auxiliary subtypes, but currently, only **ORE** types have custom properties. Other types (stockpiles, bins, hoppers, tailing facilities, nodes) require only label and description.
+ProFlo recognizes several auxiliary subtypes, but currently, only **ORE** types have custom properties. Other types (stockpiles, bins, hoppers, tailing facilities, nodes) require only label and description no additional properties required to use them on the design canvas.
 
 **ORE Auxiliary Properties:**
 
@@ -674,7 +694,8 @@ Ore auxiliaries represent feed material - typically dump trucks, conveyor feeds,
 - **Quantity in metric tons** (required): Total ore mass
 - **Description** (required): Describe this ore feed
 
-![Ore Auxiliary Properties](./docs/images/ore-properties.png)
+<img width="329" height="321" alt="aux-ore property" src="https://github.com/user-attachments/assets/25ab4cf7-37ad-4efe-a68a-d18ff0f250cd" />
+
 
 **Why Ore Properties Matter:**
 - **Max Size:** Used to validate crusher gape compatibility - ensures your crusher can handle the feed!
@@ -694,13 +715,14 @@ Nodes are junction points where multiple streams combine or split. Use them to:
 - Split one stream into multiple paths
 - Create complex flow networks
 
-![Node Example](./docs/images/node-example.png)
+<img width="1142" height="507" alt="image" src="https://github.com/user-attachments/assets/46a242a5-fecc-4a6a-90ea-36cd77b95a6a" />
+
+
+**Note:** By default you might not have a node component in your flowsheet components, you can always create yours by importing see [Custom Components](#custom-components)
 
 ### Concentrator Components
 
 Concentrators perform beneficiation - separating valuable minerals from waste (gangue) through various methods like flotation, gravity separation, or magnetic separation.
-
-![Concentrator Component](./docs/images/concentrator-component.png)
 
 **Concentrator properties:**
 
@@ -709,7 +731,8 @@ Concentrators perform beneficiation - separating valuable minerals from waste (g
 - **Grade** (required): Feed ore grade (default/fallback value)
 - **Description** (required): Describe this concentration operation
 
-![Concentrator Properties Form](./docs/images/concentrator-properties.png)
+<img width="441" height="356" alt="concentrator property" src="https://github.com/user-attachments/assets/627445fb-47e2-40b8-bace-770f8425c429" />
+
 
 **How Concentrators Work:**
 
@@ -721,8 +744,6 @@ Concentrators are "smart" - they can use properties from upstream operations or 
 
 **Inherited Values (From Connections):**
 - If connected to an upstream ore feed or component with ore properties, the concentrator automatically uses those values
-- This accounts for ore loss during transport/grinding
-- More accurate for real-world scenarios
 
 **Why This Matters:** As ore moves through your process (crushing, grinding, transport), some material is lost and the grade may change. By allowing concentrators to inherit upstream values, ProFlo gives you more accurate calculations at the concentration stage.
 
@@ -736,7 +757,8 @@ When you hover over a connected concentrator, ProFlo displays complete mass bala
 - **Waste output** (tailings - removed gangue + lost valuable mineral)
 - Confirmation that mass balance is maintained!
 
-![Concentrator Tooltip Calculations](./docs/images/concentrator-calculations.png)
+<img width="305" height="368" alt="concentrator tooltip after connection" src="https://github.com/user-attachments/assets/92d0cc70-b086-4d69-aa16-56abb24b2d7e" />
+
 
 **Example:**
 ```
