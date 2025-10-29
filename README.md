@@ -799,7 +799,9 @@ Custom components can belong to any of the five component categories:
 2. A dialog appears: **"Custom Component"**
 3. Fill in the details based on component type:
 
-![Custom Component Dialog](./docs/images/custom-component-dialog.png)
+<img width="821" height="359" alt="custom component upload" src="https://github.com/user-attachments/assets/3fd56675-d56e-4ce5-9828-b7b9d19713fa" />
+
+<img width="421" height="383" alt="custom component options" src="https://github.com/user-attachments/assets/50d52780-27c0-42f2-b255-81cb493c9f4e" />
 
 **For All Component Types:**
 
@@ -821,7 +823,8 @@ Custom components can belong to any of the five component categories:
   - **valuable (%)**: Percentage of valuable mineral this concentrator can recover
   - **gangue (%)**: Percentage of gangue/waste this concentrator can recover/remove
 
-![Custom Concentrator Form](./docs/images/custom-concentrator-form.png)
+<img width="337" height="361" alt="concentrator" src="https://github.com/user-attachments/assets/b740b4c5-862d-45b6-ac20-21e0f657283a" />
+
 
 **For Auxiliaries:**
 - **Description** (required)
@@ -831,7 +834,8 @@ Custom components can belong to any of the five component categories:
   - **Tailing Facility**
   - **others**
 
-![Custom Auxiliary Form](./docs/images/custom-auxiliary-form.png)
+<img width="367" height="379" alt="auxilliary custom component options" src="https://github.com/user-attachments/assets/3066a39f-5be6-43fd-b477-4d483991eb8e" />
+
 
 4. Click **"Create"** and your component appears in the Personalized Objects section!
 
@@ -841,7 +845,6 @@ Once created, your custom component shows up in **two places**:
 1. **Personalized Objects section** - For easy access to all your custom components
 2. **The relevant category** - For example, a custom crusher also appears in the Crushers section
 
-![Custom Component in Library](./docs/images/custom-component-library.png)
 
 ### Image Requirements
 
@@ -890,8 +893,6 @@ In mineral processing, material flows from one operation to the next. Connectors
 ✅ **Propagate properties** - Pass ore size, grade, and quantity through the flowsheet  
 ✅ **Require documentation** - Every connector has a label and description
 
-![Connector Example](./docs/images/connector-example.png)
-
 ### Understanding Connector Parts
 
 Every connector has **two main parts**:
@@ -908,7 +909,9 @@ Every connector has **two main parts**:
 - Can be extended in any direction
 - Can be broken into multiple segments (polyline)
 
-![Connector Parts Diagram](./docs/images/connector-parts.png)
+<img width="163" height="248" alt="multi line point" src="https://github.com/user-attachments/assets/db2b6d1d-47bf-4e81-918b-eb4280e44d1a" />
+<img width="113" height="67" alt="2 point line" src="https://github.com/user-attachments/assets/61f27661-eb6d-4df2-bcfd-381e539cd572" />
+
 
 **Visual Representation:**
 ```
@@ -952,7 +955,7 @@ There are **three ways** to connect components:
 
 ![Extend Line to Component Demo](./docs/videos/extend-line-to-component.gif)
 
-**The Magic Magnet:** When a component and line are within 10-15 pixels of each other, ProFlo automatically "magnetizes" them together. You don't need pixel-perfect accuracy - just get close, and the system helps you make the connection!
+**The Magic Magnet:** When a component and line are within close proximity of each other (usually 10-15 pixels) , ProFlo automatically "magnetizes" them together. You don't need pixel-perfect accuracy - just get close, and the system helps you make the connection!
 
 **Exception:** The magnet doesn't activate if the line is already inside a component (they're already touching).
 
@@ -1037,7 +1040,8 @@ Connectors don't have to be straight lines! You can create **polylines** (lines 
 - Show recirculation loops
 - Make your flowsheet more readable
 
-![Complex Polyline Example](./docs/images/complex-polyline.png)
+<img width="552" height="337" alt="image" src="https://github.com/user-attachments/assets/ddb0c184-afb3-47a9-a621-cb46b9d3cca1" />
+
 
 ### Connection Rules and Validation
 
@@ -1102,7 +1106,14 @@ Click any component or shape to select it. When selected, you'll see:
 - **Corner handles** for resizing (drag corners to scale)
 - The element is now "active" and ready to be moved or modified
 
-![Selected Component](./docs/images/selected-component.png)
+
+
+<div>
+<img width="201" height="219" alt="image" src="https://github.com/user-attachments/assets/cad9c8e0-80d0-4896-9f92-d01b2492d55c" />
+
+<img width="269" height="226" alt="image" src="https://github.com/user-attachments/assets/f7f74ea4-0af5-4126-b2d7-9c0827ef4324" />
+</div>
+
 
 **For Connectors (Lines):**
 
@@ -1119,11 +1130,11 @@ Connectors are thin, so selecting them can be tricky! Two methods:
 2. Lines have their bounding rectangle at the pivot
 3. Indicator dots appear
 
-![Selected Connector](./docs/images/selected-connector.png)
+<img width="163" height="248" alt="multi line point" src="https://github.com/user-attachments/assets/db2b6d1d-47bf-4e81-918b-eb4280e44d1a" />
 
 Once selected, you can:
 - Drag the pivot to move the entire line
-- Drag any indicator dot (except pivot) to reshape
+- Click, hold and Drag any indicator dot (except pivot) to extend and change direction
 - Double-click arrow endpoint to add bend points
 
 ### Moving Components
@@ -1164,7 +1175,8 @@ Want to see a component's properties while designing? Just hover over it!
    - For concentrators: complete mass balance calculations!
 3. Move your cursor away - tooltip disappears
 
-![Component Tooltip Example](./docs/images/component-tooltip.png)
+<img width="234" height="171" alt="bonds-calc-component-2" src="https://github.com/user-attachments/assets/669552d1-1b3b-4792-8489-9866cb20cafe" />
+
 
 **Tooltip While Selected:**
 
@@ -1193,14 +1205,8 @@ When multiple elements overlap, which one appears on top? ProFlo uses a **z-inde
 **Active Element Priority:**
 - When you click an element, it becomes **active**
 - Active elements have a higher z-index (appear on top)
-- This lasts until you click something else or click the canvas
+- This lasts until you "hover on"/click another element
 
-**Practical Use:**
-- If two components overlap and you can't click the bottom one, click the canvas to deselect everything
-- Then click the element you want - it comes to the front
-- Or move the top element out of the way temporarily
-
-![Z-Index Example](./docs/images/z-index-example.png)
 
 ---
 
@@ -1221,7 +1227,8 @@ With manual save, you control exactly when your work is saved.
 5. Click **"Save Changes"** button whenever you want to save
 6. Button changes to **"saving..."** then back to **"saved"**
 
-![Manual Save Mode](./docs/images/manual-save-mode.png)
+<img width="141" height="147" alt="manual save" src="https://github.com/user-attachments/assets/817e473e-c765-45cb-a97c-6604c9562876" />
+
 
 **When to use manual save:**
 - You want full control over save points
@@ -1241,7 +1248,8 @@ Auto save periodically saves your work automatically - no need to remember!
    - No maximum - set what works for you (30, 60, 120 seconds, etc.)
 4. Click **"Save Changes"** to activate
 
-![Auto Save Mode](./docs/images/auto-save-mode.png)
+<img width="132" height="159" alt="auto save" src="https://github.com/user-attachments/assets/eeb922f0-fda1-48c0-8257-d4897b542068" />
+
 
 **How auto save works:**
 - ProFlo saves automatically every X seconds (your interval)
@@ -1312,7 +1320,9 @@ When you save a flowsheet, ProFlo stores:
 
 The Utility dropdown in the top navigation provides access to calculation tools and analysis features.
 
-![Utility Dropdown](./docs/images/utility-dropdown.png)
+<img width="222" height="158" alt="utility" src="https://github.com/user-attachments/assets/fc0de2f9-c332-4181-ae73-fc0e275d4463" />
+
+**Note:** Spreadsheet functionality for particle sizing still in development, [Let's hear your feedback](#we-want-your-feedback) if you'll like to use this feature often.
 
 ### Bond's Energy Calculation
 
@@ -1392,7 +1402,7 @@ Ready to calculate? Here's the step-by-step process:
 2. Select **"Calculate Bonds Energy"**
 3. A dialog appears with instructions
 
-![Bonds Energy Dialog](./docs/images/bonds-energy-dialog.png)
+<img width="787" height="444" alt="bonds energy dialog box" src="https://github.com/user-attachments/assets/89e48d73-07ab-49bd-bc9d-cac9677fec39" />
 
 **Step 2: Enter Work Index**
 
@@ -1441,7 +1451,7 @@ Energy used for comminution between the two points in the circuit is:
 X.XXXkW h/short ton
 ```
 
-![Bonds Energy Results](./docs/images/bonds-energy-results.png)
+<img width="545" height="220" alt="bonds-energy-result" src="https://github.com/user-attachments/assets/f955d343-466a-403f-b8b5-6697a8b4134d" />
 
 **Understanding the Results:**
 
@@ -1505,15 +1515,15 @@ When you're done designing, export your flowsheet as images and professional doc
 
 ### PNG Export
 
-The PNG export gives you a visual image of your flowsheet - perfect for presentations, reports, or quick sharing.
+The PNG export gives you a visual image of your flowsheet - perfect for presentations, reports, or quick sharing. 
 
 **How to export PNG:**
 
 1. Click the **"Export"** button in the top navigation
-2. PNG download starts **automatically** - no prompts!
+2. PNG download starts **automatically**
 3. File is saved as: **`[flowsheet-name].png`**
 
-![Export Button](./docs/images/export-button.png)
+<img width="1434" height="79" alt="image" src="https://github.com/user-attachments/assets/81c2267b-e48b-4801-bc29-bab515d79331" />
 
 **What's included:**
 - Complete flowsheet visual
@@ -1543,7 +1553,8 @@ A dialog appears:
 - Click **"No"** (red button) - Skip PDF, you're done
 - Click **"Yes"** (green button) - Generate and download PDF report
 
-![PDF Export Prompt](./docs/images/pdf-export-prompt.png)
+<img width="388" height="256" alt="pdf-save-prompt" src="https://github.com/user-attachments/assets/1cb3895d-ab91-4706-b4b4-f7ea20be2c89" />
+
 
 **PDF Generation:**
 
@@ -1962,6 +1973,10 @@ Some users have suggested allowing label/description edits while locking technic
 - Tablet support with optimized touch interactions
 - For now, please use desktop/laptop for best experience
 
+
+**Let Us know what else you'll like us to improve**
+  
+
 ---
 
 ## We Want Your Feedback!
@@ -2036,7 +2051,7 @@ Thank you for helping us make ProFlo better! 🙏
 ### General Questions
 
 **Q: Is ProFlo free to use?**
-A: [INSERT PRICING INFORMATION HERE]
+A: Yes for now, it's free.
 
 **Q: Do I need to download or install anything?**
 A: No! ProFlo is a web-based application. Just create an account and start designing in your browser.
@@ -2056,10 +2071,10 @@ A: Currently, collaboration features are limited to sharing URLs. Each user work
 A: Click "Forgot password" on the login page, enter your email, and you'll receive a reset link. This is why we recommend using a valid email!
 
 **Q: Can I change my email address?**
-A: [INSERT ACCOUNT MANAGEMENT INFORMATION HERE]
+A: No, but definitely in future version.
 
 **Q: What if I signed up with Google and want to use email/password instead?**
-A: [INSERT ACCOUNT LINKING INFORMATION HERE]
+A: Any account created from google auth would always use google for authentication. If you need to change to email/password you might need to create another account to that effect.
 
 ### Projects & Flowsheets
 
@@ -2067,10 +2082,10 @@ A: [INSERT ACCOUNT LINKING INFORMATION HERE]
 A: Currently, flowsheets are permanently associated with their project. Workaround: Use flowsheet footprint to copy it to a new flowsheet in the target project, then delete the original.
 
 **Q: How many projects and flowsheets can I create?**
-A: [INSERT LIMITS INFORMATION HERE]
+A: For now, no restriction (Use sparingly)
 
 **Q: Can I rename a project or flowsheet after creating it?**
-A: No - names and descriptions are locked after creation. This is intentional for documentation integrity. Delete and recreate if changes are needed.
+A: Yes, just use the edit feature from the 3 dots.
 
 **Q: What happens if I delete a project? Are the flowsheets deleted too?**
 A: Yes! Deleting a project permanently deletes all flowsheets within it. Use with caution!
@@ -2078,19 +2093,19 @@ A: Yes! Deleting a project permanently deletes all flowsheets within it. Use wit
 ### Design & Components
 
 **Q: Can I undo/redo changes on the canvas?**
-A: Currently, there's no undo/redo feature. We recommend saving frequently and using flowsheet footprints to create "checkpoints" before major changes.
+A: Currently, there's no undo/redo feature. We recommend saving frequently and using flowsheet footprints to create "checkpoints" before major changes. Future versions will include this feature.
 
 **Q: How do I rotate or flip components?**
-A: Currently, components cannot be rotated or flipped. They appear in their standard orientation.
+A: Currently, components cannot be rotated or flipped. They appear in their standard orientation. Let us know if you really want this feature.
 
 **Q: Can I change the grid size or turn it off?**
 A: The grid is currently fixed. It helps with alignment but doesn't restrict placement.
 
 **Q: Why can't I edit component properties after creating them?**
-A: This is an intentional design decision for documentation integrity. Once operations are defined and connected, their specifications shouldn't change. Delete and recreate if needed.
+A: This is an intentional design decision for documentation integrity. Once operations are defined and connected, their specifications shouldn't change. Delete and recreate if needed. Reviews are ongoing and we might allow editing them in future versions.
 
 **Q: Can I copy/paste components?**
-A: Not currently. Workaround: Use flowsheet footprint to duplicate entire designs, then delete unwanted components.
+A: Not currently. You will need to manually drag it again to the canvas from the sidebar, bear with us for now (we are working on this feature).
 
 **Q: How do I delete a component or connector?**
 A: Select the element (click it), then press Delete key or use the delete option from a context menu (if available).
@@ -2100,8 +2115,11 @@ A: Select the element (click it), then press Delete key or use the delete option
 **Q: Why is my connector gray?**
 A: Gray indicates invalid or disconnected. Check:
 - Is it connected to components at both ends?
-- Does the ore size fit the crusher gape (80/20 rule)?
+- Does the ore size fit the crusher gape (80/20 rule)? (if using communition)
 - Are the components compatible?
+- You can raise a complaints on the feedback tab on the flowsheet dashboard.
+<img width="1236" height="253" alt="image" src="https://github.com/user-attachments/assets/03d6ff3b-2f3d-4245-8c36-b3328356cabf" />
+
 
 **Q: Can I connect more than two components with one line?**
 A: No - each connector links exactly two points (one input, one output). Use nodes to create junction points for multiple connections.
@@ -2111,6 +2129,8 @@ A: ProFlo has some limitations (like screener undersize-only). If you believe th
 
 **Q: Do I need to connect components in a specific order?**
 A: No! You can add components and connectors in any order. Validation happens based on properties, not creation sequence.
+
+Your questions aren't here? [Ask here](#we-want-your-feedback)
 
 ### Calculations
 
@@ -2250,16 +2270,24 @@ ProFlo was built with mineral processing professionals, students, and researcher
 - PNG and PDF export
 - Manual and auto-save
 
-**Planned for Future Versions:**
-- Screener dual outputs (oversize/undersize)
-- Full-chain validation / Simulation Studio
-- Bond's energy in PDF reports
-- Component grouping and multi-select
-- Enhanced collaboration features
-- Mobile viewer
+**### Other "not available yet" features coming in v2 or future versions (Plans for Future Versions)**
 - Additional component types
 - Equipment database
 - And more based on your feedback!
+- Currently in version 1, you can't zoom in and out your canvas that's coming to.
+- Object duplication (using ctrl+d)
+- Undo changes (using ctrl+z)
+- Grouping objects, so you can move them easily, duplicate them also using ctrl+d
+- drag the canvas sheet to allow you bring a specific part of your design into view.
+- Rich text for the text component
+- Shapes would have editable text component embedded with them.
+- Save history (allow for rolling back to previously saved state.)
+- Components limitations improvement
+- Connectors limitations (connectors will get smarter)
+- Particle size analysis and Full-chain validation / Simulation Studio
+- Enhanced collaboration features (including realtime) i.e more than one person working on a project.
+- More emphasis on account management
+
 
 ---
 
