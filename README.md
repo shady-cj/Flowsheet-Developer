@@ -341,7 +341,8 @@ Each project card has a **three-dot menu** (⋮) with options:
 - **Delete:** Permanently remove the project and all its flowsheets (use with caution!)
 - **Share:** Copy a shareable URL to the project
 
-<img width="744" height="257" alt="edit-card" src="https://github.com/user-attachments/assets/82f27797-eb61-4d37-9687-621f36fa51e7" />
+
+<img width="1370" height="594" alt="image" src="https://github.com/user-attachments/assets/361064e5-f839-4494-bd2f-779c7970e9d7" />
 
 
 **Note:** All project properties (name, description) are **locked after creation**. If you need to make changes, you'll need to delete and recreate the project. This is an intentional design decision to maintain documentation integrity.
@@ -415,8 +416,7 @@ Like projects, each flowsheet card has a **three-dot menu** (⋮) with options:
 - **Delete:** Permanently remove the flowsheet
 - **Share:** Copy a shareable URL to the flowsheet
 
-<img width="744" height="257" alt="edit-card" src="https://github.com/user-attachments/assets/82f27797-eb61-4d37-9687-621f36fa51e7" /><img width="956" height="433" alt="flowsheet design page" src="https://github.com/user-attachments/assets/ad5b1153-7962-48ff-8dd1-46b2e4970c9b" />
-
+<img width="744" height="257" alt="edit-card" src="https://github.com/user-attachments/assets/82f27797-eb61-4d37-9687-621f36fa51e7" />
 
 **Important Note on Editing:** Once you create a flowsheet and set its properties (name, description), these are **permanently locked**. You cannot edit them later. This is an intentional design decision to ensure documentation integrity - once an operation is defined and saved, its documentation shouldn't change arbitrarily.
 
