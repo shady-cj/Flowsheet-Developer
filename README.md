@@ -2,7 +2,8 @@
 
 **A comprehensive mineral processing flowsheet design software for visualizing, documenting, and validating your mineral processing operations.**
 
-![ProFlo Landing Page](./docs/images/landing-page.png)
+<img width="948" height="432" alt="landing page" src="https://github.com/user-attachments/assets/4cf42daf-231f-4067-9c7b-6ad59e009029" />
+
 
 ---
 
