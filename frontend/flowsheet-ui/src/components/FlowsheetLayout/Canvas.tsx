@@ -418,13 +418,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // console.log("to here")
         const prevObjectId = line.properties.prevObject[0]
 
-    
+        
 
         if (!prevObjectId) return true
         const prevObject = objectData.current[prevObjectId]
         // console.log("active object", activeObject)
         // console.log("prev objectId", prevObject)
-    
+
         if (!prevObject) return true
         if (activeObject.properties.gape || activeObject.properties.aperture) {
           
@@ -467,7 +467,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           else activeObject.properties.oreGrade = activeObject.properties.defaultOreGrade
           // if (prevObject.properties.)
         }
-        if (activeObject.object?.model_name === "Auxilliary" && activeObject.object?.type === "ore") {
+        if (activeObject.object?.model_name === "Auxilliary" && activeObject.object?.type?.toLowerCase() === "ore") {
           if (prevObject.properties.maxOreSize) activeObject.properties.maxOreSize = prevObject.properties.maxOreSize
           else activeObject.properties.maxOreSize = activeObject.properties.defaultMaxOreSize
 
