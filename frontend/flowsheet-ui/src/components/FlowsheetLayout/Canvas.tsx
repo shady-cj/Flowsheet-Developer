@@ -375,6 +375,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const activeObject = objectData.current[shapeId]
 
 
+      console.log('type', type )
+      console.log("line", line)
+      console.log("activeObject---", activeObject)
       if (type === "from") {
         const nextObjectId = line.properties.nextObject[0]
         if (!nextObjectId) return true
@@ -382,30 +385,46 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         
         if (nextObject?.properties.gape || nextObject?.properties.aperture) {
-          if (!activeObject.properties.gape && !activeObject.properties.aperture) return true // skip (no need for validating connection)
-          if (activeObject.properties.aperture)
+          if (!activeObject.properties.gape && !activeObject.properties.aperture && !activeObject.properties.maxOreSize) return true // skip (no need for validating connection)
+          if (activeObject.properties.aperture && (!activeObject.properties.maxOreSize || activeObject.properties.maxOreSize >= activeObject.properties.aperture))
             activeObject.properties.maxOreSize = activeObject.properties.aperture
-          else if (activeObject.properties.gape) 
-            activeObject.properties.maxOreSize = activeObject.properties.set
+          else if (activeObject.properties.gape && (!activeObject.properties.maxOreSize || activeObject.properties.maxOreSize >= activeObject.properties.gape))
+            activeObject.properties.maxOreSize = activeObject.properties.gape
           else
             return false
 
-          const feedSize = parseFloat(activeObject.properties.maxOreSize!)
+          let feedSize = null
+          if (activeObject.properties.set) {
+            if (parseFloat(activeObject.properties.set!) > parseFloat(activeObject.properties.maxOreSize!)) feedSize = parseFloat(activeObject.properties.maxOreSize!)
+            else feedSize = parseFloat(activeObject.properties.set!)
+          } else if (activeObject.properties.aperture) {
+            if (parseFloat(activeObject.properties.aperture!) > parseFloat(activeObject.properties.maxOreSize!)) feedSize = parseFloat(activeObject.properties.maxOreSize!)
+            else feedSize = parseFloat(activeObject.properties.aperture!)
+          } else {
+            feedSize = parseFloat(activeObject.properties.maxOreSize!)
+          }
+
+          // console.log("in from")
+          // console.log("activeObject", activeObject)
+          // console.log("feedSize", feedSize )
+          // console.log("nextObject", nextObject)
+          // console.log()
           if (nextObject.properties.gape) {
             const gape = parseFloat(nextObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
               // largest feed size must be less than or equal to 0.8 x gape size
-              if (activeObject.properties.set && (parseFloat(activeObject.properties.set) <= parseFloat(nextObject.properties.set!)))
-                nextObject.properties.maxOreSize = activeObject.properties.set
-              else
-                nextObject.properties.maxOreSize = nextObject.properties.set
+              nextObject.properties.maxOreSize = feedSize.toString()
+
+              // if (activeObject.properties.set && (parseFloat(activeObject.properties.set) <= parseFloat(nextObject.properties.set!)))
+              // else
+              //   nextObject.properties.maxOreSize = nextObject.properties.set
               return true
             }
             return false
           } else if (nextObject.properties.aperture) {
             const apertureSize = parseFloat(nextObject.properties.aperture)
             if (feedSize <= apertureSize) {
-              nextObject.properties.maxOreSize = nextObject.properties.aperture
+              nextObject.properties.maxOreSize = feedSize.toString()
               return true
             }
             return false
@@ -418,43 +437,55 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // console.log("to here")
         const prevObjectId = line.properties.prevObject[0]
 
+        console.log("prev object id", prevObjectId)
         
 
         if (!prevObjectId) return true
         const prevObject = objectData.current[prevObjectId]
-        // console.log("active object", activeObject)
-        // console.log("prev objectId", prevObject)
+
+        
+        console.log("active object", activeObject)
+        console.log("prev objectId", prevObject)
 
         if (!prevObject) return true
         if (activeObject.properties.gape || activeObject.properties.aperture) {
-          
-          if (!prevObject.properties.gape && !prevObject.properties.aperture) return true // review
-    
-          // if (!prevObject.properties.maxOreSize) {
-          if (prevObject.properties.aperture)
+          // console.log("prevObject", prevObject)
+          // console.log("activeObject", activeObject)
+          // console.log("before.......")
+          if (!prevObject.properties.gape && !prevObject.properties.aperture && !prevObject.properties.maxOreSize) return true // review
+          if (prevObject.properties.aperture && (!prevObject.properties.maxOreSize || prevObject.properties.maxOreSize >= prevObject.properties.aperture))
             prevObject.properties.maxOreSize = prevObject.properties.aperture
-          else if (prevObject.properties.gape) 
-            prevObject.properties.maxOreSize = prevObject.properties.set
-          else
-            return false
-
-          // } 
+          else if (prevObject.properties.gape && (!prevObject.properties.maxOreSize || prevObject.properties.maxOreSize >= prevObject.properties.gape))
+            prevObject.properties.maxOreSize = prevObject.properties.gape
     
-          const feedSize = parseFloat(prevObject.properties.maxOreSize!) 
+          let feedSize = null
+          if (prevObject.properties.set) {
+            if (parseFloat(prevObject.properties.set!) > parseFloat(prevObject.properties.maxOreSize!)) feedSize = parseFloat(prevObject.properties.maxOreSize!)
+            else feedSize = parseFloat(prevObject.properties.set!)
+          } else if (prevObject.properties.aperture) {
+            if (parseFloat(prevObject.properties.aperture!) > parseFloat(prevObject.properties.maxOreSize!)) feedSize = parseFloat(prevObject.properties.maxOreSize!)
+            else feedSize = parseFloat(prevObject.properties.aperture!)
+          } else {
+            feedSize = parseFloat(prevObject.properties.maxOreSize!)
+          }
+          // console.log("prevObject", prevObject)
+          // console.log("activeObject", activeObject)
+          // console.log("feedSize", feedSize )
+          // console.log()
           if (activeObject.properties.gape) {
             const gape = parseFloat(activeObject.properties.gape)
             if ((0.8 * gape) >= feedSize) {
-              if (feedSize < parseFloat(activeObject.properties.set!))
+              if (feedSize < parseFloat(activeObject.properties.set!) * 1.25) // using 1.25 because theoretically 1.2 - 1.5 x set would usually be the maximum ore size in the product
                 activeObject.properties.maxOreSize = feedSize.toString()
               else
-                activeObject.properties.maxOreSize = activeObject.properties.set
+                activeObject.properties.maxOreSize = (parseFloat(prevObject.properties.set!) * 1.25).toString()
               return true
             }
             return false
           } else if(activeObject.properties.aperture) {
             const apertureSize = parseFloat(activeObject.properties.aperture)
             if (feedSize <= apertureSize) {
-              activeObject.properties.maxOreSize = activeObject.properties.aperture
+              activeObject.properties.maxOreSize = feedSize.toString()
               return true
             }
             return false
@@ -1038,17 +1069,24 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               
 
             if (isPrevObjConnected && isNextObjConnected) {
-                path!.setAttribute("stroke", "#4D4D4D")
-                arrow.setAttribute("fill", "#4D4D4D")
+                if (path!.getAttribute("stroke") !== "#4D4D4D" && arrow!.getAttribute("fill") !== "#4D4D4D") {
+                    path!.setAttribute("stroke", "#4D4D4D")
+                    arrow.setAttribute("fill", "#4D4D4D")
+                    setIsEdited(true)
+                }
+               
                 return;
             }
 
         }
-        path!.setAttribute("stroke", "#beb4b4")
-        arrow.setAttribute("fill", "#beb4b4")
 
+        if (path!.getAttribute("stroke") !== "#beb4b4" && arrow!.getAttribute("fill") !== "#beb4b4") {
+            setIsEdited(true)
+            path!.setAttribute("stroke", "#beb4b4")
+            arrow.setAttribute("fill", "#beb4b4")
+        }
 
-    }, [componentToLineConnection, objectData])
+    }, [componentToLineConnection, objectData, setIsEdited])
 
 
 
@@ -1906,7 +1944,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           arrow.setAttribute("width", "20")
           arrow.setAttribute("xmlns", "http://www.w3.org/2000/svg")
           arrow.classList.add("arrow-indicator")
-          
+
+
           if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0) {
             arrow.innerHTML = `
               <polygon points="${lineCapCoordinate}" fill="#4D4D4D" stroke="transparent" strokeWidth="1.5" />
