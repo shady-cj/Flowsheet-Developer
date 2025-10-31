@@ -5,6 +5,7 @@ import Link from "next/link"
 import { FlowsheetContext, objectDataType } from "../context/FlowsheetProvider"
 import { UserContext } from "../context/UserProvider"
 import { useContext, useRef, useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import exportImage from "@/assets/export.svg"
 import arrowRight from "@/assets/arrow-right.svg"
@@ -38,6 +39,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
     saveInterval: undefined,
   })
   const [showSaveSettings, setShowSaveSettings] = useState(false)
+  const router = useRouter();
 
   const updateSaveSettings = async () => {
     // console.log("save settings", saveFrequencySettings)
@@ -100,7 +102,16 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
           <nav className="flex gap-2 items-center">
               {
                 flowsheetObject ? <>
-                  <Link href={`/project/${flowsheetObject.project}`} className="text-sm text-[#666666] font-normal">{flowsheetObject.project_name}</Link>
+                  <Link href={`/project/${flowsheetObject.project}`} className="text-sm text-[#666666] font-normal" onClick={(e) => {
+                    e.preventDefault();
+                    // Handle project link click
+                    if (isEdited) {
+                      const confirmLeave = confirm("You have unsaved changes. Are you sure you want to leave?"); 
+                      if (!confirmLeave) return;
+                    }
+                    router.push(`/project/${flowsheetObject.project}`);
+
+                  }}>{flowsheetObject.project_name}</Link>
                   <Image src={arrowRight} width={10} height={10} alt="arrow right" />
                   <p className="text-sm">{flowsheetObject.name}</p>
                 </> : ""

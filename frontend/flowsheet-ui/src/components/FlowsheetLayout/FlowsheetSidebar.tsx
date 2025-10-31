@@ -74,6 +74,7 @@ export type loadComponentType = "" | "crushers" | "concentrators" | "screeners" 
 
 
 const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
+    const {isEdited} = useContext(FlowsheetContext)
     const [shapes, setShapes] = useState<{name: string, id: string}[]>([])
     const [crushers, setCrushers] = useState<genericImageObjectType[]>([])
     const [screeners, setScreeners] = useState<genericImageObjectType[]>([])
@@ -166,7 +167,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
     <>
     <div className="w-[25%] custom-scrollbar bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-10 border-r border-[#DFE1E6] border-solid">
         <header>
-            <Logo logoIcon={logoIcon}/>
+            <Logo logoIcon={logoIcon} isEdited={isEdited}/>
         </header>
         <section>
             <div className="border border-[#DFE1E6] rounded-lg p-2 flex gap-x-3">

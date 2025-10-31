@@ -35,7 +35,7 @@ const CreateFlowsheetCard = () => {
                 <h2 className='text-xl font-semibold'>-- Choose Project --</h2> 
                 <article className='py-4 flex flex-col gap-3'>
                     {
-                       projects && projects.length ? projects.map(project => <Link key={project.id} href={`/project/${project.id}/flowsheet/create`} className='w-[80%] text-text-black-2 font-medium flex justify-between px-4'>
+                       projects && projects.length ? projects.map(project => <Link key={project.id} href={`/project/${project.id}/flowsheet/create`} className='w-[90%] text-text-black-2 font-medium flex justify-between px-4'>
                         {project.name}
                         <Image src={arrowRight} height={10} width={10} alt="arrow right"/>
                         
