@@ -226,7 +226,7 @@ export const sendFeedback = async (formData: FormData) => {
     const accessToken = await getAccessToken()
     // console.log("form data", formData)
     try {
-        console.log("form data", formData)
+        // console.log("form data", formData)
         const response = await fetch(`${BASE_URL}/feedbacks/`, {
             method: "POST",
             body: formData,
