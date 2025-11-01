@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState, useRef, useCallback, DragEvent, ChangeEvent, FormEvent, useContext } from "react";
+import { useRouter } from "next/navigation";
 import { uploadObject, loadObjects } from "@/lib/actions/flowsheetcanvas";
 import ObjectForm from "./ObjectForm";
-import { FlowsheetContext } from "../context/FlowsheetProvider";
+import { FlowsheetContext, singleObjectDataType } from "../context/FlowsheetProvider";
 import { objectDataType, lineCordsType,  objectCoords} from "../context/FlowsheetProvider";
+import { UserContext } from "../context/UserProvider";
 import { ObjectCreator } from "../Objects/ObjectCreator";
 import { renderToStaticMarkup } from "react-dom/server"
 import arrowDown from "@/assets/arrow-down.svg"
@@ -66,6 +68,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, 
         pageNotFound, canvasLoading, isEdited
       } = useContext(FlowsheetContext)
+    const {user} = useContext(UserContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
     const mouseMoved = useRef(false)
@@ -84,6 +87,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
     const lineCapCoordinate = "10,22 18,5 10,9 2,5"
+    const router = useRouter()
 
 
     const validatePositiveInteger = (attribute: keyof formStateObjectType, title: string) => {
@@ -357,6 +361,62 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       setObjectFormPosition({x, y})
     }
 
+      const setPrevAndNextObjectConnections = useCallback((prevObject: singleObjectDataType, nextObject: singleObjectDataType)=> {
+      
+
+        
+        if (nextObject?.properties.gape || nextObject?.properties.aperture) {
+          if (!prevObject.properties.gape && !prevObject.properties.aperture && !prevObject.properties.maxOreSize) return true // skip (no need for validating connection)
+          if (prevObject.properties.aperture && (!prevObject.properties.maxOreSize || parseFloat(prevObject.properties.maxOreSize) >= parseFloat(prevObject.properties.aperture)))
+            prevObject.properties.maxOreSize = prevObject.properties.aperture
+          else if (prevObject.properties.gape && (!prevObject.properties.maxOreSize || parseFloat(prevObject.properties.maxOreSize) >= parseFloat(prevObject.properties.gape)))
+            prevObject.properties.maxOreSize = prevObject.properties.gape
+          let feedSize = null
+          if (prevObject.properties.set) {
+              // using 1.25 because theoretically 1.2 - 1.5 x set would usually be the maximum ore size in the product
+
+            if (parseFloat(prevObject.properties.set!) * 1.25 > parseFloat(prevObject.properties.maxOreSize!)) feedSize = parseFloat(prevObject.properties.maxOreSize!)
+            else feedSize = parseFloat(prevObject.properties.set!) * 1.25
+          } else if (prevObject.properties.aperture) {
+            if (parseFloat(prevObject.properties.aperture!) > parseFloat(prevObject.properties.maxOreSize!)) feedSize = parseFloat(prevObject.properties.maxOreSize!)
+            else feedSize = parseFloat(prevObject.properties.aperture!)
+          } else {
+            feedSize = parseFloat(prevObject.properties.maxOreSize!)
+          }
+          if (nextObject.properties.gape) {
+            const gape = parseFloat(nextObject.properties.gape)
+            if ((0.8 * gape) >= feedSize) {
+              // largest feed size must be less than or equal to 0.8 x gape size
+              nextObject.properties.maxOreSize = feedSize.toString()
+              return true
+            }
+            return false
+          } else if (nextObject.properties.aperture) {
+            const apertureSize = parseFloat(nextObject.properties.aperture)
+            if (feedSize <= apertureSize) {
+              nextObject.properties.maxOreSize = feedSize.toString()
+              return true
+            }
+            return false
+          }
+        }
+        if (nextObject.object?.model_name === "Concentrator") {
+          if (prevObject.properties.oreQuantity) nextObject.properties.oreQuantity = prevObject.properties.oreQuantity
+          else nextObject.properties.oreQuantity = nextObject.properties.defaultOreQuantity
+          if (prevObject.properties.oreGrade) nextObject.properties.oreGrade = prevObject.properties.oreGrade
+          else nextObject.properties.oreGrade = nextObject.properties.defaultOreGrade
+        }
+        if (nextObject.object?.model_name === "Auxilliary" && nextObject.object?.type?.toLowerCase() === "ore") {
+          if (prevObject.properties.maxOreSize) nextObject.properties.maxOreSize = prevObject.properties.maxOreSize
+          else nextObject.properties.maxOreSize = nextObject.properties.defaultMaxOreSize
+
+          if (prevObject.properties.oreQuantity) nextObject.properties.oreQuantity = prevObject.properties.oreQuantity
+          else nextObject.properties.oreQuantity = nextObject.properties.defaultOreQuantity
+        }
+        return true
+    }, [])
+
+
 
     const checkAndSetConnection = useCallback((type: "from" | "to", lineId: string, shapeId: string) => {
       // Check and validate connection (ore size, aperture size, gape, set)
@@ -379,105 +439,18 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const nextObjectId = line.properties.nextObject[0]
         if (!nextObjectId) return true
         const nextObject = objectData.current[nextObjectId]
-
-        
-        if (nextObject?.properties.gape || nextObject?.properties.aperture) {
-          if (!activeObject.properties.gape && !activeObject.properties.aperture) return true // skip (no need for validating connection)
-          if (activeObject.properties.aperture)
-            activeObject.properties.maxOreSize = activeObject.properties.aperture
-          else if (activeObject.properties.gape) 
-            activeObject.properties.maxOreSize = activeObject.properties.set
-          else
-            return false
-
-          const feedSize = parseFloat(activeObject.properties.maxOreSize!)
-          if (nextObject.properties.gape) {
-            const gape = parseFloat(nextObject.properties.gape)
-            if ((0.8 * gape) >= feedSize) {
-              // largest feed size must be less than or equal to 0.8 x gape size
-              if (activeObject.properties.set && (parseFloat(activeObject.properties.set) <= parseFloat(nextObject.properties.set!)))
-                nextObject.properties.maxOreSize = activeObject.properties.set
-              else
-                nextObject.properties.maxOreSize = nextObject.properties.set
-              return true
-            }
-            return false
-          } else if (nextObject.properties.aperture) {
-            const apertureSize = parseFloat(nextObject.properties.aperture)
-            if (feedSize <= apertureSize) {
-              nextObject.properties.maxOreSize = nextObject.properties.aperture
-              return true
-            }
-            return false
-          }
-        }
-        
-        return true
+        if (!nextObject) return true
+        return setPrevAndNextObjectConnections(activeObject, nextObject)
       }
       if (type === "to") {
-        // console.log("to here")
         const prevObjectId = line.properties.prevObject[0]
-
-        
-
         if (!prevObjectId) return true
         const prevObject = objectData.current[prevObjectId]
-        // console.log("active object", activeObject)
-        // console.log("prev objectId", prevObject)
-
         if (!prevObject) return true
-        if (activeObject.properties.gape || activeObject.properties.aperture) {
-          
-          if (!prevObject.properties.gape && !prevObject.properties.aperture) return true // review
-    
-          // if (!prevObject.properties.maxOreSize) {
-          if (prevObject.properties.aperture)
-            prevObject.properties.maxOreSize = prevObject.properties.aperture
-          else if (prevObject.properties.gape) 
-            prevObject.properties.maxOreSize = prevObject.properties.set
-          else
-            return false
-
-          // } 
-    
-          const feedSize = parseFloat(prevObject.properties.maxOreSize!) 
-          if (activeObject.properties.gape) {
-            const gape = parseFloat(activeObject.properties.gape)
-            if ((0.8 * gape) >= feedSize) {
-              if (feedSize < parseFloat(activeObject.properties.set!))
-                activeObject.properties.maxOreSize = feedSize.toString()
-              else
-                activeObject.properties.maxOreSize = activeObject.properties.set
-              return true
-            }
-            return false
-          } else if(activeObject.properties.aperture) {
-            const apertureSize = parseFloat(activeObject.properties.aperture)
-            if (feedSize <= apertureSize) {
-              activeObject.properties.maxOreSize = activeObject.properties.aperture
-              return true
-            }
-            return false
-          }
-        }
-        if (activeObject.object?.model_name === "Concentrator") {
-          if (prevObject.properties.oreQuantity) activeObject.properties.oreQuantity = prevObject.properties.oreQuantity
-          else activeObject.properties.oreQuantity = activeObject.properties.defaultOreQuantity
-          if (prevObject.properties.oreGrade) activeObject.properties.oreGrade = prevObject.properties.oreGrade
-          else activeObject.properties.oreGrade = activeObject.properties.defaultOreGrade
-          // if (prevObject.properties.)
-        }
-        if (activeObject.object?.model_name === "Auxilliary" && activeObject.object?.type?.toLowerCase() === "ore") {
-          if (prevObject.properties.maxOreSize) activeObject.properties.maxOreSize = prevObject.properties.maxOreSize
-          else activeObject.properties.maxOreSize = activeObject.properties.defaultMaxOreSize
-
-          if (prevObject.properties.oreQuantity) activeObject.properties.oreQuantity = prevObject.properties.oreQuantity
-          else activeObject.properties.oreQuantity = activeObject.properties.defaultOreQuantity
-        }
-        return true
+        return setPrevAndNextObjectConnections(prevObject, activeObject)
       }
 
-    }, [objectData])
+    }, [objectData, setPrevAndNextObjectConnections])
 
 
     const MCoordinateConnection = useCallback((obj: Element, line: Element) => {
@@ -1038,17 +1011,24 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
               
 
             if (isPrevObjConnected && isNextObjConnected) {
-                path!.setAttribute("stroke", "#4D4D4D")
-                arrow.setAttribute("fill", "#4D4D4D")
+                if (path!.getAttribute("stroke") !== "#4D4D4D" && arrow!.getAttribute("fill") !== "#4D4D4D") {
+                    path!.setAttribute("stroke", "#4D4D4D")
+                    arrow.setAttribute("fill", "#4D4D4D")
+                    setIsEdited(true)
+                }
+               
                 return;
             }
 
         }
-        path!.setAttribute("stroke", "#beb4b4")
-        arrow.setAttribute("fill", "#beb4b4")
 
+        if (path!.getAttribute("stroke") !== "#beb4b4" && arrow!.getAttribute("fill") !== "#beb4b4") {
+            setIsEdited(true)
+            path!.setAttribute("stroke", "#beb4b4")
+            arrow.setAttribute("fill", "#beb4b4")
+        }
 
-    }, [componentToLineConnection, objectData])
+    }, [componentToLineConnection, objectData, setIsEdited])
 
 
 
@@ -1906,7 +1886,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           arrow.setAttribute("width", "20")
           arrow.setAttribute("xmlns", "http://www.w3.org/2000/svg")
           arrow.classList.add("arrow-indicator")
-          
+
+
           if (data.properties.nextObject.length > 0 && data.properties.prevObject.length > 0) {
             arrow.innerHTML = `
               <polygon points="${lineCapCoordinate}" fill="#4D4D4D" stroke="transparent" strokeWidth="1.5" />
@@ -2658,6 +2639,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     useEffect(() => {
       let intervalRef: NodeJS.Timeout | null = null;
       if (flowsheetObject) {
+        if  (flowsheetObject.project_creator_id !== user?.id) return;
         if (flowsheetObject.save_frequency_type === "AUTO" && flowsheetObject.save_frequency) {
           intervalRef = setInterval(()=> {    
               saveObjectData(params.flowsheet_id)
@@ -2669,20 +2651,44 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       return (()=> {
         if (intervalRef) clearInterval(intervalRef)
       })
-    }, [flowsheetObject, params.flowsheet_id, saveObjectData])
+    }, [flowsheetObject, params.flowsheet_id, saveObjectData, user])
 
     useEffect(() => {
       const browserCloseWarning = (e: BeforeUnloadEvent) => {
-        if (isEdited) {
+
+        if (isEdited && flowsheetObject?.project_creator_id === user?.id) {
           e.preventDefault()
           e.returnValue = "";
         }
       }
+
+      // history.pushState(null, "", location.href);
+      /** 
+      const beforePopState = (event: PopStateEvent) => {
+        // This triggers when the user clicks Back or Forward
+        console.log("popstate event", event)
+        if (isEdited) {
+          
+          event.preventDefault(); // Doesn’t actually stop it
+  
+          const leave = confirm("You have Unsaved changes. Are you sure you want to go back?");
+          if (leave) {
+            router.back(); // proceed
+
+          } else {
+            history.pushState(null, '', window.location.href); // cancel by restoring state
+          }
+        
+        }
+      }
+        */
       window.addEventListener('beforeunload', browserCloseWarning)
+      // window.addEventListener('popstate', beforePopState)
       return () => {
         window.removeEventListener('beforeunload', browserCloseWarning)
+        // window.removeEventListener('popstate', beforePopState)
       }
-    },[isEdited])
+    },[isEdited, flowsheetObject, user])
 
   return (
     <>

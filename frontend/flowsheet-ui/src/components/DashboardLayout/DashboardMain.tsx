@@ -12,7 +12,7 @@ const DashboardMain = () => {
 // const activeSection = search
 return (
     <section className='overflow-y-auto h-[90vh]' id='dashboard-main'>
-        <section className=''>
+        <section>
             <section className='pt-12 px-5 h-[14.5rem] border-b border-solid border-[#E6E6E6]'>
 
                 <h2 className='mb-4 font-medium text-xl text-text-black-2'>Quick Actions</h2>

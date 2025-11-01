@@ -23,8 +23,9 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
     // console.log("canvas reference", canvasRef)
     
     // console.log("got here", canvasRef)
+    const removeBg = confirm("Do you want to download the image with a transparent background? Click 'Cancel' for white background.")
 
-    toPng(canvasRef, { cacheBust: true, includeQueryParams:true, width: maxWidth + 150, height: maxHeight + 200, style: {background: "white", zIndex: "-2"} })
+    toPng(canvasRef, { cacheBust: true, includeQueryParams:true, width: maxWidth + 150, height: maxHeight + 200, style: {background: removeBg? "transparent" : "white", zIndex: "-2"} })
     .then((dataUrl) => {
       // console.log("dataURl", dataUrl)
       const link = document.createElement("a");

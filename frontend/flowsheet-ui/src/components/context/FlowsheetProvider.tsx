@@ -205,8 +205,10 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
       alert("Invalid connection between two points")
       return
     }
+
+    const dfDefault = communitionListForBondsEnergy.current[0].properties.maxOreSize ? parseFloat(communitionListForBondsEnergy.current[0].properties.maxOreSize) : parseFloat(communitionListForBondsEnergy.current[0].properties.gape!)
     const Dp = parseFloat(communitionListForBondsEnergy.current[1].properties.set!) * 0.8 * 1000 // converting to microns
-    const Df = parseFloat(communitionListForBondsEnergy.current[0].properties.gape!) * 0.8 * 1000 // converting to microns
+    const Df = dfDefault * 0.8 * 1000 // converting to microns
     const W = 10 * Wi * ((1/Math.sqrt(Dp)) - (1/Math.sqrt(Df)))
     // communitionListForBondsEnergy.current = []
     setWvalue(W.toFixed(3))

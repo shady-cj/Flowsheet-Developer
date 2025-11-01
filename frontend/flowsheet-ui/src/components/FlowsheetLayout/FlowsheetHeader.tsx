@@ -1,10 +1,12 @@
 "use client"
 
 import Link from "next/link"
-
+import Logo from "../Logo";
+import logoIcon from "@/assets/logo-icon.svg"
 import { FlowsheetContext, objectDataType } from "../context/FlowsheetProvider"
 import { UserContext } from "../context/UserProvider"
 import { useContext, useRef, useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import exportImage from "@/assets/export.svg"
 import arrowRight from "@/assets/arrow-right.svg"
@@ -38,6 +40,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
     saveInterval: undefined,
   })
   const [showSaveSettings, setShowSaveSettings] = useState(false)
+  const router = useRouter();
 
   const updateSaveSettings = async () => {
     // console.log("save settings", saveFrequencySettings)
@@ -97,62 +100,83 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
   return (
     <>
       <header className="w-full z-10 border-b border-text-gray bg-grayVariant flex justify-between items-center py-2 px-5">
-          <nav className="flex gap-2 items-center">
-              {
-                flowsheetObject ? <>
-                  <Link href={`/project/${flowsheetObject.project}`} className="text-sm text-[#666666] font-normal">{flowsheetObject.project_name}</Link>
-                  <Image src={arrowRight} width={10} height={10} alt="arrow right" />
-                  <p className="text-sm">{flowsheetObject.name}</p>
-                </> : ""
-              }
-              
-              <div className="z-20 relative text-sm m-2 px-3 py-1 flex gap-2 bg-tertiary rounded-xl" >
-                <button onClick={()=> saveObjectData(params.flowsheet_id)} className="text-white disabled:opacity-90" disabled={canvasLoading || isSaving || !isEdited}>
-                    {isSaving ? "saving" : isEdited ? "save" : "saved"}
-                </button>
-               
-                <Image className="cursor-pointer" src={showSaveSettings ? arrowUp : arrowDown} alt="arrow down" onClick={() => setShowSaveSettings(prev=>!prev)}/>
+          
+          {
+            loadingUser ? 
+            <div>
+              <Loader fullScreen={false} color="black" small={true} />
+            </div> 
+            :
+            flowsheetObject?.project_creator_id !== user?.id 
+            ?
+            <Logo logoIcon={logoIcon} />   
+            :
+            <nav className="flex gap-2 items-center">
                 {
-                  showSaveSettings ? (<div className="absolute z-40 flex flex-col flex-start w-[200px] bg-white top-[130%] left-0 p-4 shadow-md rounded-md">
-                        <h2 className="text-xl font-semibold text-left">Save Frequency</h2>
-                        {
-                          saveFrequencySettings.frequencyType === "AUTO" ? (<div className="mt-2 flex items-center gap-2">
-                          <label htmlFor="save_interval" className="font-semibold">Interval: </label>
-                        <input type="number" id="save_interval" name="saveInterval" value={saveFrequencySettings.saveInterval || ""} className="border border-1 w-full px-2 py-1" min={10} placeholder="secs" onChange={(e)=> setSaveFrequencySettings((prev)=> ({...prev, saveInterval: parseInt(e.target.value)}))}/>
+                  flowsheetObject ? <>
+                    <Link href={`/project/${flowsheetObject.project}`} className="text-sm text-[#666666] font-normal" onClick={(e) => {
+                      e.preventDefault();
+                      // Handle project link click
+                      if (isEdited) {
+                        const confirmLeave = confirm("You have unsaved changes. Are you sure you want to leave?"); 
+                        if (!confirmLeave) return;
+                      }
+                      router.push(`/project/${flowsheetObject.project}`);
 
-                        </div>) : ""
-                        }
-                        
-                        <div className="flex gap-3 items-center mt-3">
-                          <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "MANUAL" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "MANUAL", saveInterval: null}))}>Manual</button>
-                          <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "AUTO" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "AUTO"}))}>Auto</button>
-                        </div>
-                        <button className="mt-4 border border-2 border-[#006644] p-2 rounded-2xl hover:bg-tertiary hover:text-white  transition-all" onClick={updateSaveSettings}> Save Changes</button>
-        
-
-                      </div>) : ""
+                    }}>{flowsheetObject.project_name}</Link>
+                    <Image src={arrowRight} width={10} height={10} alt="arrow right" />
+                    <p className="text-sm">{flowsheetObject.name}</p>
+                  </> : ""
                 }
                 
-              </div>
-              <div className="text-sm flex gap-2 relative">
-                <span>utility</span> <Image src={showDropDown ? arrowUp : arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> {
-                  if (pageNotFound) {
-                    setShowDropDown(false)
-                    return;
-                  }
-                  setShowDropDown(!showDropDown)}
+                <div className="z-20 relative text-sm m-2 px-3 py-1 flex gap-2 bg-tertiary rounded-xl" >
+                  <button onClick={()=> {if(flowsheetObject?.project_creator_id === user?.id) saveObjectData(params.flowsheet_id)}} className="text-white disabled:opacity-90" disabled={canvasLoading || isSaving || !isEdited}>
+                      {isSaving ? "saving" : isEdited ? "save" : "saved"}
+                  </button>
+                
+                  <Image className="cursor-pointer" src={showSaveSettings ? arrowUp : arrowDown} alt="arrow down" onClick={() => setShowSaveSettings(prev=>!prev)}/>
+                  {
+                    showSaveSettings ? (<div className="absolute z-40 flex flex-col flex-start w-[200px] bg-white top-[130%] left-0 p-4 shadow-md rounded-md">
+                          <h2 className="text-xl font-semibold text-left">Save Frequency</h2>
+                          {
+                            saveFrequencySettings.frequencyType === "AUTO" ? (<div className="mt-2 flex items-center gap-2">
+                            <label htmlFor="save_interval" className="font-semibold">Interval: </label>
+                          <input type="number" id="save_interval" name="saveInterval" value={saveFrequencySettings.saveInterval || ""} className="border border-1 w-full px-2 py-1" min={10} placeholder="secs" onChange={(e)=> setSaveFrequencySettings((prev)=> ({...prev, saveInterval: parseInt(e.target.value)}))}/>
 
-                }/>
-                <div className={`z-40 flex py-3 shadow-lg rounded-md flex-col bg-white transition-all absolute top-[200%] -left-[50%] ${showDropDown ? "opacity-100 visible" : "invisible opacity-0"}`}>
-                  <span className="px-3 py-2 whitespace-nowrap cursor-pointer hover:bg-[#DFE1E6]" onClick={()=> {
-                    setShowDropDown(false);
-                    if (!calculateBondsEnergy.current) setOpenBondsBox(true)
-                  }}>{ calculateBondsEnergy.current ? "Click the communition components":
-                        "Calculate Bonds Energy"}</span>
-                  <span className="px-3 py-2 cursor-pointer hover:bg-[#DFE1E6]">SpreadSheet</span>
+                          </div>) : ""
+                          }
+                          
+                          <div className="flex gap-3 items-center mt-3">
+                            <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "MANUAL" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "MANUAL", saveInterval: null}))}>Manual</button>
+                            <button className={`border border-[#F4F5F7] px-2 py-1 ${saveFrequencySettings.frequencyType === "AUTO" ? "bg-tertiary text-white" : "bg-grayVariant2"}`} onClick={()=> setSaveFrequencySettings((f) => ({...f, frequencyType: "AUTO"}))}>Auto</button>
+                          </div>
+                          <button className="mt-4 border border-2 border-[#006644] p-2 rounded-2xl hover:bg-tertiary hover:text-white  transition-all" onClick={updateSaveSettings}> Save Changes</button>
+          
+
+                        </div>) : ""
+                  }
+                  
                 </div>
-              </div>
-          </nav>
+                <div className="text-sm flex gap-2 relative">
+                  <span>utility</span> <Image src={showDropDown ? arrowUp : arrowDown} width={10} height={10} alt="drop down" className="cursor-pointer" onClick={()=> {
+                    if (pageNotFound) {
+                      setShowDropDown(false)
+                      return;
+                    }
+                    setShowDropDown(!showDropDown)}
+
+                  }/>
+                  <div className={`z-40 flex py-3 shadow-lg rounded-md flex-col bg-white transition-all absolute top-[200%] -left-[50%] ${showDropDown ? "opacity-100 visible" : "invisible opacity-0"}`}>
+                    <span className="px-3 py-2 whitespace-nowrap cursor-pointer hover:bg-[#DFE1E6]" onClick={()=> {
+                      setShowDropDown(false);
+                      if (!calculateBondsEnergy.current) setOpenBondsBox(true)
+                    }}>{ calculateBondsEnergy.current ? "Click the communition components":
+                          "Calculate Bonds Energy"}</span>
+                    <span className="px-3 py-2 cursor-pointer hover:bg-[#DFE1E6]">SpreadSheet</span>
+                  </div>
+                </div>
+            </nav>
+          }
           <div className="flex items-center gap-5">
             {
             loadingUser ? <div>
