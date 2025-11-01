@@ -33,7 +33,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
   const [pdfDownloaded, setPdfDownloaded] = useState(false)
 
 
-  const { canvasRef,objectData, saveObjectData, isEdited, isSaving, canvasLoading, flowsheetObject,setFlowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, pageNotFound} = useContext(FlowsheetContext)
+  const { canvasRef,objectData, saveObjectData, isEdited, isSaving, canvasLoading, flowsheetObject,setFlowsheetObject, calculateBondsEnergy, workIndex, Wvalue, setWvalue, communitionListForBondsEnergy, bondsEnergyDFDP, pageNotFound} = useContext(FlowsheetContext)
   const { user, loadingUser} = useContext(UserContext)
   const [saveFrequencySettings, setSaveFrequencySettings] = useState<saveFreqType>({
     frequencyType: undefined,
@@ -262,14 +262,15 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
                   communitionListForBondsEnergy.current.length > 1 && (communitionListForBondsEnergy.current[0].oid === communitionListForBondsEnergy.current[1].oid ? <h2 className="text-lg">
                     Bonds Energy summary at <b>{communitionListForBondsEnergy.current[0].label}</b> </h2> : <h2 className="text-lg">Bonds Energy summary between <b>{communitionListForBondsEnergy.current[0].label}</b> and <b>{communitionListForBondsEnergy.current[1].label}</b></h2>)
                 }
-                <p><b>Df</b> = <b>{communitionListForBondsEnergy.current.length && (parseFloat(communitionListForBondsEnergy.current[0].properties.gape!) * 0.8).toFixed(2)}</b></p>
-                <p><b>Dp</b> = <b>{communitionListForBondsEnergy.current.length > 1 && (parseFloat(communitionListForBondsEnergy.current[1].properties.set!) * 0.8).toFixed(2)}</b></p>
+                <p><b>Df</b> = <b>{communitionListForBondsEnergy.current.length && (bondsEnergyDFDP.current.Df || 0).toFixed(2)} microns</b></p>
+                <p><b>Dp</b> = <b>{communitionListForBondsEnergy.current.length > 1 && (bondsEnergyDFDP.current.Dp || 0).toFixed(2)} microns</b></p>
                 <p><b>Work Index</b> = <b>{workIndex.current && parseFloat(workIndex.current!.value)}kJ/Kg</b></p>
                 <p>Energy used for communition between the two point in the circuit is <b>{Wvalue}kW h/short ton</b></p>
                 <div className='flex justify-end gap-4 mt-3'>
                   <button className='bg-red-400 rounded-lg py-2 px-4 text-white' onClick={()=> {
                     communitionListForBondsEnergy.current = []
                     setWvalue(null)
+                    bondsEnergyDFDP.current = {Dp: null, Df: null}
                   }}>
                     Close
                   </button>

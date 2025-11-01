@@ -132,6 +132,7 @@ type contextType = {
   // userObject: userType,
   flowsheetObject: fetchedFlowsheetsType | null,
   Wvalue: string | null,
+  bondsEnergyDFDP: MutableRefObject<{Dp: number | null, Df: number | null}>,
   communitionListForBondsEnergy: MutableRefObject<singleObjectDataType[]>,
   workIndex: RefObject<HTMLInputElement>,
   pageNotFound: boolean,
@@ -166,6 +167,8 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
   const communitionListForBondsEnergy = useRef<singleObjectDataType[]>([])
   const workIndex = useRef<HTMLInputElement>(null)
   const [Wvalue, setWvalue] = useState<string | null>(null)
+
+  const bondsEnergyDFDP = useRef<{Dp: number | null, Df: number | null}>({Dp: null, Df: null})
 
   // const reportRef = useRef<HTMLDivElement>(null)
 
@@ -210,6 +213,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
     const Dp = parseFloat(communitionListForBondsEnergy.current[1].properties.set!) * 0.8 * 1000 // converting to microns
     const Df = dfDefault * 0.8 * 1000 // converting to microns
     const W = 10 * Wi * ((1/Math.sqrt(Dp)) - (1/Math.sqrt(Df)))
+    bondsEnergyDFDP.current = {Dp, Df}
     // communitionListForBondsEnergy.current = []
     setWvalue(W.toFixed(3))
   }
@@ -241,7 +245,7 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
       objectData, hasInstance, flowsheetObject, setFlowsheetObject,
       getFlowsheet, calculateBondsEnergy, 
     communitionListForBondsEnergy, workIndex, 
-    calculateEnergyUsed, Wvalue, setWvalue,
+    calculateEnergyUsed, Wvalue, setWvalue, bondsEnergyDFDP,
     pageNotFound, setPageNotFound, isEdited, setIsEdited, isSaving, setIsSaving,
     }}>
       {children}
