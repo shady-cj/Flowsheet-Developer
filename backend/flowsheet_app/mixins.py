@@ -3,10 +3,11 @@ from .utils import process_component_image
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 
 class ObjectPermissionMixin:
-    permission_classes = [CanUpdateRetrieveDestroyPermission]
+    permission_classes = [IsAuthenticated, CanUpdateRetrieveDestroyPermission]
 
 
 class UpdateCreatorMixin:

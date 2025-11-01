@@ -172,8 +172,8 @@ class DashboardSearch(APIView):
         ).all()
         return Response(
             {
-                "projects": ProjectSerializer(projects_match, many=True).data,
-                "flowsheets": FlowsheetSerializer(flowsheets_match, many=True).data,
+                "projects": ProjectSerializer(projects_match, many=True, context={"request": request}).data,
+                "flowsheets": FlowsheetSerializer(flowsheets_match, many=True, context={"request": request}).data,
             },
             status=status.HTTP_200_OK,
         )
@@ -201,10 +201,13 @@ class FlowsheetCreateView(APIView):
             "-last_edited"
         )
 
+
         project = get_object_or_404(Project, id=project_id)
+        if user != project.creator and not user.is_superuser:
+            raise PermissionDenied("You do not have permission to access this project")
 
         serialized_user_flowsheets = FlowsheetSerializer(
-            user_flowsheets, many=True
+            user_flowsheets, many=True, context={"request": request}
         ).data
 
         return Response(
@@ -317,7 +320,6 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin, RetrieveUpdateDestroyA
     queryset = Project.objects.all()
 
     def get_queryset(self):
-        print("request user", self.request.user, self.get_permissions())
         user = self.request.user
         if user.is_superuser:
             return Project.objects.all()
@@ -329,7 +331,7 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin, RetrieveUpdateDestroyA
         project_id = self.kwargs["id"]
         # project_id = self.request.parser_context.get("kwargs").get("id")
         project = Project.objects.get(id=project_id)
-        serialized_project = ProjectDetailSerializer(project)
+        serialized_project = ProjectDetailSerializer(project, context={"request": request})
         return Response(serialized_project.data, status=status.HTTP_200_OK)
 
     # def update(self, request, *args, **kwargs):

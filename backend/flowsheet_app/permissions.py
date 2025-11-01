@@ -6,10 +6,14 @@ import uuid
 
 
 class CanUpdateRetrieveDestroyPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
+    def has_permission(self, request, view):
+        project_id = request.parser_context.get("kwargs").get("id")
+        project = get_object_or_404(Project, pk=project_id)
+        if request.method in permissions.SAFE_METHODS:
+            return True
         if request.user.is_superuser:
             return True
-        elif obj.creator == request.user:
+        elif project.creator == request.user:
             return True
         return False
 

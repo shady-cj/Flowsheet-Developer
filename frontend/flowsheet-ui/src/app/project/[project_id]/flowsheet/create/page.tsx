@@ -23,7 +23,14 @@ const FlowsheetCreatePage = async ({params}: {params: Promise<{project_id: strin
                   headers: {"Authorization": `Bearer ${accessToken}`},
                 //   next: {revalidate: 60} // validate atmost every minute
               })
-              result = await response.json()
+              
+              if (response.status === 200) {
+                  result = await response.json()
+              } else if (response.status === 403) {
+                  throw new Error("You do not have permission to access this project")
+              } else {
+                  throw new Error("An error occured while trying to get you this page")
+              }
               // console.log("result of flowsheet create page", result)
     
           } catch (err) {

@@ -96,6 +96,7 @@ class ProjectSerializer(ModelSerializer):
     preview_url = SerializerMethodField(read_only=True)
     background_preview_url = SerializerMethodField(read_only=True)
     link = SerializerMethodField(read_only=True)
+    is_owner = SerializerMethodField(read_only=True)
 
     class Meta:
         model = Project
@@ -110,6 +111,7 @@ class ProjectSerializer(ModelSerializer):
             "last_edited",
             "description",
             "link",
+            "is_owner",
         ]
         read_only_fields = [
             "id",
@@ -138,6 +140,11 @@ class ProjectSerializer(ModelSerializer):
     def get_link(self, instance):
         return f"project/{instance.id}"
 
+    def get_is_owner(self, instance):
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            return instance.creator == request.user
+        return False
 
 class ProjectDetailSerializer(ModelSerializer):
     project = SerializerMethodField(read_only=True)
@@ -148,17 +155,18 @@ class ProjectDetailSerializer(ModelSerializer):
         fields = ["project", "flowsheets"]
 
     def get_project(self, instance):
-        return ProjectSerializer(instance).data
+        return ProjectSerializer(instance, context=self.context).data
 
     def get_flowsheets(self, instance):
         flowsheets = instance.flowsheets.order_by("-last_edited")
-        return FlowsheetSerializer(flowsheets, many=True).data
+        return FlowsheetSerializer(flowsheets, many=True, context=self.context).data
 
 
 class FlowsheetSerializer(ModelSerializer):
     link = SerializerMethodField(read_only=True)
     project_name = SerializerMethodField(read_only=True)
     project_creator_id = serializers.CharField(source="project.creator.id", read_only=True)
+    is_owner = SerializerMethodField(read_only=True)
     class Meta:
         model = Flowsheet
         fields = [
@@ -176,6 +184,7 @@ class FlowsheetSerializer(ModelSerializer):
             "last_edited",
             "save_frequency",
             "save_frequency_type",
+            "is_owner",
         ]
         read_only_fields = [
             "id",
@@ -208,6 +217,12 @@ class FlowsheetSerializer(ModelSerializer):
                     "Save frequency must be greater than 10 seconds"
                 )
         return super().validate(attrs)
+    
+    def get_is_owner(self, instance):
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            return instance.project.creator == request.user
+        return False
 
 
 class FlowsheetObjectSerializer(ModelSerializer):
