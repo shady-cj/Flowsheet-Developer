@@ -55,14 +55,14 @@ export const storeTokens = async (access_token: string, refresh_token: string, s
     cookie.set("access", access_token, {
         expires: new Date(Date.now() + (60 * 59 * 1000)),
         httpOnly: true,
-        secure: ENV === 'production' ? true : false,
-        path: "/"
+        secure: ENV === 'PRODUCTION' ? true : false,
+        path: "/",
     })
 
     cookie.set("refresh", refresh_token, {
         expires: new Date(Date.now() + (23 * 60 * 60 * 1000)),
         httpOnly: true,
-        secure: ENV === 'production' ? true : false,
-        path: "/"
+        secure: ENV === 'PRODUCTION' ? true : false,
+        path: "/",
     })
 }
