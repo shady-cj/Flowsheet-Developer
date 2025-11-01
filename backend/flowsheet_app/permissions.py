@@ -30,6 +30,8 @@ class FlowsheetInstancePermission(permissions.BasePermission):
         except ValueError:
             raise Http404()
         project_instance = get_object_or_404(Project, pk=project_id)
+        if request.method in permissions.SAFE_METHODS:
+            return True
         if user.is_superuser or user == project_instance.creator:
             return True
         return False
@@ -46,6 +48,8 @@ class FlowsheetObjectPermission(permissions.BasePermission):
         except ValueError:
             raise Http404()
         project_instance = get_object_or_404(Flowsheet, pk=flowsheet_id).project
+        if request.method in permissions.SAFE_METHODS:
+            return True
         if user.is_superuser or user == project_instance.creator:
             return True
         return False

@@ -36,6 +36,7 @@ export type fetchedProjectType = {
 export type fetchedFlowsheetsType = fetchedProjectType & {
     project: string,
     project_name: string,
+    project_creator_id: string,
     save_frequency: number | null,
     save_frequency_type: "MANUAL" | "AUTO",
 }

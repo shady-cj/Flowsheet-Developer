@@ -5,6 +5,7 @@ import { uploadObject, loadObjects } from "@/lib/actions/flowsheetcanvas";
 import ObjectForm from "./ObjectForm";
 import { FlowsheetContext, singleObjectDataType } from "../context/FlowsheetProvider";
 import { objectDataType, lineCordsType,  objectCoords} from "../context/FlowsheetProvider";
+import { UserContext } from "../context/UserProvider";
 import { ObjectCreator } from "../Objects/ObjectCreator";
 import { renderToStaticMarkup } from "react-dom/server"
 import arrowDown from "@/assets/arrow-down.svg"
@@ -67,6 +68,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, 
         pageNotFound, canvasLoading, isEdited
       } = useContext(FlowsheetContext)
+    const {user} = useContext(UserContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
     const mouseMoved = useRef(false)
@@ -2637,6 +2639,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     useEffect(() => {
       let intervalRef: NodeJS.Timeout | null = null;
       if (flowsheetObject) {
+        if  (flowsheetObject.project_creator_id !== user?.id) return;
         if (flowsheetObject.save_frequency_type === "AUTO" && flowsheetObject.save_frequency) {
           intervalRef = setInterval(()=> {    
               saveObjectData(params.flowsheet_id)
@@ -2648,12 +2651,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       return (()=> {
         if (intervalRef) clearInterval(intervalRef)
       })
-    }, [flowsheetObject, params.flowsheet_id, saveObjectData])
+    }, [flowsheetObject, params.flowsheet_id, saveObjectData, user])
 
     useEffect(() => {
       const browserCloseWarning = (e: BeforeUnloadEvent) => {
 
-        if (isEdited) {
+        if (isEdited && flowsheetObject?.project_creator_id === user?.id) {
           e.preventDefault()
           e.returnValue = "";
         }
@@ -2685,7 +2688,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         window.removeEventListener('beforeunload', browserCloseWarning)
         // window.removeEventListener('popstate', beforePopState)
       }
-    },[isEdited])
+    },[isEdited, flowsheetObject, user])
 
   return (
     <>

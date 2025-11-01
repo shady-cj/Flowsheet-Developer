@@ -158,7 +158,7 @@ class ProjectDetailSerializer(ModelSerializer):
 class FlowsheetSerializer(ModelSerializer):
     link = SerializerMethodField(read_only=True)
     project_name = SerializerMethodField(read_only=True)
-
+    project_creator_id = serializers.CharField(source="project.creator.id", read_only=True)
     class Meta:
         model = Flowsheet
         fields = [
@@ -171,6 +171,7 @@ class FlowsheetSerializer(ModelSerializer):
             "project",  # project id
             "project_name",  # project name
             "starred",
+            "project_creator_id",
             "link",
             "last_edited",
             "save_frequency",
