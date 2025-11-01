@@ -210,7 +210,10 @@ const FlowsheetProvider = ({children}: {children: React.ReactNode}) => {
     }
 
     const dfDefault = communitionListForBondsEnergy.current[0].properties.maxOreSize ? parseFloat(communitionListForBondsEnergy.current[0].properties.maxOreSize) : parseFloat(communitionListForBondsEnergy.current[0].properties.gape!)
-    const Dp = parseFloat(communitionListForBondsEnergy.current[1].properties.set!) * 0.8 * 1000 // converting to microns
+    const dpDefault = communitionListForBondsEnergy.current[1].properties.maxOreSize && parseFloat(communitionListForBondsEnergy.current[1].properties.maxOreSize) < parseFloat(communitionListForBondsEnergy.current[1].properties.set!) ? 
+                          parseFloat(communitionListForBondsEnergy.current[1].properties.maxOreSize) : 
+                          parseFloat(communitionListForBondsEnergy.current[1].properties.set!)
+    const Dp = dpDefault * 0.8 * 1000 // converting to microns
     const Df = dfDefault * 0.8 * 1000 // converting to microns
     const W = 10 * Wi * ((1/Math.sqrt(Dp)) - (1/Math.sqrt(Df)))
     bondsEnergyDFDP.current = {Dp, Df}
