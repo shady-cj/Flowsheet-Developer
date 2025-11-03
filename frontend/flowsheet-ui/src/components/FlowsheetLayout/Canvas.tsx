@@ -11,6 +11,7 @@ import arrowDown from "@/assets/arrow-down.svg"
 import arrowUp from "@/assets/arrow-up.svg"
 import Loader from "../utils/loader";
 import { concentratorAnalysis } from "@/lib/utils/concentrator-analysis";
+import { v4 as uuidv4 } from 'uuid';
 
 
 export type objectType = "Shape" | "Grinder" | "Crusher" | "Screener" | "Concentrator" | "Auxilliary";
@@ -1544,7 +1545,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       if (pointDetails.length && pointDetails[0] === "L" && pointDetails.length < 3) {
         const object = currentObject.current
         const newPoint = document.createElement("span")
-        const newPointUid = "point-"+crypto.randomUUID()
+        const newPointUid = "point-"+uuidv4()
         newPoint.classList.add("point-indicators")
         newPoint.setAttribute("id", newPointUid)
         newPoint.addEventListener("mousedown", (e)=> handleMouseDown(e, newPoint)) 
@@ -1903,7 +1904,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
        
           // path!.addEventListener("mouseover", (e)=> console.log("hover"))
-          const pointAnchorUid = "point-"+crypto.randomUUID()
+          const pointAnchorUid = "point-"+uuidv4()
           // const point2Uid = 
 
 
@@ -1923,7 +1924,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           for (let pointIndex = 0; pointIndex < movablePoints.length; pointIndex++) {
             const newPoint = document.createElement("span")
-            const newPointUid = "point-"+crypto.randomUUID()
+            const newPointUid = "point-"+uuidv4()
             newPoint.classList.add("point-indicators")
             newPoint.classList.add("hide-indicator")
             newPoint.setAttribute("id", newPointUid)
@@ -2231,8 +2232,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const path = lineSvg.querySelector("path")
         path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
         // path!.addEventListener("mouseover", (e)=> console.log("hover"))
-        const point1Uid = "point-"+crypto.randomUUID()
-        const point2Uid = "point-"+crypto.randomUUID()
+        const point1Uid = "point-"+uuidv4()
+        const point2Uid = "point-"+uuidv4()
 
         const point1 = document.createElement("span") // Starting point which doesn't change
         const point2 = document.createElement("span")
@@ -2325,7 +2326,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
 
       
-      const uuid4 = crypto.randomUUID()
+      const uuid4 = uuidv4()
       // newEl.style.border = "1px solid red"
 
       const defaultObjectData = {
@@ -2397,6 +2398,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
 
+    
+
     useEffect(()=> {
       const CanvasContainer = canvasRef.current
       const CanvasParentContainer = document.getElementById("canvas-parent-container")!
@@ -2439,6 +2442,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           // const objectOffsetXRight = obj.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
           const cursorX = e.clientX - canvasRef.current.getBoundingClientRect().x
           const cursorY = e.clientY - canvasRef.current.getBoundingClientRect().y
+
+          console.log("cursorX", "cursorY", cursorX, cursorY)
 
           // console.log("cursor X", cursorX, panelCoordinateXMarker.current)
           // console.log("cursor Y", cursorY, panelCoordinateYMarker.current)
