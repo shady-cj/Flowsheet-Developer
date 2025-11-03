@@ -249,7 +249,7 @@ class ListCreateFlowsheet(ListCreateAPIView):
         return queryset.filter(project__id=project_id)
 
     def perform_create(self, serializer):
-        print("validated_data", serializer.validated_data)
+        # print("validated_data", serializer.validated_data)
         data = self.request.data
         footprint = data.get("footprint")
         project_id = self.request.parser_context.get("kwargs").get("project_id")
@@ -485,8 +485,8 @@ class DestroyFlowsheetObject(APIView):
                 {"message": "The object is in use by other flowsheets"},
                 status=status.HTTP_200_OK,
             )
-        feedback = destroy_object_util(object_id, object_type, request.user)
-        print(feedback)
+        destroy_object_util(object_id, object_type, request.user)
+        # print(feedback)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

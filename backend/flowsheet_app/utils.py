@@ -85,8 +85,9 @@ def create_object_util(self, index, data):
             {"object_model_name": "Invalid object project name provided"}
         )
     object_model = eval(object_name)
-    object_instance = object_model.objects.get(id=object_model_id)
-    if not object_instance:
+    try:
+        object_instance = object_model.objects.get(id=object_model_id)
+    except object_model.DoesNotExist:
         raise serializers.ValidationError(
             {"object_id": "Given id is not associated to any object in the database"}
         )
