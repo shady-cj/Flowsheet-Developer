@@ -6,17 +6,15 @@ import uuid
 
 
 class CanUpdateRetrieveDestroyPermission(permissions.BasePermission):
-    def has_permission(self, request, view):
-        project_id = request.parser_context.get("kwargs").get("id")
-        project = get_object_or_404(Project, pk=project_id)
+    def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        if request.user.is_superuser:
+        elif request.user.is_superuser:
             return True
-        elif project.creator == request.user:
+        elif obj.creator == request.user:
             return True
-        return False
-
+        return False 
+  
 
 # class FlowsheetInstancePermission(permissions.DjangoObjectPermissions):
 #     def has_object_permission(self, request, view, obj):

@@ -319,19 +319,11 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin, RetrieveUpdateDestroyA
     lookup_field = "id"
     queryset = Project.objects.all()
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Project.objects.all()
-        return Project.objects.filter(creator=user)
-        # return Project.objects.all()
+    # return Project.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        # print("multiple lookup fields: ", self.multiple_lookup_fields)
-        project_id = self.kwargs["id"]
-        # project_id = self.request.parser_context.get("kwargs").get("id")
-        project = Project.objects.get(id=project_id)
-        serialized_project = ProjectDetailSerializer(project, context={"request": request})
+        instance = self.get_object()  # retrieves the object and calls the permission has_object_permission()
+        serialized_project = ProjectDetailSerializer(instance, context={"request": request})
         return Response(serialized_project.data, status=status.HTTP_200_OK)
 
     # def update(self, request, *args, **kwargs):

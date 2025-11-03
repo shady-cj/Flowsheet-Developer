@@ -17,7 +17,7 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path("register/", RegisterUserView.as_view(), name="register"),
-    path("oauth-auth/", OauthAuthentication.as_view()),
+    path("oauth-auth/", OauthAuthentication.as_view(), name="oauth-auth"),
     path("user/", RetrieveUserView.as_view(), name="get_user"),
     path("token/", TokenObtainPairView.as_view()),
     path("token/refresh/", TokenRefreshView.as_view()),
