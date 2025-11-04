@@ -2051,10 +2051,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             svg.style.width = `${scaledWidth}px`
             svg.style.height = `${scaledHeight}px`
           } else if (elementObjectName === "Text") {
-              newEl.style.transform = `scaleX(${data.scale.x}) scaleY(${data.scale.y})`
+            newEl.style.transform = `scaleX(${data.scale.x}) scaleY(${data.scale.y})`
 
-          }
-            else {
+          } else {
             const image = newEl.querySelector("img")!
             scaledWidth = scaledWidth * (data.properties.width ? data.properties.width : Number(image.getAttribute("width")))
             scaledHeight = scaledHeight * (data.properties.height ? data.properties.height : Number(image.getAttribute("height")))
@@ -2494,7 +2493,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const objData = objectData.current[obj.id]
           let currentScale = objData.scale
           let scaleOut = true;
-
+          
+          
           
 
           // const objectOffsetX = obj.offsetLeft
