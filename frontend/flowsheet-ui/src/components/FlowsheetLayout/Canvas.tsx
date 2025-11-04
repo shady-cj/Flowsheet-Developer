@@ -70,6 +70,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       } = useContext(FlowsheetContext)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
+    const panelMouseStart = useRef<{x: number, y: number}>({x: 0, y: 0})
     const mouseMoved = useRef(false)
     const panelCoordinateXMarker = useRef<number | null>(null)
     const panelCoordinateYMarker = useRef<number | null>(null)
@@ -1991,8 +1992,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           const resizePanels = newEl.querySelectorAll(".resize-panel");
           resizePanels.forEach((panel) => {
-            panel.addEventListener('mousedown', (e)=> {
+            (panel as HTMLSpanElement).addEventListener('mousedown', (e: MouseEvent) => {
               // console.log(e, 'mousedown')
+              panelMouseStart.current = {x: e.clientX, y: e.clientY}
               onPanelResize.current = true
               currentPanel.current = panel as HTMLSpanElement
             })
@@ -2303,8 +2305,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           )
           const resizePanels = newEl.querySelectorAll(".resize-panel");
           resizePanels.forEach((panel) => {
-            panel.addEventListener('mousedown', (e)=> {
+            (panel as HTMLSpanElement).addEventListener('mousedown', (e)=> {
               // console.log(e, 'mousedown')
+              panelMouseStart.current = {x: e.clientX, y: e.clientY}
               onPanelResize.current = true;
               currentPanel.current = panel as HTMLSpanElement
             })
@@ -2445,7 +2448,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const cursorX = e.clientX - canvasRef.current.getBoundingClientRect().x
           const cursorY = e.clientY - canvasRef.current.getBoundingClientRect().y
 
-          console.log("cursorX", "cursorY", cursorX, cursorY)
+          console.log("start cursor", panelMouseStart)
+          console.log("current mouse", e.clientX, e.clientY)
 
           // console.log("cursor X", cursorX, panelCoordinateXMarker.current)
           // console.log("cursor Y", cursorY, panelCoordinateYMarker.current)
