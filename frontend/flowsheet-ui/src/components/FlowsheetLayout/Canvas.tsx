@@ -2036,13 +2036,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         if (typeof data.scale === 'number') {
             data.scale = {x: data.scale, y: data.scale}
         }
-        if (elementObjectName !== "Line" &&  elementObjectName !== "Text") {
+        if (elementObjectName !== "Line") {
           
           let scaledWidth = data.scale.x
           let scaledHeight = data.scale.y
           
 
-          if (elementObjectType === "Shape") {
+          if (elementObjectType === "Shape" && elementObjectName !== "Text") {
             const svg = newEl.querySelector("svg")!
             
             scaledWidth = scaledWidth * (data.properties.width ? data.properties.width : Number(svg.getAttribute("width")))
@@ -2050,7 +2050,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
             svg.style.width = `${scaledWidth}px`
             svg.style.height = `${scaledHeight}px`
-          } else {
+          } else if (elementObjectName === "Text") {
+              newEl.style.transform = `scaleX(${data.scale.x}) scaleY(${data.scale.y})`
+
+          }
+            else {
             const image = newEl.querySelector("img")!
             scaledWidth = scaledWidth * (data.properties.width ? data.properties.width : Number(image.getAttribute("width")))
             scaledHeight = scaledHeight * (data.properties.height ? data.properties.height : Number(image.getAttribute("height")))
@@ -2407,11 +2411,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       newEl.style.top = `${y}px`
       newEl.style.left = `${x}px`
       
-      if (elementObjectName !== "Line" &&  elementObjectName !== "Text") {
-        if (elementObjectType === "Shape") {
+      if (elementObjectName !== "Line") {
+        if (elementObjectType === "Shape" && elementObjectName !== "Text") {
           const svg = newEl.querySelector("svg")!
           svg.style.width = `${initialWidth * 1.25}px`
           svg.style.height = `${initialHeight * 1.25}px`
+        } else if (elementObjectName === "Text") {
+          newEl.style.transform = `scale(1.25)`
         } else {
           const image = newEl.querySelector("img")!
           image.style.width = `${initialWidth * 1.25}px`
