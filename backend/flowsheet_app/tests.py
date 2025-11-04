@@ -799,7 +799,8 @@ class FlowsheetViewTests(APITestCase):
         
         response = self.client.patch(url, payload)
         
-        # self.
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('greater than 10 seconds', str(response.data))
 
 
 class FlowsheetObjectViewTests(APITestCase):
@@ -1739,4 +1740,727 @@ class PaginationTests(APITestCase):
         self.assertTrue(response.data['has_next'])
         self.assertTrue(response.data['has_previous'])
         
+    
 
+
+class EdgeCaseTests(APITestCase):
+    """Test cases for edge cases and error handling"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_project_with_empty_name(self):
+        """Test creating project with empty name"""
+        payload = {
+            'name': '',
+            'description': 'Test'
+        }
+        
+        response = self.client.post('/projects/', payload)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_project_with_missing_description(self):
+        """Test creating project without description"""
+        payload = {
+            'name': 'Test Project'
+        }
+        
+        response = self.client.post('/projects/', payload)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_flowsheet_with_invalid_project_id(self):
+        """Test accessing flowsheet with invalid project ID"""
+        response = self.client.get('/flowsheets/invalid-id')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_flowsheet_with_nonexistent_project_id(self):
+        """Test accessing flowsheet with nonexistent project ID"""
+        fake_uuid = str(uuid.uuid4())
+        response = self.client.get(f'/flowsheets/{fake_uuid}')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_flowsheet_object_with_properties(self):
+        """Test creating flowsheet object with custom properties"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        flowsheet = Flowsheet.objects.create(
+            name='Test Flowsheet',
+            description='Test',
+            project=project
+        )
+        shape = Shape.objects.create(name='Circle')
+        
+        url = f'/flowsheet_objects/{flowsheet.id}'
+        payload = {
+            'object_info': str({
+                'object_model_name': 'Shape',
+                'object_id': str(shape.id)
+            }),
+            'label': 'Test Object',
+            'x_coordinate': 100.0,
+            'y_coordinate': 200.0,
+            'scale': 1.0,
+            'font_size': 12.0,
+            'properties': {'color': 'red', 'size': 'large'}
+        }
+        
+        response = self.client.post(url, payload, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        obj = FlowsheetObject.objects.first()
+        self.assertEqual(obj.properties['color'], 'red')
+
+    def test_flowsheet_object_serializer_returns_formatted_object(self):
+        """Test FlowsheetObject serializer returns formatted object"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        flowsheet = Flowsheet.objects.create(
+            name='Test Flowsheet',
+            description='Test',
+            project=project
+        )
+        concentrator = Concentrator.objects.create(
+            name='Flotation Cell',
+            image_url='http://example.com/image.png',
+            description='Test concentrator',
+            creator=self.user,
+            valuable_recoverable=80.0,
+            gangue_recoverable=20.0
+        )
+        
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(Concentrator)
+        
+        FlowsheetObject.objects.create(
+            content_type=content_type,
+            object_id=concentrator.id,
+            label='Concentrator Object',
+            x_coordinate=100.0,
+            y_coordinate=200.0,
+            scale=1.0,
+            font_size=12.0,
+            flowsheet=flowsheet
+        )
+        
+        url = f'/flowsheet_objects/{flowsheet.id}'
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        obj_data = response.data[0]
+        self.assertIn('object', obj_data)
+        self.assertEqual(obj_data['object']['name'], 'Flotation Cell')
+        self.assertIn('valuable_recoverable', obj_data['object'])
+
+    def test_update_flowsheet_last_edited_on_save(self):
+        """Test flowsheet last_edited updates on save"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        flowsheet = Flowsheet.objects.create(
+            name='Test Flowsheet',
+            description='Test',
+            project=project
+        )
+        
+        original_last_edited = flowsheet.last_edited
+        
+        import time
+        time.sleep(0.1)
+        
+        flowsheet.name = 'Updated Flowsheet'
+        flowsheet.save()
+        
+        self.assertGreater(flowsheet.last_edited, original_last_edited)
+
+    def test_project_last_edited_updates_on_flowsheet_save(self):
+        """Test project last_edited updates when flowsheet is saved"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        
+        original_last_edited = project.last_edited
+        
+        import time
+        time.sleep(0.1)
+        
+        url = f'/flowsheets/{project.id}'
+        payload = {
+            'name': 'New Flowsheet',
+            'description': 'Test',
+            'footprint': 'none'
+        }
+        
+        response = self.client.post(url, payload)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        project.refresh_from_db()
+        self.assertGreater(project.last_edited, original_last_edited)
+
+    def test_flowsheet_default_preview_url(self):
+        """Test flowsheet has default preview URL"""
+        from flowsheet_app.models import DEFAULT_PREVIEW_URL
+        
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        flowsheet = Flowsheet.objects.create(
+            name='Test Flowsheet',
+            description='Test',
+            project=project
+        )
+        
+        self.assertEqual(flowsheet.background_preview_url, DEFAULT_PREVIEW_URL)
+
+    def test_project_serializer_preview_url_from_latest_flowsheet(self):
+        """Test project serializer gets preview URL from latest flowsheet"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        
+        Flowsheet.objects.create(
+            name='Old Flowsheet',
+            description='Test',
+            project=project,
+            preview_url='http://old.com/preview.png'
+        )
+        
+        import time
+        time.sleep(0.1)
+        
+        latest = Flowsheet.objects.create(
+            name='Latest Flowsheet',
+            description='Test',
+            project=project,
+            preview_url='http://latest.com/preview.png'
+        )
+        
+        url = f'/projects/{project.id}'
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data['project']['preview_url'],
+            'http://latest.com/preview.png'
+        )
+
+    def test_shape_unique_name_constraint(self):
+        """Test Shape name must be unique"""
+        Shape.objects.create(name='Circle')
+        
+        with self.assertRaises(Exception):
+            Shape.objects.create(name='Circle')
+
+    def test_flowsheet_create_view_get_method(self):
+        """Test FlowsheetCreateView GET method returns flowsheets"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        
+        Flowsheet.objects.create(
+            name='Flowsheet 1',
+            description='Test',
+            project=project
+        )
+        
+        url = f'/flowsheet_create/{project.id}'
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('project', response.data)
+        self.assertIn('flowsheets', response.data)
+        self.assertEqual(response.data['project'], 'Test Project')
+
+    def test_flowsheet_create_view_unauthorized_project(self):
+        """Test FlowsheetCreateView denies access to other user's project"""
+        other_user = User.objects.create_user(
+            email='other@example.com',
+            password='test123'
+        )
+        other_project = Project.objects.create(
+            name='Other Project',
+            description='Test',
+            creator=other_user
+        )
+        
+        url = f'/flowsheet_create/{other_project.id}'
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class SerializerValidationTests(APITestCase):
+    """Test cases for serializer validations"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_flowsheet_auto_save_without_frequency_fails(self):
+        """Test flowsheet with AUTO save type requires frequency"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        
+        url = f'/flowsheets/{project.id}'
+        payload = {
+            'name': 'Test Flowsheet',
+            'description': 'Test',
+            'save_frequency_type': 'AUTO',
+            'footprint': 'none'
+        }
+        
+        response = self.client.post(url, payload)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Save frequency must be set', str(response.data))
+
+    def test_flowsheet_auto_save_low_frequency_fails(self):
+        """Test flowsheet auto save frequency must be > 10"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        
+        url = f'/flowsheets/{project.id}'
+        payload = {
+            'name': 'Test Flowsheet',
+            'description': 'Test',
+            'save_frequency_type': 'AUTO',
+            'save_frequency': 5,
+            'footprint': 'none'
+        }
+        
+        response = self.client.post(url, payload)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('greater than 10 seconds', str(response.data))
+
+    def test_flowsheet_manual_save_without_frequency_succeeds(self):
+        """Test flowsheet with MANUAL save type doesn't require frequency"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        
+        url = f'/flowsheets/{project.id}'
+        payload = {
+            'name': 'Test Flowsheet',
+            'description': 'Test',
+            'save_frequency_type': 'MANUAL',
+            'footprint': 'none'
+        }
+        
+        response = self.client.post(url, payload)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class IntegrationTests(APITestCase):
+    """Integration tests for complete workflows"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_complete_project_workflow(self):
+        """Test complete workflow: create project, flowsheet, and objects"""
+        project_payload = {
+            'name': 'Mining Operation',
+            'description': 'Complete mining flowsheet'
+        }
+        project_response = self.client.post('/projects/', project_payload)
+        self.assertEqual(project_response.status_code, status.HTTP_201_CREATED)
+        project_id = project_response.data['id']
+        
+        flowsheet_payload = {
+            'name': 'Primary Crushing',
+            'description': 'Primary crushing circuit',
+            'footprint': 'none'
+        }
+        flowsheet_response = self.client.post(
+            f'/flowsheets/{project_id}',
+            flowsheet_payload
+        )
+        self.assertEqual(flowsheet_response.status_code, status.HTTP_201_CREATED)
+        flowsheet_id = flowsheet_response.data['id']
+        
+        crusher = Crusher.objects.create(
+            name='Jaw Crusher',
+            image_url='http://example.com/crusher.png',
+            creator=self.user
+        )
+        
+        screener = Screener.objects.create(
+            name='Vibrating Screen',
+            image_url='http://example.com/screen.png',
+            creator=self.user
+        )
+        
+        objects_payload = [
+            {
+                'object_info': str({
+                    'object_model_name': 'Crusher',
+                    'object_id': str(crusher.id)
+                }),
+                'label': 'Primary Crusher',
+                'x_coordinate': 100.0,
+                'y_coordinate': 200.0,
+                'scale': 1.0,
+                'font_size': 12.0
+            },
+            {
+                'object_info': str({
+                    'object_model_name': 'Screener',
+                    'object_id': str(screener.id)
+                }),
+                'label': 'Screen 1',
+                'x_coordinate': 300.0,
+                'y_coordinate': 200.0,
+                'scale': 1.0,
+                'font_size': 12.0
+            }
+        ]
+        
+        objects_response = self.client.post(
+            f'/flowsheet_objects/{flowsheet_id}',
+            objects_payload,
+            format='json'
+        )
+        self.assertEqual(objects_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(objects_response.data), 2)
+        
+        project_detail_response = self.client.get(f'/projects/{project_id}')
+        self.assertEqual(project_detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(project_detail_response.data['flowsheets']), 1)
+        
+        objects_list_response = self.client.get(f'/flowsheet_objects/{flowsheet_id}')
+        self.assertEqual(objects_list_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(objects_list_response.data), 2)
+
+    def test_copy_flowsheet_workflow(self):
+        """Test copying a flowsheet to create a new one"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        
+        original = Flowsheet.objects.create(
+            name='Original Flowsheet',
+            description='Test',
+            project=project,
+            preview_url='http://example.com/preview.png'
+        )
+        
+        shape = Shape.objects.create(name='Circle')
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(Shape)
+        
+        FlowsheetObject.objects.create(
+            content_type=content_type,
+            object_id=shape.id,
+            label='Original Object',
+            x_coordinate=100.0,
+            y_coordinate=200.0,
+            scale=1.0,
+            font_size=12.0,
+            flowsheet=original
+        )
+        
+        payload = {
+            'name': 'Copied Flowsheet',
+            'description': 'Copied from original',
+            'footprint': str(original.id)
+        }
+        
+        response = self.client.post(f'/flowsheets/{project.id}', payload)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        copied = Flowsheet.objects.get(name='Copied Flowsheet')
+        self.assertEqual(copied.flowsheet_objects.count(), 1)
+        self.assertEqual(copied.preview_url, original.preview_url)
+        
+        copied_obj = copied.flowsheet_objects.first()
+        self.assertEqual(copied_obj.label, 'Original Object')
+
+    def test_update_multiple_objects_workflow(self):
+        """Test updating multiple flowsheet objects in one request"""
+        project = Project.objects.create(
+            name='Test Project',
+            description='Test',
+            creator=self.user
+        )
+        flowsheet = Flowsheet.objects.create(
+            name='Test Flowsheet',
+            description='Test',
+            project=project
+        )
+        
+        shape1 = Shape.objects.create(name='Circle')
+        shape2 = Shape.objects.create(name='Square')
+        
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(Shape)
+        
+        obj1 = FlowsheetObject.objects.create(
+            content_type=content_type,
+            object_id=shape1.id,
+            label='Object 1',
+            x_coordinate=100.0,
+            y_coordinate=200.0,
+            scale=1.0,
+            font_size=12.0,
+            flowsheet=flowsheet
+        )
+        
+        obj2 = FlowsheetObject.objects.create(
+            content_type=content_type,
+            object_id=shape2.id,
+            label='Object 2',
+            x_coordinate=300.0,
+            y_coordinate=400.0,
+            scale=1.0,
+            font_size=12.0,
+            flowsheet=flowsheet
+        )
+        
+        shape3 = Shape.objects.create(name='Triangle')
+        
+        payload = [
+            {
+                'id': obj1.id,
+                'oid': str(obj1.oid),
+                'object_info': str({
+                    'object_model_name': 'Shape',
+                    'object_id': str(shape1.id)
+                }),
+                'label': 'Updated Object 1',
+                'x_coordinate': 150.0,
+                'y_coordinate': 250.0,
+                'scale': 1.5,
+                'font_size': 14.0
+            },
+            {
+                'id': obj2.id,
+                'oid': str(obj2.oid),
+                'object_info': str({
+                    'object_model_name': 'Shape',
+                    'object_id': str(shape2.id)
+                }),
+                'label': 'Updated Object 2',
+                'x_coordinate': 350.0,
+                'y_coordinate': 450.0,
+                'scale': 2.0,
+                'font_size': 16.0
+            },
+            {
+                'oid': str(uuid.uuid4()),
+                'object_info': str({
+                    'object_model_name': 'Shape',
+                    'object_id': str(shape3.id)
+                }),
+                'label': 'New Object 3',
+                'x_coordinate': 500.0,
+                'y_coordinate': 600.0,
+                'scale': 1.0,
+                'font_size': 12.0
+            }
+        ]
+        
+        response = self.client.put(
+            f'/flowsheet_objects/{flowsheet.id}/update',
+            payload,
+            format='json'
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+        
+        obj1.refresh_from_db()
+        self.assertEqual(obj1.label, 'Updated Object 1')
+        self.assertEqual(float(obj1.x_coordinate), 150.0)
+
+
+class AuthenticationIntegrationTests(APITestCase):
+    """Integration tests for authentication flows"""
+
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            email='superuser@example.com',
+            password='superusersecurepassword123'
+        )
+        self.user = User.objects.create_user(
+            email='user123@example.com',
+            password='userpass123'
+        )
+        
+
+    def test_complete_registration_and_login_flow(self):
+        """Test complete user registration and login"""
+        register_payload = {
+            'email': 'newuser@example.com',
+            'password': 'securepass123'
+        }
+        register_response = self.client.post('/auth/register/', register_payload)
+        self.assertEqual(register_response.status_code, status.HTTP_201_CREATED)
+        
+        login_payload = {
+            'email': 'newuser@example.com',
+            'password': 'securepass123'
+        }
+        login_response = self.client.post('/auth/token/', login_payload)
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', login_response.data)
+        self.assertIn('refresh', login_response.data)
+        
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {login_response.data["access"]}'
+        )
+        user_response = self.client.get('/auth/user/')
+        self.assertEqual(user_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(user_response.data['email'], 'newuser@example.com')
+        
+
+
+    @patch('authentication.views.Thread')
+    def test_complete_password_reset_flow(self, mock_thread):
+        """Test complete password reset flow"""
+        user = User.objects.create_user(
+            email='user@example.com',
+            password='oldpass123'
+        )
+        
+        request_payload = {
+            'email': 'user@example.com',
+            'host': 'http://localhost:3000'
+        }
+        request_response = self.client.post(
+            '/auth/request-password-reset/',
+            request_payload
+        )
+        self.assertEqual(request_response.status_code, status.HTTP_200_OK)
+        
+        user.refresh_from_db()
+        token = user.password_reset_token
+        self.assertIsNotNone(token)
+        
+        verify_payload = {'token': token}
+        verify_response = self.client.post(
+            '/auth/password-reset-verification/',
+            verify_payload
+        )
+        self.assertEqual(verify_response.status_code, status.HTTP_200_OK)
+        
+        reset_payload = {
+            'token': token,
+            'email': 'user@example.com',
+            'new_password': 'newpass123',
+            'confirm_password': 'newpass123'
+        }
+        reset_response = self.client.post('/auth/password-reset/', reset_payload)
+        self.assertEqual(reset_response.status_code, status.HTTP_200_OK)
+        
+        login_payload = {
+            'email': 'user@example.com',
+            'password': 'newpass123'
+        }
+        login_response = self.client.post('/auth/token/', login_payload)
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+ 
+
+    def test_update_other_user_screener_fails(self):
+        """Test updating another user's screener fails"""
+
+        login_payload = {
+            'email': 'user123@example.com',
+            'password': 'userpass123'
+        }
+        login_response = self.client.post('/auth/token/', login_payload)
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', login_response.data)
+        self.assertIn('refresh', login_response.data)
+        
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {login_response.data["access"]}'
+        )
+        other_user = User.objects.create_user(
+            email='other@example.com',
+            password='test123'
+        )
+        screener = Screener.objects.create(
+            name='Other Screener',
+            image_url='http://example.com/image.png',
+            creator=other_user
+        )
+        url = f'/screeners/{screener.id}'
+        payload = {'name': 'Hacked Screener'}
+        
+        response = self.client.patch(url, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        """ not found because
+        qs = self.get_queryset() === in our case returns none alraady
+        obj = get_object_or_404(qs, pk=...) == throws a not found error
+        self.check_object_permissions(request, obj) == doesn't get here 
+
+        hence why we get a 404 instead of forbidden.
+        """
+        screener.refresh_from_db()
+        self.assertNotEqual(screener.name, payload['name'])
+        self.assertEqual(screener.name, "Other Screener")
+
+    def test_superuser_can_update_any_screener(self):
+        """Test superuser can update any screener"""
+        self.client.force_authenticate(user=self.superuser)
+        screener = Screener.objects.create(
+            name='Test Screener',
+            image_url='http://example.com/image.png',
+            creator=self.user
+        )
+        url = f'/screeners/{screener.id}'
+        payload = {'name': 'Admin Updated'}
+        
+        response = self.client.patch(url, payload)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        screener.refresh_from_db()
+        self.assertEqual(screener.name, payload['name'])
