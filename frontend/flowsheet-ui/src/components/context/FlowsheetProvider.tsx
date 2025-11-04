@@ -70,7 +70,7 @@ export type singleObjectDataType = {
   label: string,
   x_coordinate: number,
   y_coordinate: number,
-  scale: number,
+  scale: {x: number, y: number} | number,
   font_size: number,
   description: string,
   textActive?: boolean, // for text elements
@@ -92,6 +92,8 @@ export type singleObjectDataType = {
   },
 
   properties: {
+    width: number,
+    height: number,
     nextObject: string[],
     prevObject: string[],
     gape?: string,

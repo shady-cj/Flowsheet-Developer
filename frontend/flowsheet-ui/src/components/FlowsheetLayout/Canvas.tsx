@@ -632,9 +632,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         
       // Getting the scale of the shape
-      const scale = +getComputedStyle(obj).transform.replace("matrix(", "").split(",")[0].trim() // Since scale x,y would be the same
-      const extrasX = objectWidth - (objectWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
-      const extrasY = objectHeight - (objectHeight / scale)
+      // const scale = +getComputedStyle(obj).transform.replace("matrix(", "").split(",")[0].trim() // Since scale x,y would be the same
+      // console.log("scale", scale)
+      const {x: scaleX, y: scaleY} = objectData.current[obj.id].scale as {x: number, y: number}
+      // console.log("scale - x, y", scaleX, scaleY)
+      const extrasX = objectWidth - (objectWidth / scaleX) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
+      const extrasY = objectHeight - (objectHeight / scaleY)
       const scaledObjectOffsetY = objectOffsetY - (extrasY / 2)
       const scaledObjectOffsetX = objectOffsetX - (extrasX / 2)
 
@@ -1076,9 +1079,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
         // Getting the scale of the shape
-        const scale = +getComputedStyle(shape).transform.replace("matrix(", "").split(",")[0].trim()
-        const extrasX = shapeWidth - (shapeWidth / scale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
-        const extrasY = shapeHeight - (shapeHeight / scale)
+        // const scale = +getComputedStyle(shape).transform.replace("matrix(", "").split(",")[0].trim()
+        const {x: scaleX, y: scaleY} = objectData.current[obj.id].scale as {x: number, y: number}
+        const extrasX = shapeWidth - (shapeWidth / scaleX) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
+        const extrasY = shapeHeight - (shapeHeight / scaleY)
         const scaledShapeOffsetY = shapeOffsetY - (extrasY / 2)
         const scaledShapeOffsetX = shapeOffsetX - (extrasX / 2)
 
@@ -2028,9 +2032,33 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const y = data.properties.coordinates.lastY
         newEl.style.top = `${y}px`
         newEl.style.left = `${x}px`
-       
+        
+        if (typeof data.scale === 'number') {
+            data.scale = {x: data.scale, y: data.scale}
+        }
+        if (elementObjectName !== "Line" &&  elementObjectName !== "Text") {
+          
+          let scaledWidth = data.scale.x
+          let scaledHeight = data.scale.y
+          
 
-        if (elementObjectName !== "Line") newEl.style.transform = `scale(${data.scale})`
+          if (elementObjectType === "Shape") {
+            const svg = newEl.querySelector("svg")!
+            
+            scaledWidth = scaledWidth * (data.properties.width ? data.properties.width : Number(svg.getAttribute("width")))
+            scaledHeight = scaledHeight * (data.properties.height ? data.properties.height : Number(svg.getAttribute("height")))
+
+            svg.style.width = `${scaledWidth}px`
+            svg.style.height = `${scaledHeight}px`
+          } else {
+            const image = newEl.querySelector("img")!
+            scaledWidth = scaledWidth * (data.properties.width ? data.properties.width : Number(image.getAttribute("width")))
+            scaledHeight = scaledHeight * (data.properties.height ? data.properties.height : Number(image.getAttribute("height")))
+            
+            image.style.width = `${scaledWidth}px`
+            image.style.height = `${scaledHeight}px`
+          }
+        } 
         newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
         newEl.addEventListener("mouseup", (e) => handleMouseUp(e, newEl));
         canvasRef.current.appendChild(newEl)
@@ -2084,7 +2112,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       currentObject.current?.classList.remove('current-object')
       const elementObjectType = element.getAttribute("data-object-type")! as objectType // Shape, Grinder, Crusher
       const elementObjectName = element.getAttribute("data-object-name") || null //Circle, Text etc...
-  
+      /**
+       * 
+       * initial width
+       */
+      const initialWidth = element.getBoundingClientRect().width
+      const initialHeight = element.getBoundingClientRect().height
+      
+      console.log('element', element, initialWidth, initialHeight)
+
+
       const newEl = element.cloneNode(true) as HTMLElement
       const canvasX = canvasRef.current.getBoundingClientRect().x
       const canvasY = canvasRef.current.getBoundingClientRect().y
@@ -2337,7 +2374,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           label: defaultElementLabel,
           x_coordinate: 0,
           y_coordinate: 0,
-          scale: 1.25,
+          scale: {x: 1.25, y: 1.25},
           font_size: 14,
           description: "",
           object_info: {
@@ -2345,6 +2382,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             object_id: elementId
           },
           properties: {
+            width: initialWidth,
+            height: initialHeight,
             nextObject: [],
             prevObject: [],
             coordinates: defaultCoords
@@ -2368,7 +2407,17 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       newEl.style.top = `${y}px`
       newEl.style.left = `${x}px`
       
-      if (elementObjectName !== "Line") newEl.style.transform = "scale(1.25)"
+      if (elementObjectName !== "Line" &&  elementObjectName !== "Text") {
+        if (elementObjectType === "Shape") {
+          const svg = newEl.querySelector("svg")!
+          svg.style.width = `${initialWidth * 1.25}px`
+          svg.style.height = `${initialHeight * 1.25}px`
+        } else {
+          const image = newEl.querySelector("img")!
+          image.style.width = `${initialWidth * 1.25}px`
+          image.style.height = `${initialHeight * 1.25}px`
+        }
+      } 
       LineConnector(newEl)
       newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
       newEl.addEventListener("mouseup", (e) => handleMouseUp(e, newEl));
@@ -2433,6 +2482,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // console.log(e.clientY - CanvasContainer.offsetTop)
         if (onPanelResize.current) {
           const MAXSCALE = 3
+          const MINSCALE = 0.5
           const panel = currentPanel.current
           const obj = currentObject.current
           const objData = objectData.current[obj.id]
@@ -2451,6 +2501,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           console.log("start cursor", panelMouseStart)
           console.log("current mouse", e.clientX, e.clientY)
 
+
           // console.log("cursor X", cursorX, panelCoordinateXMarker.current)
           // console.log("cursor Y", cursorY, panelCoordinateYMarker.current)
           if (panelCoordinateXMarker.current === null || panelCoordinateYMarker.current === null){
@@ -2465,49 +2516,20 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           // console.log("current scale", currentScale)
           if (panel.classList.contains('resize-panel-bl')) {
-            if ((cursorX < panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = true 
-            else if ((cursorX > panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = false
-            else return
+  
           }
           else if (panel.classList.contains('resize-panel-br')) {
-            if ((cursorX > panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = true 
-            else if ((cursorX < panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = false
-            else return
+
           }
           else if (panel.classList.contains('resize-panel-tl')){
-            if ((cursorX < panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = true 
-            else if ((cursorX > panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = false
-            else return
+
           }
           else if (panel.classList.contains('resize-panel-tr')) {
-            if ((cursorX > panelCoordinateXMarker.current) && (cursorY < panelCoordinateYMarker.current)) scaleOut = true 
-            else if ((cursorX < panelCoordinateXMarker.current) && (cursorY > panelCoordinateYMarker.current)) scaleOut = false
-            else return
+      
           }
 
 
-          // console.log('scale out', scaleOut)
-          if (scaleOut) {
-            if (currentScale < MAXSCALE) 
-              currentScale += 0.01
-            else
-              currentScale = MAXSCALE
-            
-            currentScale = parseFloat(currentScale.toFixed(3))
-            obj.style.transform = `scale(${currentScale})`
-            objData.scale = currentScale
-
-          } else {
-            if (currentScale > 1) 
-              currentScale -= 0.01
-            else 
-              currentScale = 1
-
-            currentScale = parseFloat(currentScale.toFixed(3))
-            
-            obj.style.transform = `scale(${currentScale})`
-            objData.scale = currentScale
-          }
+        
           mouseMoved.current = true
           return;
         }
@@ -2518,7 +2540,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             DrawPoint(e, currentActivePoint.current)
           } else {
             const obj = currentObject.current as HTMLElement
-            const objScale = objectData.current[obj.id].scale
+            const objScale = objectData.current[obj.id].scale as {x: number, y: number}
 
             let offsetX = 10 
             let offsetY = 10 
@@ -2540,8 +2562,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             } else {
               const shapeWidth = obj.getBoundingClientRect().width
               const shapeHeight = obj.getBoundingClientRect().height
-              const extrasX = shapeWidth - (shapeWidth / objScale) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
-              const extrasY = shapeHeight - (shapeHeight / objScale)
+              const extrasX = shapeWidth - (shapeWidth / objScale.x) // in the case of scaled object we need to know how much they scaled by so we can subtract the excess while positioning our lines
+              const extrasY = shapeHeight - (shapeHeight / objScale.y)
               offsetX = 10 + extrasX / 2
               offsetY = 10 + extrasY / 2
               offsetRight = canvasContainerContentWidth - (shapeWidth + extrasX / 4)
