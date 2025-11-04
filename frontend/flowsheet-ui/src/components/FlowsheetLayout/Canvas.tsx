@@ -2585,10 +2585,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           panelResizeScaleMarker.current = {x: newScaleX, y: newScaleY}
           mouseMoved.current = true
 
-          if (newOffsetLeft)
+          if (newOffsetLeft){
+            if (newOffsetLeft < 10) newOffsetLeft = 10
             obj.style.left = `${newOffsetLeft}px`
-          if (newOffsetTop)
+          }
+          if (newOffsetTop) {
+            if (newOffsetTop < 10) newOffsetTop = 10
             obj.style.top = `${newOffsetTop}px`
+          }
           return;
         }
 
