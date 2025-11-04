@@ -4,7 +4,7 @@ const Ellipse = ({objectType, objectId}: {objectType: string, objectId: string})
   return (
     <div id={objectId} data-object-name="Ellipse" data-object-type={objectType}  className="objects bg-transparent cursor-grab" draggable={true} onDragStart={(e)=>{e.dataTransfer.setData("elementId", (e.target as HTMLDivElement).id)}}>
         <svg width="44" height="28" viewBox="0 0 44 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 27C27.6729 27 32.8572 25.6224 36.6566 23.3428C40.4361 21.0751 43 17.803 43 14C43 10.197 40.4361 6.92493 36.6566 4.65723C32.8572 2.37758 27.6729 1 22 1C16.3271 1 11.1428 2.37758 7.34337 4.65723C3.56386 6.92493 1 10.197 1 14C1 17.803 3.56386 21.0751 7.34337 23.3428C11.1428 25.6224 16.3271 27 22 27Z" stroke="#4D4D4D" strokeWidth="2"/>
+          <path d="M22 27C27.6729 27 32.8572 25.6224 36.6566 23.3428C40.4361 21.0751 43 17.803 43 14C43 10.197 40.4361 6.92493 36.6566 4.65723C32.8572 2.37758 27.6729 1 22 1C16.3271 1 11.1428 2.37758 7.34337 4.65723C3.56386 6.92493 1 10.197 1 14C1 17.803 3.56386 21.0751 7.34337 23.3428C11.1428 25.6224 16.3271 27 22 27Z" stroke="#4D4D4D" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
           </svg>
 
         </div>
