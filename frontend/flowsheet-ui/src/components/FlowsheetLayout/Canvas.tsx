@@ -72,8 +72,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const onPanelResize = useRef(false)
     const panelMouseStart = useRef<{x: number, y: number}>({x: 0, y: 0})
     const mouseMoved = useRef(false)
-    const panelCoordinateXMarker = useRef<number | null>(null)
-    const panelCoordinateYMarker = useRef<number | null>(null)
+    // const panelCoordinateXMarker = useRef<number | null>(null)
+    // const panelCoordinateYMarker = useRef<number | null>(null)
+    const panelResizeScaleMarker = useRef<{scale: {x: number, y: number}, position: {x: number, y: number}}>({scale: {x: 0, y: 0}, position: {x: 0, y: 0}}) 
     const currentPanel = useRef<HTMLSpanElement>(null!)
     const currentObject = useRef<HTMLElement>(null!)
     const prevActiveObject = useRef<HTMLElement | null>(null)
@@ -1461,8 +1462,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
       if (onPanelResize.current) {
         onPanelResize.current = false
-        panelCoordinateXMarker.current = null
-        panelCoordinateYMarker.current = null
+        const obj = currentObject.current
+        const objData = objectData.current[obj.id]
+        objData.scale = {x: panelResizeScaleMarker.current.scale.x, y: panelResizeScaleMarker.current.scale.y}
         
       }
       if (onMouseDown.current) {
@@ -2044,9 +2046,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           if (elementObjectType === "Shape" && elementObjectName !== "Text") {
             const svg = newEl.querySelector("svg")!
-            
-            scaledWidth = scaledWidth * (data.properties.width ? data.properties.width : Number(svg.getAttribute("width")))
-            scaledHeight = scaledHeight * (data.properties.height ? data.properties.height : Number(svg.getAttribute("height")))
+            if (!data.properties.width)
+              data.properties.width = Number(svg.getAttribute("width"))
+            if (!data.properties.height)
+              data.properties.height = Number(svg.getAttribute("height"))
+          
+            scaledWidth *= data.properties.width
+            scaledHeight *= data.properties.height
 
             svg.style.width = `${scaledWidth}px`
             svg.style.height = `${scaledHeight}px`
@@ -2055,8 +2061,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           } else {
             const image = newEl.querySelector("img")!
-            scaledWidth = scaledWidth * (data.properties.width ? data.properties.width : Number(image.getAttribute("width")))
-            scaledHeight = scaledHeight * (data.properties.height ? data.properties.height : Number(image.getAttribute("height")))
+            if (!data.properties.width)
+              data.properties.width = Number(image.getAttribute("width"))
+            if (!data.properties.height)
+              data.properties.height = Number(image.getAttribute("height"))
+            scaledWidth *= data.properties.width
+            scaledHeight *= data.properties.height 
             
             image.style.width = `${scaledWidth}px`
             image.style.height = `${scaledHeight}px`
@@ -2486,12 +2496,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const handleMouseMove = (e: MouseEvent) => {
         // console.log(e.clientY - CanvasContainer.offsetTop)
         if (onPanelResize.current) {
-          const MAXSCALE = 3
-          const MINSCALE = 0.5
+          const MAXSCALE = 2.5
+          const MINSCALE = 0.8
           const panel = currentPanel.current
           const obj = currentObject.current
           const objData = objectData.current[obj.id]
-          let currentScale = objData.scale
+          const scale = objData.scale as {x: number, y: number}
+
           let scaleOut = true;
           
           
@@ -2501,41 +2512,88 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           // const objectOffsetY = obj.offsetTop
           // const objectOffsetYBottom = obj.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
           // const objectOffsetXRight = obj.getBoundingClientRect().right - canvasRef.current.getBoundingClientRect().x
-          const cursorX = e.clientX - canvasRef.current.getBoundingClientRect().x
-          const cursorY = e.clientY - canvasRef.current.getBoundingClientRect().y
-
-          console.log("start cursor", panelMouseStart)
-          console.log("current mouse", e.clientX, e.clientY)
+          // const cursorX = e.clientX - canvasRef.current.getBoundingClientRect().x
+          // const cursorY = e.clientY - canvasRef.current.getBoundingClientRect().y
 
 
           // console.log("cursor X", cursorX, panelCoordinateXMarker.current)
           // console.log("cursor Y", cursorY, panelCoordinateYMarker.current)
-          if (panelCoordinateXMarker.current === null || panelCoordinateYMarker.current === null){
-            panelCoordinateXMarker.current = cursorX
-            panelCoordinateYMarker.current = cursorY
-            return
-          }
+          // if (panelCoordinateXMarker.current === null || panelCoordinateYMarker.current === null){
+          //   panelCoordinateXMarker.current = cursorX
+          //   panelCoordinateYMarker.current = cursorY
+          //   return
+          // }
 
 
+          const xDiff = e.clientX - panelMouseStart.current.x
+          const yDiff = e.clientY - panelMouseStart.current.y 
+          const scaledWidth =  objData.properties.width * scale.x
+          const scaledHeight =  objData.properties.height * scale.y
+          let newScaledWidth = scaledWidth + xDiff
+          let newScaledHeight = scaledHeight + yDiff
+          let newScaleX = newScaledWidth / objData.properties.width 
+          let newScaleY = newScaledHeight / objData.properties.height 
+          let elementObject = null
+          // console.log("new scales", newScaleX, newScaleY)
+          // console.log("e clieent x", e.clientX)
+          // console.log("panelMouseX", panelMouseStart.current.x)
 
-        
+          const image = obj.querySelector('img')!
+          const svg = obj.querySelector('svg')
+
+          if (image) elementObject = image 
+          else if (svg) elementObject = svg 
+          else return 
+
+ 
+
 
           // console.log("current scale", currentScale)
           if (panel.classList.contains('resize-panel-bl')) {
-  
-          }
-          else if (panel.classList.contains('resize-panel-br')) {
+            // // console.log("objData", objData)
+            // newScaledWidth = scaledWidth - xDiff
+            // newScaledHeight = scaledHeight - yDiff
+            // console.log("rect", obj.getBoundingClientRect())
+            // console.log("xDiff", xDiff)
+            // console.log("offset left", obj.offsetLeft)
+            // const objCoordX = obj.offsetLeft
+            
+            // const newCoordX = objCoordX + xDiff
+            // console.log("new coordx", newCoordX)
+            // obj.style.left = `${newCoordX}px`
 
+            // objData.x_coordinate = obj
           }
+          // else if (panel.classList.contains('resize-panel-br')) {
+
+          // }
           else if (panel.classList.contains('resize-panel-tl')){
 
           }
-          else if (panel.classList.contains('resize-panel-tr')) {
+          // else if (panel.classList.contains('resize-panel-tr')) {
       
+          // }
+
+          if (newScaleX > MAXSCALE) {
+            newScaleX = MAXSCALE
+            newScaledWidth = MAXSCALE * objData.properties.width
+          } else if (newScaleX < MINSCALE) {
+            newScaleX = MINSCALE
+            newScaledWidth = MINSCALE * objData.properties.width
           }
 
+          if (newScaleY > MAXSCALE) {
+            newScaleY = MAXSCALE 
+            newScaledHeight = MAXSCALE * objData.properties.height
+          } else if (newScaleY < MINSCALE) {
+            newScaleY = MINSCALE 
+            newScaledHeight = MINSCALE * objData.properties.height
+          }
 
+          elementObject.style.width = `${newScaledWidth}px`
+          elementObject.style.height = `${newScaledHeight}px`
         
+          panelResizeScaleMarker.current.scale = {x: newScaleX, y: newScaleY}
           mouseMoved.current = true
           return;
         }
@@ -2581,6 +2639,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             let nextY = e.clientY - objectCoordinate.startY + objectCoordinate.lastY
             // console.log(nextX, "nextX")
             // console.log(offsetX, "offsetX")
+
+            console.log("offsetX", offsetX)
+            console.log("offsetY", offsetY)
           
             // console.log(nextX, canvasContainerContentWidth, "canvasContainerContentWidth")
             nextX = nextX < offsetX ? parseFloat(offsetX.toFixed(6)) : nextX > offsetRight ? parseFloat(offsetRight.toFixed(6)) : parseFloat(nextX.toFixed(6))
