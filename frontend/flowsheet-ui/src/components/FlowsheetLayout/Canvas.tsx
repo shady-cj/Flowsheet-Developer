@@ -2436,6 +2436,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           let currentScale = objData.scale
           let scaleOut = true;
 
+          
+
           // const objectOffsetX = obj.offsetLeft
           // const objectOffsetY = obj.offsetTop
           // const objectOffsetYBottom = obj.getBoundingClientRect().bottom - canvasRef.current.getBoundingClientRect().y
