@@ -2055,9 +2055,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         newEl.style.top = `${y}px`
         newEl.style.left = `${x}px`
         
+    
         if (typeof data.scale === 'number') {
             data.scale = {x: data.scale, y: data.scale}
         }
+
+        
         if (elementObjectName !== "Line") {
           
           let scaledWidth = data.scale.x
@@ -2156,7 +2159,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const initialWidth = element.getBoundingClientRect().width
       const initialHeight = element.getBoundingClientRect().height
       
-      console.log('element', element, initialWidth, initialHeight)
 
 
       const newEl = element.cloneNode(true) as HTMLElement
@@ -2521,8 +2523,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const scale = objData.scale as {x: number, y: number}
           let newOffsetLeft = null
           let newOffsetTop = null
-          let scaleOut = true;
-          
+          // let scaleOut = true;
+          console.log("objdata", objData)
           
           
 

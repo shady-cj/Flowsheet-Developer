@@ -83,7 +83,7 @@ export async function uploadObject(object: objectDataType, flowsheetID: string, 
                     entry.properties = JSON.parse(entry.properties)
                     entry.x_coordinate = parseFloat(entry.x_coordinate)
                     entry.y_coordinate = parseFloat(entry.y_coordinate)
-                    entry.scale = parseFloat(entry.scale)
+                    entry.scale = typeof entry.scale === "number" ? parseFloat(entry.scale) : entry.scale
                     entry.font_size = parseFloat(entry.font_size)
                     objects[entry.oid] = entry
                 }
@@ -130,7 +130,7 @@ export async function loadObjects(flowsheetID: string) {
                 entry.properties = JSON.parse(entry.properties)
                 entry.x_coordinate = parseFloat(entry.x_coordinate)
                 entry.y_coordinate = parseFloat(entry.y_coordinate)
-                entry.scale = parseFloat(entry.scale)
+                entry.scale = typeof entry.scale === "number" ? parseFloat(entry.scale) : entry.scale
                 entry.font_size = parseFloat(entry.font_size)
                 objects[entry.oid] = entry
                 
