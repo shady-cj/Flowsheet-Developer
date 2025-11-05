@@ -65,7 +65,7 @@ const FormCreate = ({title, nameField, descriptionField, action, param, buttonTi
                         
                     </select>
                     <small><em>You can select a flowsheet footprint to build your new flowsheet from</em></small>
-                    <input name="projectId" value={param.id} hidden/>
+                    <input name="projectId" value={param.id} defaultValue={param.id} hidden/>
                 </section> : ""
             }
             {

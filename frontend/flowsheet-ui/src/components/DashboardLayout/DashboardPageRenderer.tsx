@@ -86,12 +86,34 @@ const DashboardPageRenderer = () => {
     }, [type])
 
     const resetPage = () => {
-        pageNumber.current = initialPageNumberState
+        pageNumber.current = initialPageNumberState  
         doneFetching.current = initialDoneFetchingState
         setBottomPageLoading(false)
         setFlowsheets([])
         setProjects([])
     }
+
+    const revalidate = async (type: "projects" | "flowsheets") => {
+        setLoading(true)
+        if (type === "projects") {
+            
+            pageNumber.current.project = initialPageNumberState.project
+            doneFetching.current = {...doneFetching.current, project: false}
+            setProjects([])
+            await getProjects()
+            pageNumber.current = {...pageNumber.current, project: pageNumber.current.project + 1}
+            
+        } 
+        else {
+            pageNumber.current.flowsheet = initialPageNumberState.flowsheet
+            doneFetching.current = {...doneFetching.current, flowsheet: false}
+            setFlowsheets([])
+            await getFlowsheets()
+            pageNumber.current = {...pageNumber.current, flowsheet: pageNumber.current.flowsheet + 1}
+        }
+        setLoading(false)
+    }
+
 
     useEffect(() => {
 
@@ -106,7 +128,9 @@ const DashboardPageRenderer = () => {
             if (!(currentType.current === type && fetchedProjects.current) && pageNumber.current.project < 1){
                 setLoading(true)
                 getProjects()
-                pageNumber.current = {...pageNumber.current, project: pageNumber.current.project + 1}
+                setTimeout(() => {
+                    pageNumber.current = {...pageNumber.current, project: pageNumber.current.project + 1}
+                }, 500)
             }
 
         } else {
@@ -114,7 +138,10 @@ const DashboardPageRenderer = () => {
             if (!(currentType.current === type && fetchedFlowsheets.current) && pageNumber.current.flowsheet < 1) {
                 setLoading(true)
                 getFlowsheets()
-                pageNumber.current = {...pageNumber.current, flowsheet: pageNumber.current.flowsheet + 1}
+                setTimeout(()=> {
+                    pageNumber.current = {...pageNumber.current, flowsheet: pageNumber.current.flowsheet + 1}
+                }, 500)
+
             }
 
 
@@ -154,6 +181,8 @@ const DashboardPageRenderer = () => {
                 }
             }
         }
+
+        
         dashboardMain?.addEventListener("scroll", handleScroll)
         return () => {
             dashboardMain?.removeEventListener("scroll", handleScroll)
@@ -174,8 +203,8 @@ const DashboardPageRenderer = () => {
                 {
                     loading ? <Loader fullScreen={false} offsetHeightClass='h-[300px]' color='black'/> : tType === "projects" && projects?.length ?
                     
-                    <CardRenderer type="projects" setData={setProjects} data={projects} revalidate={getProjects}/> :
-                    tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} revalidate={getFlowsheets} />  : 
+                    <CardRenderer type="projects" setData={setProjects} data={projects} revalidate={() => revalidate("projects")}/> :
+                    tType !== "projects" && flowsheets?.length ? <CardRenderer type="flowsheets" setData={setFlowsheets} data={flowsheets} revalidate={() => revalidate("flowsheets")} />  : 
                     
                     <div>
 
