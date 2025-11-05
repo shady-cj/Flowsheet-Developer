@@ -47,10 +47,11 @@ export const htmlToImageConvert = (canvasRef: HTMLDivElement, objectData: object
 const getMaxWidthAndHeight = (objectData: objectDataType): [number, number] => {
     let maxWidth = 0, maxHeight = 0;
     for (const key in objectData) {
+        const scale = objectData[key].scale as {x: number, y: number}
         let projectedHeight = 0;
-        const ALLOWANCE = 20 * objectData[key].scale;
-        const heightSpread = 100 * objectData[key].scale;
-        const widthSpread = 100 * objectData[key].scale;
+        const ALLOWANCE = 20 * scale.y;
+        const heightSpread = 100 * scale.y;
+        const widthSpread = 100 * scale.x;
         // console.log("object data", objectData[key])
         // console.log(objectData[key].object)
 

@@ -188,6 +188,12 @@ class Flowsheet(models.Model):
         return "now" if ago == "0 minutes" else ago
 
 
+
+def default_scale():
+    return {"x": 1.25, "y": 1.25}
+
+
+
 class FlowsheetObject(models.Model):
     content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, null=True, blank=True
@@ -205,9 +211,7 @@ class FlowsheetObject(models.Model):
     y_coordinate = models.DecimalField(
         max_digits=12, decimal_places=6
     )  # how far is it from the container y-axis
-    scale = models.DecimalField(
-        max_digits=5, decimal_places=2
-    )  # the scale of the object? how big or how small
+    scale = models.JSONField(default=default_scale)  # the scale of the object? how big or how small
     font_size = models.DecimalField(
         max_digits=10, decimal_places=2
     )  # the font size in pixels
