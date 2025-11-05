@@ -68,6 +68,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         canvasRef, calculateBondsEnergy, communitionListForBondsEnergy, 
         pageNotFound, canvasLoading, isEdited
       } = useContext(FlowsheetContext)
+    const CanvasParentContainer = useRef<HTMLElement>(null!)
     const [isOpened, setIsOpened] = useState<boolean>(false)
     const onPanelResize = useRef(false)
     const panelMouseStart = useRef<{x: number, y: number}>({x: 0, y: 0})
@@ -89,7 +90,24 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const [formState, setFormState] = useState<formStateObjectType | null>(null)
     const primaryCrusherInUse = useRef(false)
     const lineCapCoordinate = "10,22 18,5 10,9 2,5"
-    const router = useRouter()
+    const animationFrameRef = useRef<number | null>(null)
+    const eventTracker = useRef<{
+      mouseDownEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLElement | null},
+      panelMouseDownEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLSpanElement | null},
+      mouseUpEventInvoked: {status: boolean, event: MouseEvent | null, element?: HTMLElement},
+      createMultiplePointEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLSpanElement | null},
+      mouseMoveEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLElement | null},
+      generalMouseUpEventInvoked: {status: boolean, event: MouseEvent | null}
+    }>({
+      mouseDownEventInvoked: {status: false, event: null, element: null}, 
+      panelMouseDownEventInvoked: {status: false, event: null, element: null}, 
+      mouseUpEventInvoked: {status: false, event: null, element: undefined}, 
+      createMultiplePointEventInvoked: {status: false, event: null, element: null},
+      mouseMoveEventInvoked: {status: false, event: null, element: null},
+      generalMouseUpEventInvoked: {status: false, event: null}
+    })
+
+    // const router = useRouter()
 
 
     const validatePositiveInteger = (attribute: keyof formStateObjectType, title: string) => {
@@ -1471,6 +1489,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
       onMouseDown.current = false
       mouseMoved.current = false
+      eventTracker.current.mouseUpEventInvoked = {status: false, event: null, element: undefined}
+      eventTracker.current.generalMouseUpEventInvoked = {status: false, event: null}
     }, [LineConnector, objectData, setIsEdited])
 
     const handleMouseUpGeneral = useCallback((e: MouseEvent) => {
@@ -1479,10 +1499,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     },[handleMouseUpUtil])
     
 
-    const handleMouseDown = useCallback((e: MouseEvent, obj: HTMLElement) => {
+    const handleMouseDown = useCallback((e: MouseEvent | null, obj: HTMLElement) => {
+      if (!e) return
       // console.log("event target", e.target)
-      // console.log("obj", obj)
+      // console.log("obj", obj)e
       if (obj.classList.contains("point-indicators")) {
+          console.log("obj", obj)
           currentActivePoint.current = obj
           obj.style.transform = "scale(1.5) translate(-40%, -40%)"
           // console.log(e.clientX, e.clientY)
@@ -1497,14 +1519,21 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
       // currentObject.current?.querySelector(".object-details-tooltip")?.classList.add("show-tooltip")
       onMouseDown.current = true
-      document.removeEventListener("mouseup", handleMouseUpGeneral)
+      document.removeEventListener("mouseup", (e) => {
+        eventTracker.current.generalMouseUpEventInvoked = {status: true, event: e}
+      })
+      eventTracker.current.mouseDownEventInvoked = {status: false, event: null, element: null}
+
       // console.log(e)
-    }, [handleMouseUpGeneral, objectData])
+    }, [objectData])
     
-    const handleMouseUp = useCallback((e: MouseEvent, obj?: HTMLElement) => {
+    const handleMouseUp = useCallback((e: MouseEvent | null, obj?: HTMLElement) => {
+      if (!e) return
       // console.log("called mouseup in mouseup !!!", onPanelResize.current, "mouse down", onMouseDown.current)
       if (onMouseDown.current || onPanelResize.current) {
-        document.removeEventListener("mouseup", handleMouseUpGeneral)
+        document.removeEventListener("mouseup", (e) => {
+          eventTracker.current.generalMouseUpEventInvoked = {status: true, event: e}
+        })
       }
       handleMouseUpUtil()
       
@@ -1522,10 +1551,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
 
       
-    }, [handleMouseUpGeneral, handleMouseUpUtil, objectData,calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed])
+    }, [handleMouseUpUtil, objectData,calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed])
 
 
-    const createMultiplePoint = useCallback((e: MouseEvent, point: HTMLSpanElement) => {
+    const createMultiplePoint = useCallback((e: MouseEvent | null, point: HTMLSpanElement | null) => {
+      if (!e || !point) return
       // Ability of a line to have multiple breakpoints on a line instead of just the regular straight line (That's why we are using the svg path element)
       const pointDetails = pointStore.current[point.id][1]
 
@@ -1535,9 +1565,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const newPointUid = "point-"+uuidv4()
         newPoint.classList.add("point-indicators")
         newPoint.setAttribute("id", newPointUid)
-        newPoint.addEventListener("mousedown", (e)=> handleMouseDown(e, newPoint)) 
-        newPoint.addEventListener("mouseup", handleMouseUp)
-        newPoint.addEventListener("dblclick", e => createMultiplePoint(e, newPoint))
+        newPoint.addEventListener("mousedown", (e) => {
+          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: newPoint}
+        }) 
+        newPoint.addEventListener("mouseup", (e) => {
+          eventTracker.current.mouseUpEventInvoked = {status: true, event: e}
+        })
+        newPoint.addEventListener("dblclick", e => {
+          eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: newPoint}
+        })
         newPoint.style.top = point.style.top
         newPoint.style.left = point.style.left
         
@@ -1567,8 +1603,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
       }
 
+      eventTracker.current.createMultiplePointEventInvoked = {status: false, event: null, element: null}
 
-    }, [handleMouseDown, handleMouseUp, objectData])
+    }, [objectData])
 
 
 
@@ -1915,9 +1952,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             newPoint.classList.add("point-indicators")
             newPoint.classList.add("hide-indicator")
             newPoint.setAttribute("id", newPointUid)
-            newPoint.addEventListener("mousedown", (e)=> handleMouseDown(e, newPoint)) 
-            newPoint.addEventListener("mouseup", handleMouseUp)
-            newPoint.addEventListener("dblclick", e => createMultiplePoint(e, newPoint))
+            newPoint.addEventListener("mousedown", (e)=> {
+              eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: newPoint}
+            }) 
+            newPoint.addEventListener("mouseup", (e) => {
+               eventTracker.current.mouseUpEventInvoked = {status: true, event: e}
+            })
+            newPoint.addEventListener("dblclick", e => {
+              eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: newPoint}
+            })
             if (pointIndex === movablePoints.length - 1)
               pointStore.current[newPointUid] = [{prev: prevPointUid, next: null}, ["L", pointIndex]]
             else
@@ -1978,12 +2021,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           const resizePanels = newEl.querySelectorAll(".resize-panel");
           resizePanels.forEach((panel) => {
-            (panel as HTMLSpanElement).addEventListener('mousedown', (e: MouseEvent) => {
-              // console.log(e, 'mousedown')
-              panelMouseStart.current = {x: e.clientX, y: e.clientY}
-              panelObjectOffsetStart.current = {x: currentObject.current.offsetLeft, y: currentObject.current.offsetTop }
-              onPanelResize.current = true
-              currentPanel.current = panel as HTMLSpanElement
+            (panel as HTMLSpanElement).addEventListener('mousedown', (e)=> {
+              eventTracker.current.panelMouseDownEventInvoked = {status: true, event: e, element: panel as HTMLSpanElement}
             })
       
 
@@ -2053,8 +2092,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             image.style.height = `${scaledHeight}px`
           }
         } 
-        newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
-        newEl.addEventListener("mouseup", (e) => handleMouseUp(e, newEl));
+        newEl.addEventListener("mousedown", (e) => {
+          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: newEl}
+        });
+        newEl.addEventListener("mouseup", (e) => {
+           eventTracker.current.mouseUpEventInvoked = {status: true, event: e, element: newEl}
+        });
         canvasRef.current.appendChild(newEl)
         objectLabels.current.add(data.label)
         if (data.properties.crusherType === "primary")
@@ -2084,7 +2127,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
 
       }
-    }, [createMultiplePoint, handleMouseDown, handleMouseUp, handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip, canvasRef, textFocusOut])
+    }, [handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip, canvasRef, textFocusOut])
 
 
 
@@ -2282,9 +2325,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         point2.classList.add("hide-indicator")
         point1.setAttribute("id", point1Uid)
         point2.setAttribute("id", point2Uid)
-        point2.addEventListener("mousedown", (e)=> handleMouseDown(e, point2)) 
-        point2.addEventListener("mouseup", handleMouseUp)
-        point2.addEventListener("dblclick", e => createMultiplePoint(e, point2))
+        point2.addEventListener("mousedown", (e)=>{
+          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: point2}
+        }) 
+        point2.addEventListener("mouseup", (e)=>{
+           eventTracker.current.mouseUpEventInvoked = {status: true, event: e}
+        })
+        point2.addEventListener("dblclick", e => {
+          eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: point2}
+        })
         const startCoords: [number, number] = [15, 15]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
@@ -2337,12 +2386,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const resizePanels = newEl.querySelectorAll(".resize-panel");
           resizePanels.forEach((panel) => {
             (panel as HTMLSpanElement).addEventListener('mousedown', (e)=> {
-              // console.log(e, 'mousedown')
-              panelMouseStart.current = {x: e.clientX, y: e.clientY}
-              
-              panelObjectOffsetStart.current = {x: currentObject.current.offsetLeft, y: currentObject.current.offsetTop}
-              onPanelResize.current = true;
-              currentPanel.current = panel as HTMLSpanElement
+              eventTracker.current.panelMouseDownEventInvoked = {status: true, event: e, element: panel as HTMLSpanElement}
             })
         
           })
@@ -2417,8 +2461,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
       } 
       LineConnector(newEl)
-      newEl.addEventListener("mousedown", (e) => handleMouseDown(e, newEl));
-      newEl.addEventListener("mouseup", (e) => handleMouseUp(e, newEl));
+      newEl.addEventListener("mousedown", (e) =>{
+        eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: newEl}
+      });
+      newEl.addEventListener("mouseup", (e) =>{
+         eventTracker.current.mouseUpEventInvoked = {status: true, event: e, element: newEl}
+      });
       canvasRef.current.appendChild(newEl)
 
       if (elementObjectName !== "Text") {
@@ -2446,39 +2494,24 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     }
 
 
+    const onPanelMouseDown = (e: MouseEvent | null, panel: HTMLSpanElement | null) => {
+        if (!e || !panel) return
+        // console.log(e, 'mousedown')
+        panelMouseStart.current = {x: e.clientX, y: e.clientY}
+        
+        panelObjectOffsetStart.current = {x: currentObject.current.offsetLeft, y: currentObject.current.offsetTop}
+        onPanelResize.current = true;
+        currentPanel.current = panel
+
+        eventTracker.current.panelMouseDownEventInvoked = {status: false, event: null, element: null}
+    }
 
 
-    
-
-    useEffect(()=> {
-      const CanvasContainer = canvasRef.current
-      const CanvasParentContainer = document.getElementById("canvas-parent-container")!
-      const objects = document.querySelectorAll(".objects")
-
-      if (pageNotFound) return;
-      // console.log(objects)
-      const invokeLoadObjects = async () => {
-        const loadedObj = await loadObjects(params.flowsheet_id)
-        if (!loadedObj || loadedObj.error) {
-          // window.reload()
-          alert("Something went wrong, try reloading the page")
-          return;
-        }
-        else if(loadedObj.notFound) {
-          setPageNotFound(true)
-          setCanvasLoading(false)
-          return;
-        }
-        objectData.current = loadedObj as objectDataType
-        hasInstance.current = true
-        loadObjectToCanvas()
-        setCanvasLoading(false)
-      }
-      if (!hasInstance.current) invokeLoadObjects()
-          
-      const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent | null) => {
         // console.log(e.clientY - CanvasContainer.offsetTop)
+        if (!e) return
         if (onPanelResize.current) {
+          console.log("resize panel")
           let MAXSCALE, MINSCALE
           MAXSCALE = 2.5
           MINSCALE = 0.8
@@ -2597,6 +2630,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
 
         if (onMouseDown.current) {
+          console.log("mouse moving")
+          console.log(currentActivePoint.current)
           mouseMoved.current = true
           if (currentActivePoint.current !== null) {
             DrawPoint(e, currentActivePoint.current)
@@ -2660,31 +2695,31 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
             // Enable scrolling while dragging of the window to the right and bottom
 
-            const parentContainerRight = CanvasParentContainer.getBoundingClientRect().right - CanvasParentContainer.getBoundingClientRect().x
-            const parentContainerBottom = CanvasParentContainer.getBoundingClientRect().bottom - CanvasParentContainer.getBoundingClientRect().y
-            const scrollNextX = nextX - CanvasParentContainer.scrollLeft
-            const scrollNextY = nextY - CanvasParentContainer.scrollTop
+            const parentContainerRight = CanvasParentContainer.current.getBoundingClientRect().right - CanvasParentContainer.current.getBoundingClientRect().x
+            const parentContainerBottom = CanvasParentContainer.current.getBoundingClientRect().bottom - CanvasParentContainer.current.getBoundingClientRect().y
+            const scrollNextX = nextX - CanvasParentContainer.current.scrollLeft
+            const scrollNextY = nextY - CanvasParentContainer.current.scrollTop
             if (parentContainerRight - scrollNextX < 70) {
               // const difference = parentContainerRight - scrollNextX
-              CanvasParentContainer.scrollLeft += 50
+              CanvasParentContainer.current.scrollLeft += 50
             }
             if (parentContainerBottom - scrollNextY < 70) {
-              CanvasParentContainer.scrollTop += 50
+              CanvasParentContainer.current.scrollTop += 50
             }
             // Enable scrolling while dragging back
-            let scrollTop = CanvasParentContainer.scrollTop
-            let scrollLeft = CanvasParentContainer.scrollLeft
+            let scrollTop = CanvasParentContainer.current.scrollTop
+            let scrollLeft = CanvasParentContainer.current.scrollLeft
           
 
             if (scrollLeft > 0 && nextX - scrollLeft < 30) {
               scrollLeft -= 20
               if (scrollLeft < 0) scrollLeft = 0
-              CanvasParentContainer.scrollLeft = scrollLeft
+              CanvasParentContainer.current.scrollLeft = scrollLeft
             }
             if (scrollTop > 0 && nextY - scrollTop < 30) {
               scrollTop -= 20
               if (scrollTop < 0) scrollTop = 0
-              CanvasParentContainer.scrollTop = scrollTop
+              CanvasParentContainer.current.scrollTop = scrollTop
             }
 
             // update the obj top and left css styles
@@ -2696,15 +2731,99 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
           
         }
-        document.addEventListener("mouseup", handleMouseUpGeneral)
+        document.addEventListener("mouseup", (e) => {
+          eventTracker.current.generalMouseUpEventInvoked = {status: true, event: e}
+        })
         // fix this 
         // document.addEventListener("click", ()=> console.log("document clicked"))
         // console.log(e)
+        eventTracker.current.mouseMoveEventInvoked = {status: false, event: null, element: null}
       }
+
+
+    const animationFrame = () => {
+      const {
+        mouseDownEventInvoked, 
+        panelMouseDownEventInvoked, 
+        mouseUpEventInvoked, 
+        mouseMoveEventInvoked,
+        createMultiplePointEventInvoked
+      } = eventTracker.current
+
+      if (mouseMoveEventInvoked.status) 
+        handleMouseMove(mouseMoveEventInvoked.event)
+
+      if (mouseDownEventInvoked.status)
+        handleMouseDown(mouseDownEventInvoked.event, mouseDownEventInvoked.element as HTMLElement)
+
+      if (mouseUpEventInvoked.status)
+        handleMouseUp(mouseUpEventInvoked.event, mouseUpEventInvoked.element) 
+
+      if (mouseUpEventInvoked.status)
+        onPanelMouseDown(panelMouseDownEventInvoked.event, panelMouseDownEventInvoked.element)
+      
+      if (createMultiplePointEventInvoked.status)
+        createMultiplePoint(createMultiplePointEventInvoked.event, createMultiplePointEventInvoked.element)     
+
+      animationFrameRef.current = requestAnimationFrame(animationFrame)
+    }
+    
+
+    useEffect(()=> {
+      const CanvasContainer = canvasRef.current
+      CanvasParentContainer.current = document.getElementById("canvas-parent-container")!
+      const objects = document.querySelectorAll(".objects")
+      const panels = document.querySelectorAll(".resize-panel")
+
+      if (pageNotFound) return;
+      // console.log(objects)
+      const invokeLoadObjects = async () => {
+        const loadedObj = await loadObjects(params.flowsheet_id)
+        if (!loadedObj || loadedObj.error) {
+          // window.reload()
+          alert("Something went wrong, try reloading the page")
+          return;
+        }
+        else if(loadedObj.notFound) {
+          setPageNotFound(true)
+          setCanvasLoading(false)
+          return;
+        }
+        objectData.current = loadedObj as objectDataType
+        hasInstance.current = true
+        loadObjectToCanvas()
+        setCanvasLoading(false)
+      }
+      if (!hasInstance.current) invokeLoadObjects()
+          
+      
+
+
+      // animate frame
+      animationFrameRef.current = requestAnimationFrame(animationFrame)
+
       // Main Project Canvas
-      CanvasContainer.addEventListener("mousemove", handleMouseMove);
-      CanvasContainer.addEventListener("mouseleave", handleMouseUp);
-      CanvasContainer.addEventListener("mouseup", handleMouseUp)
+      CanvasContainer.addEventListener("mousemove", (e) => {
+        eventTracker.current.mouseMoveEventInvoked = {
+          status: true,
+          event: e,
+          element: CanvasContainer
+        }
+      });
+      CanvasContainer.addEventListener("mouseleave", (e) => {
+        eventTracker.current.mouseUpEventInvoked = {
+          status: true,
+          event: e,
+          element: CanvasContainer
+        }
+      });
+      CanvasContainer.addEventListener("mouseup", (e) => {
+        eventTracker.current.mouseUpEventInvoked = {
+          status: true,
+          event: e,
+          element: CanvasContainer
+        }
+      })
 
       // Sidebar Canvas
       // SidebarCanvas.addEventListener("mousemove",)
@@ -2712,24 +2831,58 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       
       return () => {
         objects.forEach(object=> {
-          (object as HTMLElement).removeEventListener("mousedown", (e) => handleMouseDown(e, object as HTMLElement));
-          (object as HTMLElement).removeEventListener("mouseup", handleMouseUp);
+          (object as HTMLElement).removeEventListener("mousedown", (e) => {
+            eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: object as HTMLElement}
+          });
+          (object as HTMLElement).removeEventListener("mouseup", (e) => {
+             eventTracker.current.mouseUpEventInvoked = {status: true, event: e, element: object as HTMLElement}
+          });
           (object as HTMLElement).removeEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644");
           (object as HTMLElement).removeEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none");
           (object as HTMLElement).removeEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
           // object.removeEventListener("mousemove", handleMouseMove)
         })
         document.querySelectorAll(".point-indicators").forEach(point => {
-          (point as HTMLElement).removeEventListener("mousedown", (e)=> handleMouseDown(e, point as HTMLElement));
-          (point as HTMLElement).removeEventListener("mouseup", handleMouseUp);
-          (point as HTMLElement).addEventListener("dblclick", e => createMultiplePoint(e, point as HTMLElement))
+          (point as HTMLElement).removeEventListener("mousedown", (e)=> {
+            eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: point as HTMLElement}
+          });
+          (point as HTMLElement).removeEventListener("mouseup", (e) => {
+             eventTracker.current.mouseUpEventInvoked = {status: true, event: e}
+          });
+          (point as HTMLElement).addEventListener("dblclick", e => {
+            eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: point as HTMLElement}
+          })
         })
-        CanvasContainer.removeEventListener("mousemove", handleMouseMove);
-        CanvasContainer.removeEventListener("mouseleave", handleMouseUp);
-        CanvasContainer.removeEventListener("mouseup", handleMouseUp)
+        panels.forEach(panel => {
+          (panel as HTMLSpanElement).removeEventListener("mousedown", (e) =>  {
+            eventTracker.current.panelMouseDownEventInvoked = {status: true, event: e, element: panel as HTMLSpanElement}
+          })
+        })
+         CanvasContainer.removeEventListener("mousemove", (e) => {
+          eventTracker.current.mouseMoveEventInvoked = {
+            status: true,
+            event: e,
+            element: CanvasContainer
+          }
+        });
+        CanvasContainer.removeEventListener("mouseleave", (e) => {
+          eventTracker.current.mouseUpEventInvoked = {
+            status: true,
+            event: e,
+            element: CanvasContainer
+          }
+        });
+         CanvasContainer.removeEventListener("mouseup", (e) => {
+            eventTracker.current.mouseUpEventInvoked = {
+              status: true,
+              event: e,
+              element: CanvasContainer
+            }
+          });
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
         
       }
-    }, [handleMouseDown,canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading, handleMouseUp,createMultiplePoint,  loadObjectToCanvas, objectData, hasInstance])
+    }, [canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading,  loadObjectToCanvas, objectData, hasInstance])
 
     useEffect(() => {
       let intervalRef: NodeJS.Timeout | null = null;
