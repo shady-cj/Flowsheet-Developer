@@ -4,7 +4,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
+from .cache_utils import get_cache_data, cache_data
 
 class ObjectPermissionMixin:
     permission_classes = [IsAuthenticated, CanUpdateRetrieveDestroyPermission]
@@ -33,3 +33,20 @@ class handleCreationMixin:
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
+    
+class ListComponentMixin:
+    from .cache_utils import get_cache_data, cache_data
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        get_full_path = request.get_full_path()
+        cache_key = f"user:{user.id}:{get_full_path}"
+
+        cache_result = get_cache_data(cache_key)
+        if cache_result:
+            print(cache_result)
+            return Response(cache_result["data"], status=cache_result["status"])
+        
+        response = super().list(request, args, kwargs)
+        cache_data(cache_key, {"data": response.data, "status": response.status_code})
+        return response
+

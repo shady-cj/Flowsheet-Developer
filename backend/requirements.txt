@@ -4,6 +4,7 @@ djangorestframework-simplejwt
 pillow
 python-dotenv
 psycopg2-binary
+django-redis
 cloudinary
 rembg
 rembg[gpu]

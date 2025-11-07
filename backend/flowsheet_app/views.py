@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from django.core.paginator import Paginator
+from .cache_utils import cache_data, get_cache_data
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
@@ -46,17 +47,17 @@ from .utils import (
     upload_preview_image,
     upload_images_default,
 )
-from .mixins import ObjectPermissionMixin, UpdateCreatorMixin, handleCreationMixin
+from .mixins import ObjectPermissionMixin, UpdateCreatorMixin, handleCreationMixin, ListComponentMixin
 from .permissions import FlowsheetObjectPermission, FlowsheetInstancePermission
 from rest_framework.exceptions import PermissionDenied
 
 
-class ListCreateShapes(ListCreateAPIView):
+class ListCreateShapes(ListComponentMixin, ListCreateAPIView):
     serializer_class = ShapeSerializer
     queryset = Shape.objects.all()
 
 
-class ListCreateScreener(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateScreener(handleCreationMixin, UpdateCreatorMixin, ListComponentMixin, ListCreateAPIView):
     serializer_class = ScreenerSerializer
     queryset = Screener.objects.all()
 
@@ -73,7 +74,7 @@ class RetrieveUpdateScreener(ObjectPermissionMixin, RetrieveUpdateAPIView):
         return get_queryset_util(self, Screener)
 
 
-class ListCreateCrusher(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateCrusher(handleCreationMixin, UpdateCreatorMixin, ListComponentMixin, ListCreateAPIView):
     serializer_class = CrusherSerializer
     queryset = Crusher.objects.all()
 
@@ -90,7 +91,7 @@ class RetrieveUpdateCrusher(ObjectPermissionMixin, RetrieveUpdateAPIView):
         return get_queryset_util(self, Crusher)
 
 
-class ListCreateGrinder(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateGrinder(handleCreationMixin, UpdateCreatorMixin, ListComponentMixin, ListCreateAPIView):
     serializer_class = GrinderSerializer
     queryset = Grinder.objects.all()
 
@@ -108,7 +109,9 @@ class RetrieveUpdateGrinder(ObjectPermissionMixin, RetrieveUpdateAPIView):
 
 
 class ListCreateConcentrator(
-    handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView
+    handleCreationMixin, UpdateCreatorMixin, 
+    ListComponentMixin,
+    ListCreateAPIView
 ):
     serializer_class = ConcentratorSerializer
     queryset = Concentrator.objects.all()
@@ -126,7 +129,7 @@ class RetrieveUpdateConcentrator(ObjectPermissionMixin, RetrieveUpdateAPIView):
         return get_queryset_util(self, Concentrator)
 
 
-class ListCreateAuxilliary(handleCreationMixin, UpdateCreatorMixin, ListCreateAPIView):
+class ListCreateAuxilliary(handleCreationMixin, UpdateCreatorMixin, ListComponentMixin, ListCreateAPIView):
     serializer_class = AuxilliarySerializer
     queryset = Auxilliary.objects.all()
 
@@ -196,22 +199,34 @@ class UpdateFlowsheetPreview(APIView):
 
 class FlowsheetCreateView(APIView):
     def get(self, request, format=None, project_id=None):
+        
         user = request.user
+        project = get_object_or_404(Project, id=project_id)
+        if user != project.creator and not user.is_superuser:
+            raise PermissionDenied("You do not have permission to access this project")
+        
+        cache_key = f"flowsheetcreateview:user:{user.id}"
+        cache_result = get_cache_data(cache_key)
+
+        if cache_result:
+            return Response(cache_result["data"], status=cache_result["status"])
         user_flowsheets = Flowsheet.objects.filter(project__creator=user).order_by(
             "-last_edited"
         )
 
 
-        project = get_object_or_404(Project, id=project_id)
-        if user != project.creator and not user.is_superuser:
-            raise PermissionDenied("You do not have permission to access this project")
+        
 
         serialized_user_flowsheets = FlowsheetSerializer(
             user_flowsheets, many=True, context={"request": request}
         ).data
 
+
+        # cache this
+        data = {"project": project.name, "flowsheets": serialized_user_flowsheets}
+        cache_data(cache_key, {"data": data, "status": status.HTTP_200_OK})
         return Response(
-            {"project": project.name, "flowsheets": serialized_user_flowsheets},
+            data,
             status=status.HTTP_200_OK,
         )
 
@@ -234,8 +249,24 @@ class ListFlowsheet(ListAPIView):
             )
         else:
             qs = queryset.filter(project__creator=user)
-
         return qs
+    
+    # call list and cache there
+
+    def list(self, request, *args, **kwargs):
+        user_id = request.user.id
+        full_url_path = request.get_full_path()
+        cache_key = f'allflowsheets:user:{user_id}:{full_url_path}'
+
+        cache_result = get_cache_data(cache_key)
+
+        if (cache_result):
+            return Response(cache_result["response"], status=cache_result["status"])
+
+        response = super().list(request, *args, **kwargs)
+
+        cache_data(cache_key, {"response": response.data, "status": response.status_code})
+        return response
 
 
 # Lists flowsheets under <project_id>
@@ -247,6 +278,22 @@ class ListCreateFlowsheet(ListCreateAPIView):
     def filter_queryset(self, queryset):
         project_id = self.request.parser_context.get("kwargs").get("project_id")
         return queryset.filter(project__id=project_id)
+    
+    # call list and cache there
+    def list(self, request, *args, **kwargs):
+        project_id = self.request.parser_context.get("kwargs").get("project_id")
+        cache_key = f'allflowsheets:project:{project_id}'
+
+        cache_result = get_cache_data(cache_key)
+
+        if (cache_result):
+            return Response(cache_result["response"], status=cache_result["status"])
+
+        response = super().list(request, *args, **kwargs)
+
+        cache_data(cache_key, {"response": response.data, "status": response.status_code})
+        return response
+    
 
     def perform_create(self, serializer):
         # print("validated_data", serializer.validated_data)
@@ -291,7 +338,26 @@ class RetrieveUpdateDestroyFlowsheet(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         project_id = self.request.parser_context.get("kwargs").get("project_id")
+        #cache
         return Flowsheet.objects.filter(project__id=project_id)
+    
+    def retrieve(self,request, *args, **kwargs):
+        
+        flowsheet_id = self.kwargs.get("flowsheet_id")
+
+        _ = self.get_object() # for the sake of permission 
+        cache_key = f"flowsheets:{flowsheet_id}:flowsheet-detail"
+
+        cache_result = get_cache_data(cache_key)
+        if cache_result:
+            return Response(cache_result["data"], status=cache_result["status"])
+        response = super().retrieve(request, *args, **kwargs)
+        cache_data(cache_key, {"data": response.data, "status": response.status_code})
+
+        return response
+
+
+
 
 
 class ListCreateProject(UpdateCreatorMixin, ListCreateAPIView):
@@ -310,7 +376,23 @@ class ListCreateProject(UpdateCreatorMixin, ListCreateAPIView):
         else:
             qs = queryset.filter(creator=user)
 
+        #cache qs
         return qs
+    
+    def list(self, request, *args, **kwargs):
+        user_id = request.user.id
+        full_url_path = request.get_full_path()
+        cache_key = f'allprojects:user:{user_id}:{full_url_path}'
+
+        cache_result = get_cache_data(cache_key)
+
+        if (cache_result):
+            return Response(cache_result["response"], status=cache_result["status"])
+
+        response = super().list(request, *args, **kwargs)
+
+        cache_data(cache_key, {"response": response.data, "status": response.status_code})
+        return response
 
 
 class RetrieveUpdateDestroyProject(ObjectPermissionMixin, RetrieveUpdateDestroyAPIView):
@@ -322,9 +404,22 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin, RetrieveUpdateDestroyA
     # return Project.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()  # retrieves the object and calls the permission has_object_permission()
+
+        id = self.kwargs["id"]
+        instance = self.get_object()  
+        cache_key = f"projects:{id}:project-detail"
+        cache_result = get_cache_data(cache_key)
+
+        if (cache_result):
+            return Response(cache_result["data"], status=cache_result["status"])
+
+        # retrieves the object and calls the permission has_object_permission()
         serialized_project = ProjectDetailSerializer(instance, context={"request": request})
-        return Response(serialized_project.data, status=status.HTTP_200_OK)
+        data = serialized_project.data
+        cache_data(cache_key, {"data": data, "status":status.HTTP_200_OK})
+        # cache serialized_project
+        
+        return Response(data, status=status.HTTP_200_OK)
 
     # def update(self, request, *args, **kwargs):
     #     partial = kwargs.pop('partial', False)
@@ -358,7 +453,25 @@ class ListCreateFlowsheetObject(ListCreateAPIView):
 
     def get_queryset(self):
         flowsheet_id = self.request.parser_context.get("kwargs").get("flowsheet_id")
+
         return FlowsheetObject.objects.filter(flowsheet__id=flowsheet_id)
+
+
+    # it changes almost everytime.. it's not efficient to cache
+    # def list(self, request, *args, **kwargs):
+    #     flowsheet_id = self.request.parser_context.get("kwargs").get("flowsheet_id")
+    #     cache_key = f'flowsheet:{flowsheet_id}:list_flowsheetObjects'
+
+    #     cache_value = get_cache_data(cache_key)
+
+    #     if (cache_value):
+    #         return Response(cache_value["response"], status=cache_value["status"])
+
+    #     response = super().list(request, *args, **kwargs)
+
+    #     cache_data(cache_key, {"response": response.data, "status": response.status_code})
+    #     return response
+
 
     # Override the create() method in order to allow saving of multiple data
 

@@ -84,6 +84,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "flowsheet.wsgi.application"
 
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0",  # Replace with your Redis connection string
+        "TIMEOUT": 60 * 60 * 24 * 30,  # 1 month
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 

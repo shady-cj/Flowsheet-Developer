@@ -158,7 +158,7 @@ class ModelTests(TestCase):
             label='Test Object',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=flowsheet
         )
@@ -634,7 +634,7 @@ class FlowsheetViewTests(APITestCase):
             label='Test Object',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=original_flowsheet
         )
@@ -840,7 +840,7 @@ class FlowsheetObjectViewTests(APITestCase):
             label='Object 1',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=self.flowsheet
         )
@@ -862,11 +862,11 @@ class FlowsheetObjectViewTests(APITestCase):
             'label': 'Test Object',
             'x_coordinate': 100.0,
             'y_coordinate': 200.0,
-            'scale': 1.0,
+            'scale': {"x": 1.0, "y": 1.0},
             'font_size': 12.0
         }
         
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, format="json")
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(FlowsheetObject.objects.count(), 1)
@@ -885,7 +885,7 @@ class FlowsheetObjectViewTests(APITestCase):
                 'label': 'Object 1',
                 'x_coordinate': 100.0,
                 'y_coordinate': 200.0,
-                'scale': 1.0,
+                'scale': {"x": 1.0, "y": 1.0},
                 'font_size': 12.0
             },
             {
@@ -896,7 +896,7 @@ class FlowsheetObjectViewTests(APITestCase):
                 'label': 'Object 2',
                 'x_coordinate': 300.0,
                 'y_coordinate': 400.0,
-                'scale': 1.5,
+                'scale': {"x": 1.5, "y": 1.0},
                 'font_size': 14.0
             }
         ]
@@ -923,11 +923,11 @@ class FlowsheetObjectViewTests(APITestCase):
             'label': 'Screener Object',
             'x_coordinate': 100.0,
             'y_coordinate': 200.0,
-            'scale': 1.0,
+            'scale': {"x": 1.0, "y": 1.0},
             'font_size': 12.0
         }
         
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, format="json")
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -948,11 +948,11 @@ class FlowsheetObjectViewTests(APITestCase):
             'label': 'Unauthorized',
             'x_coordinate': 100.0,
             'y_coordinate': 200.0,
-            'scale': 1.0,
+            'scale': {"x": 1.0, "y": 1.0},
             'font_size': 12.0
         }
         
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, format="json")
         
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -967,11 +967,11 @@ class FlowsheetObjectViewTests(APITestCase):
             'label': 'Invalid',
             'x_coordinate': 100.0,
             'y_coordinate': 200.0,
-            'scale': 1.0,
+            'scale':{"x": 2.0, "y": 1.0},
             'font_size': 12.0
         }
         
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -987,11 +987,11 @@ class FlowsheetObjectViewTests(APITestCase):
             'label': 'Nonexistent',
             'x_coordinate': 100.0,
             'y_coordinate': 200.0,
-            'scale': 1.0,
+            'scale':{"x": 1.0, "y": 1.0},
             'font_size': 12.0
         }
         
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, format="json")
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -1005,7 +1005,7 @@ class FlowsheetObjectViewTests(APITestCase):
             label='Object 1',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=self.flowsheet
         )
@@ -1022,7 +1022,7 @@ class FlowsheetObjectViewTests(APITestCase):
                 'label': 'Updated Object',
                 'x_coordinate': 150.0,
                 'y_coordinate': 250.0,
-                'scale': 1.5,
+                'scale': {"x": 1.5, "y": 1.25},
                 'font_size': 14.0
             }
         ]
@@ -1044,7 +1044,7 @@ class FlowsheetObjectViewTests(APITestCase):
             label='Object 1',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=self.flowsheet
         )
@@ -1063,7 +1063,7 @@ class FlowsheetObjectViewTests(APITestCase):
                 'label': 'Object 1',
                 'x_coordinate': 100.0,
                 'y_coordinate': 200.0,
-                'scale': 1.0,
+                'scale': {"x": 1.0, "y": 1.0},
                 'font_size': 12.0
             },
             {
@@ -1075,7 +1075,7 @@ class FlowsheetObjectViewTests(APITestCase):
                 'label': 'New Object',
                 'x_coordinate': 300.0,
                 'y_coordinate': 400.0,
-                'scale': 1.0,
+                'scale': {"x": 1.0, "y": 1.0},
                 'font_size': 12.0
             }
         ]
@@ -1095,7 +1095,7 @@ class FlowsheetObjectViewTests(APITestCase):
             label='Object 1',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=self.flowsheet
         )
@@ -1106,7 +1106,7 @@ class FlowsheetObjectViewTests(APITestCase):
             label='Object 2',
             x_coordinate=300.0,
             y_coordinate=400.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=self.flowsheet
         )
@@ -1123,7 +1123,7 @@ class FlowsheetObjectViewTests(APITestCase):
                 'label': 'Object 1',
                 'x_coordinate': 100.0,
                 'y_coordinate': 200.0,
-                'scale': 1.0,
+                'scale': {"x": 1.0, "y": 1.0},
                 'font_size': 12.0
             }
         ]
@@ -1180,7 +1180,7 @@ class FlowsheetObjectViewTests(APITestCase):
             label='Screener Object',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=self.flowsheet
         )
@@ -1516,7 +1516,7 @@ class PermissionTests(APITestCase):
             label='Object 1',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=other_flowsheet
         )
@@ -1527,7 +1527,7 @@ class PermissionTests(APITestCase):
             label='Object 2',
             x_coordinate=300.0,
             y_coordinate=400.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=other_flowsheet
         )
@@ -1567,7 +1567,7 @@ class PermissionTests(APITestCase):
             label='Object 1',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=other_flowsheet
         )
@@ -1578,7 +1578,7 @@ class PermissionTests(APITestCase):
             label='Object 2',
             x_coordinate=300.0,
             y_coordinate=400.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=other_flowsheet
         )
@@ -1594,7 +1594,7 @@ class PermissionTests(APITestCase):
                 'label': 'Unauthorized Updated Object',
                 'x_coordinate': 150.0,
                 'y_coordinate': 250.0,
-                'scale': 1.5,
+                'scale': {"x": 1.5, "y": 1.5},
                 'font_size': 14.0
             }
         ]
@@ -1811,7 +1811,7 @@ class EdgeCaseTests(APITestCase):
             'label': 'Test Object',
             'x_coordinate': 100.0,
             'y_coordinate': 200.0,
-            'scale': 1.0,
+            'scale': {"x": 1.0, "y": 1.0},
             'font_size': 12.0,
             'properties': {'color': 'red', 'size': 'large'}
         }
@@ -1852,7 +1852,7 @@ class EdgeCaseTests(APITestCase):
             label='Concentrator Object',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=flowsheet
         )
@@ -2142,7 +2142,7 @@ class IntegrationTests(APITestCase):
                 'label': 'Primary Crusher',
                 'x_coordinate': 100.0,
                 'y_coordinate': 200.0,
-                'scale': 1.0,
+                'scale': {"x": 1.0, "y": 1.0},
                 'font_size': 12.0
             },
             {
@@ -2153,7 +2153,7 @@ class IntegrationTests(APITestCase):
                 'label': 'Screen 1',
                 'x_coordinate': 300.0,
                 'y_coordinate': 200.0,
-                'scale': 1.0,
+                'scale': {"x": 1.0, "y": 1.0},
                 'font_size': 12.0
             }
         ]
@@ -2199,7 +2199,7 @@ class IntegrationTests(APITestCase):
             label='Original Object',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=original
         )
@@ -2246,7 +2246,7 @@ class IntegrationTests(APITestCase):
             label='Object 1',
             x_coordinate=100.0,
             y_coordinate=200.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=flowsheet
         )
@@ -2257,7 +2257,7 @@ class IntegrationTests(APITestCase):
             label='Object 2',
             x_coordinate=300.0,
             y_coordinate=400.0,
-            scale=1.0,
+            scale={"x": 1.0, "y": 1.0},
             font_size=12.0,
             flowsheet=flowsheet
         )
@@ -2275,7 +2275,7 @@ class IntegrationTests(APITestCase):
                 'label': 'Updated Object 1',
                 'x_coordinate': 150.0,
                 'y_coordinate': 250.0,
-                'scale': 1.5,
+                'scale': {"x": 1.5, "y": 1.5},
                 'font_size': 14.0
             },
             {
@@ -2288,7 +2288,7 @@ class IntegrationTests(APITestCase):
                 'label': 'Updated Object 2',
                 'x_coordinate': 350.0,
                 'y_coordinate': 450.0,
-                'scale': 2.0,
+                'scale': {"x": 2.0, "y": 1.0},
                 'font_size': 16.0
             },
             {
@@ -2300,7 +2300,7 @@ class IntegrationTests(APITestCase):
                 'label': 'New Object 3',
                 'x_coordinate': 500.0,
                 'y_coordinate': 600.0,
-                'scale': 1.0,
+                'scale': {"x": 1.0, "y": 1.0},
                 'font_size': 12.0
             }
         ]
