@@ -1753,6 +1753,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           // defaultElementLabel = "Text"
           newEl.setAttribute("data-variant", "text")
+          newEl.classList.add("text-z-index")
           const contentEditableDiv = document.createElement("div")
           const textControl = document.createElement("div")
 
@@ -2141,6 +2142,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // newEl.style.zIndex = "5"
 
         newEl.setAttribute("data-variant", "text")
+        newEl.classList.add("text-z-index")
         defaultElementLabel = "Text"
         
         const contentEditableDiv = document.createElement("div")

@@ -111,6 +111,10 @@ body {
   z-index: 3;
 }
 
+.text-z-index {
+  z-index: 4;
+}
+
 .current-object {
   z-index: 7;
 }
