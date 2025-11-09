@@ -92,9 +92,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const lineCapCoordinate = "10,22 18,5 10,9 2,5"
     const animationFrameRef = useRef<number | null>(null)
     const eventTracker = useRef<{
-      mouseDownEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLElement | null},
+      mouseDownEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLElement | null, point?: HTMLSpanElement},
       panelMouseDownEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLSpanElement | null},
-      mouseUpEventInvoked: {status: boolean, event: MouseEvent | null, element?: HTMLElement},
+      mouseUpEventInvoked: {status: boolean, event: MouseEvent | null, element?: HTMLElement, point?: HTMLSpanElement},
       createMultiplePointEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLSpanElement | null},
       mouseMoveEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLElement | null},
       generalMouseUpEventInvoked: {status: boolean, event: MouseEvent | null}
@@ -1336,6 +1336,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
     const DrawPoint = useCallback((e: MouseEvent, point: HTMLElement) => {
       // const 
+      // console.log("draw point", e, point)
       const containerX = canvasRef.current.getBoundingClientRect().x
       const containerY = canvasRef.current.getBoundingClientRect().y
       if ((e.clientX - containerX) < 7 || (e.clientY - containerY) < 7) {
@@ -1472,6 +1473,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             currentActivePoint.current.style.transform = "scale(1.0) translate(-50%, -50%)"
             LineConnector(obj, currentActivePoint.current)
             currentActivePoint.current = null
+            eventTracker.current.mouseUpEventInvoked.point = undefined
 
           } else {
             objectData.current[obj.id].properties.coordinates.lastX = parseFloat((obj?.offsetLeft as number).toFixed(6))
@@ -1503,10 +1505,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       if (!e) return
       // console.log("event target", e.target)
       // console.log("obj", obj)e
-      if (obj.classList.contains("point-indicators")) {
-          console.log("obj", obj)
-          currentActivePoint.current = obj
-          obj.style.transform = "scale(1.5) translate(-40%, -40%)"
+
+      const pointIndictator = eventTracker.current.mouseDownEventInvoked.point 
+  
+
+      if ((pointIndictator || obj)?.classList.contains("point-indicators")) {
+         // if pointIndicator is not null it comes of the (pointIndictator || obj) expression
+          // if it gets here either pointIndicator or obj has the class hence we use the OR operator
+          currentActivePoint.current = (pointIndictator || obj) as HTMLSpanElement
+          (pointIndictator || obj).style.transform = "scale(1.5) translate(-40%, -40%)"
+          eventTracker.current.mouseDownEventInvoked.point = undefined
           // console.log(e.clientX, e.clientY)
       } else {
           currentObject.current?.classList.remove("current-object")
@@ -1566,12 +1574,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         newPoint.classList.add("point-indicators")
         newPoint.setAttribute("id", newPointUid)
         newPoint.addEventListener("mousedown", (e) => {
-          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: newPoint}
+          console.log("mousedown, new point ")
+          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: newPoint}
         }) 
         newPoint.addEventListener("mouseup", (e) => {
-          eventTracker.current.mouseUpEventInvoked = {status: true, event: e}
+          eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: newPoint}
         })
         newPoint.addEventListener("dblclick", e => {
+          console.log("double click new point")
           eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: newPoint}
         })
         newPoint.style.top = point.style.top
@@ -1953,12 +1963,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             newPoint.classList.add("hide-indicator")
             newPoint.setAttribute("id", newPointUid)
             newPoint.addEventListener("mousedown", (e)=> {
-              eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: newPoint}
+              // console.log("mouse down called on newPoint", newPoint)
+              eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: newPoint}
+
             }) 
             newPoint.addEventListener("mouseup", (e) => {
-               eventTracker.current.mouseUpEventInvoked = {status: true, event: e}
+              //  console.log("mouse up called on new point ", newPoint)
+               eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: newPoint}
             })
             newPoint.addEventListener("dblclick", e => {
+              console.log("dblclick called on new point ", newPoint)
               eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: newPoint}
             })
             if (pointIndex === movablePoints.length - 1)
@@ -2096,10 +2110,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           }
         } 
         newEl.addEventListener("mousedown", (e) => {
-          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: newEl}
+          eventTracker.current.mouseDownEventInvoked = {
+            ...eventTracker.current.mouseDownEventInvoked, 
+            status: true, event: e, element: newEl
+          }
         });
         newEl.addEventListener("mouseup", (e) => {
-           eventTracker.current.mouseUpEventInvoked = {status: true, event: e, element: newEl}
+           eventTracker.current.mouseUpEventInvoked = {
+            ...eventTracker.current.mouseUpEventInvoked,
+            status: true, event: e, element: newEl
+          }
         });
         canvasRef.current.appendChild(newEl)
         objectLabels.current.add(data.label)
@@ -2328,10 +2348,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         point1.setAttribute("id", point1Uid)
         point2.setAttribute("id", point2Uid)
         point2.addEventListener("mousedown", (e)=>{
-          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: point2}
+          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: point2}
         }) 
         point2.addEventListener("mouseup", (e)=>{
-           eventTracker.current.mouseUpEventInvoked = {status: true, event: e}
+           eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: point2}
         })
         point2.addEventListener("dblclick", e => {
           eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: point2}
@@ -2464,10 +2484,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       } 
       LineConnector(newEl)
       newEl.addEventListener("mousedown", (e) =>{
-        eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: newEl}
+        eventTracker.current.mouseDownEventInvoked = {
+          ...eventTracker.current.mouseDownEventInvoked,
+          status: true, event: e, element: newEl
+        }
       });
       newEl.addEventListener("mouseup", (e) =>{
-         eventTracker.current.mouseUpEventInvoked = {status: true, event: e, element: newEl}
+         eventTracker.current.mouseUpEventInvoked = {
+          ...eventTracker.current.mouseUpEventInvoked,
+          status: true, event: e, element: newEl
+        }
       });
       canvasRef.current.appendChild(newEl)
 
@@ -2496,7 +2522,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     }
 
 
-    const onPanelMouseDown = (e: MouseEvent | null, panel: HTMLSpanElement | null) => {
+    const onPanelMouseDown = useCallback((e: MouseEvent | null, panel: HTMLSpanElement | null) => {
         if (!e || !panel) return
         // console.log(e, 'mousedown')
         panelMouseStart.current = {x: e.clientX, y: e.clientY}
@@ -2506,14 +2532,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         currentPanel.current = panel
 
         eventTracker.current.panelMouseDownEventInvoked = {status: false, event: null, element: null}
-    }
+    }, [])
 
 
-    const handleMouseMove = (e: MouseEvent | null) => {
+    const handleMouseMove = useCallback((e: MouseEvent | null) => {
         // console.log(e.clientY - CanvasContainer.offsetTop)
         if (!e) return
         if (onPanelResize.current) {
-          console.log("resize panel")
           let MAXSCALE, MINSCALE
           MAXSCALE = 2.5
           MINSCALE = 0.8
@@ -2524,7 +2549,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           let newOffsetLeft = null
           let newOffsetTop = null
           // let scaleOut = true;
-          console.log("objdata", objData)
+          // console.log("objdata", objData)
           
           
 
@@ -2632,8 +2657,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
 
         if (onMouseDown.current) {
-          console.log("mouse moving")
-          console.log(currentActivePoint.current)
+        
           mouseMoved.current = true
           if (currentActivePoint.current !== null) {
             DrawPoint(e, currentActivePoint.current)
@@ -2740,10 +2764,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         // document.addEventListener("click", ()=> console.log("document clicked"))
         // console.log(e)
         eventTracker.current.mouseMoveEventInvoked = {status: false, event: null, element: null}
-      }
+      }, [DrawPoint, objectData])
 
 
-    const animationFrame = () => {
+    const animationFrame = useCallback(() => {
       const {
         mouseDownEventInvoked, 
         panelMouseDownEventInvoked, 
@@ -2752,8 +2776,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         createMultiplePointEventInvoked
       } = eventTracker.current
 
+
       if (mouseMoveEventInvoked.status) 
         handleMouseMove(mouseMoveEventInvoked.event)
+
 
       if (mouseDownEventInvoked.status)
         handleMouseDown(mouseDownEventInvoked.event, mouseDownEventInvoked.element as HTMLElement)
@@ -2761,14 +2787,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       if (mouseUpEventInvoked.status)
         handleMouseUp(mouseUpEventInvoked.event, mouseUpEventInvoked.element) 
 
-      if (mouseUpEventInvoked.status)
+      if (panelMouseDownEventInvoked.status)
         onPanelMouseDown(panelMouseDownEventInvoked.event, panelMouseDownEventInvoked.element)
       
       if (createMultiplePointEventInvoked.status)
         createMultiplePoint(createMultiplePointEventInvoked.event, createMultiplePointEventInvoked.element)     
 
       animationFrameRef.current = requestAnimationFrame(animationFrame)
-    }
+    }, [handleMouseDown, handleMouseMove, handleMouseUp, onPanelMouseDown, createMultiplePoint])
     
 
     useEffect(()=> {
@@ -2834,22 +2860,39 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       return () => {
         objects.forEach(object=> {
           (object as HTMLElement).removeEventListener("mousedown", (e) => {
-            eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: object as HTMLElement}
+            eventTracker.current.mouseDownEventInvoked = {
+              ...eventTracker.current.mouseDownEventInvoked, 
+              status: true, event: e, element: object as HTMLElement
+            }
           });
           (object as HTMLElement).removeEventListener("mouseup", (e) => {
-             eventTracker.current.mouseUpEventInvoked = {status: true, event: e, element: object as HTMLElement}
+               eventTracker.current.mouseUpEventInvoked = {
+                ...eventTracker.current.mouseUpEventInvoked,
+                status: true, event: e, element: object as HTMLElement
+              }
           });
-          (object as HTMLElement).removeEventListener("focus", (e)=> (e.target as HTMLElement).style.outline = "2px solid #006644");
-          (object as HTMLElement).removeEventListener("focusout", (e)=> (e.target as HTMLElement).style.outline = "none");
+          (object as HTMLElement).removeEventListener("focus", (e)=> {
+            (e.target as HTMLElement).style.outline = "2px solid #006644";
+             panels.forEach(panel=> {
+              panel.classList.add('resize-panel-show')
+            })
+          });
+          (object as HTMLElement).removeEventListener("focusout", (e)=> {
+            (e.target as HTMLElement).style.outline = "none";
+            panels.forEach(panel=> {
+              panel.classList.remove('resize-panel-show')
+            })
+          });
           (object as HTMLElement).removeEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
           // object.removeEventListener("mousemove", handleMouseMove)
         })
         document.querySelectorAll(".point-indicators").forEach(point => {
           (point as HTMLElement).removeEventListener("mousedown", (e)=> {
-            eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: point as HTMLElement}
+           eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: point as HTMLSpanElement}
+
           });
           (point as HTMLElement).removeEventListener("mouseup", (e) => {
-             eventTracker.current.mouseUpEventInvoked = {status: true, event: e}
+             eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: point as HTMLSpanElement}
           });
           (point as HTMLElement).addEventListener("dblclick", e => {
             eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: point as HTMLElement}
@@ -2884,7 +2927,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
         
       }
-    }, [canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading,  loadObjectToCanvas, objectData, hasInstance])
+    }, [canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading,  loadObjectToCanvas, objectData, hasInstance, animationFrame])
 
     useEffect(() => {
       let intervalRef: NodeJS.Timeout | null = null;
