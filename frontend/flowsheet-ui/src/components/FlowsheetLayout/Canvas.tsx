@@ -91,6 +91,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const primaryCrusherInUse = useRef(false)
     const lineCapCoordinate = "10,22 18,5 10,9 2,5"
     const animationFrameRef = useRef<number | null>(null)
+
+    // keeping track of various handlers and the elements for event listeners clean up to prevent memory leak
+    const eventElementSet = useRef(new Set<Element | HTMLElement |  SVGPathElement>())
+
+    const elementEventHandlers = useRef(new WeakMap<Element | HTMLElement |  SVGPathElement, Map<keyof DocumentEventMap, ((ev: MouseEvent) => void) | ((ev: FocusEvent) => void) | ((ev: KeyboardEvent) => void) >>()) // key is dom element value is a map of event to function.
+
+
+
     const eventTracker = useRef<{
       mouseDownEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLElement | null, point?: HTMLSpanElement},
       panelMouseDownEventInvoked: {status: boolean, event: MouseEvent | null, element: HTMLSpanElement | null},
@@ -1527,9 +1535,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
       // currentObject.current?.querySelector(".object-details-tooltip")?.classList.add("show-tooltip")
       onMouseDown.current = true
-      document.removeEventListener("mouseup", (e) => {
-        eventTracker.current.generalMouseUpEventInvoked = {status: true, event: e}
-      })
+      document.removeEventListener("mouseup", documentMouseUpHandler)
       eventTracker.current.mouseDownEventInvoked = {status: false, event: null, element: null}
 
       // console.log(e)
@@ -1539,9 +1545,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       if (!e) return
       // console.log("called mouseup in mouseup !!!", onPanelResize.current, "mouse down", onMouseDown.current)
       if (onMouseDown.current || onPanelResize.current) {
-        document.removeEventListener("mouseup", (e) => {
-          eventTracker.current.generalMouseUpEventInvoked = {status: true, event: e}
-        })
+        document.removeEventListener("mouseup", documentMouseUpHandler)
       }
       handleMouseUpUtil()
       
@@ -1562,6 +1566,147 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     }, [handleMouseUpUtil, objectData,calculateBondsEnergy, communitionListForBondsEnergy, calculateEnergyUsed])
 
 
+    // generic handlers
+
+    const documentMouseUpHandler = (e: MouseEvent) => {
+          eventTracker.current.generalMouseUpEventInvoked = {status: true, event: e}
+    }
+
+    // connector point handlers
+    const pointMouseDownHandler = (newPoint: HTMLSpanElement) => {
+      return (e: MouseEvent) => {
+        eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: newPoint}
+      }
+    }
+    const pointMouseUpHandler = (newPoint: HTMLSpanElement) => {
+      return (e: MouseEvent) => {
+        eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: newPoint}
+      }
+    }
+    const pointDblClickHandler = (newPoint: HTMLSpanElement) => {
+      return (e: MouseEvent) => {
+        eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: newPoint}
+      }
+    }
+
+    // resize panels mouse down handlers
+    const panelMouseDownHandler = (panel: HTMLSpanElement) => {
+      return (e: MouseEvent)=> {
+            eventTracker.current.panelMouseDownEventInvoked = {status: true, event: e, element: panel}
+          }
+    }
+
+    // component handlers
+
+    const componentMouseDownHandler = (newEl: HTMLElement) => {
+      return (e: MouseEvent) => {
+          console.log("e", e)
+          eventTracker.current.mouseDownEventInvoked = {
+            ...eventTracker.current.mouseDownEventInvoked, 
+            status: true, event: e, element: newEl
+          }
+        }
+    }
+    const componentMouseUpHandler = (newEl: HTMLElement) => {
+      return (e: MouseEvent) => {
+           eventTracker.current.mouseUpEventInvoked = {
+            ...eventTracker.current.mouseUpEventInvoked,
+            status: true, event: e, element: newEl
+          }
+        }
+    }
+
+    const componentMouseLeaveHandler = (newEl: HTMLElement, tooltipWrapper: HTMLElement) => {
+      return (e: MouseEvent)=> {
+            tooltipWrapper.classList.remove("show-tooltip")
+            tooltipWrapper.classList.add("hide-tooltip")
+            newEl.classList.remove('object-hover')
+            if (newEl.id !== currentObject.current?.id)
+              newEl.classList.remove("current-object")
+          }
+    }
+
+    const componentFocusHandler = (resizePanels: NodeListOf<Element>, newEl: HTMLElement) => {
+      return (e: FocusEvent) => {
+            newEl.style.outline = "2px solid #006644";
+            resizePanels.forEach(panel=> {
+              panel.classList.add('resize-panel-show')
+            })
+          }
+    }
+
+    const componentFocusOutHandler = (resizePanels: NodeListOf<Element>, newEl: HTMLElement) => {
+      return (e: FocusEvent)=> {
+            (e.target as HTMLElement).style.outline = "none";
+            resizePanels.forEach(panel=> {
+              panel.classList.remove('resize-panel-show')
+            })
+          }
+    }
+
+
+    // control options click event handlers
+    const controlOptionClickHandler = (textControlOptions: HTMLElement, controlOptionButton: HTMLImageElement) => {
+      return (e: MouseEvent)=> {
+
+          if (textControlOptions?.classList.contains("text-size-control-options-show")) {
+            textControlOptions?.classList.remove("text-size-control-options-show")
+            controlOptionButton.src = arrowDown.src
+          } else {
+            textControlOptions?.classList.add("text-size-control-options-show")
+            controlOptionButton.src = arrowUp.src
+          }
+          
+        }
+    }
+
+    const textControlOptionClickHandler = (textControlOptions: HTMLElement, newEl: HTMLElement, span: HTMLSpanElement, controlOptionButton: HTMLImageElement) => {
+      return () => {
+            const activeFont = textControlOptions?.querySelector("span.text-selected")
+            objectData.current[newEl.id].font_size = parseInt(span.getAttribute("data-size") || "14")
+            newEl.style.fontSize = `${objectData.current[newEl.id].font_size}px`
+
+            let size_name;
+            switch(objectData.current[newEl.id].font_size) {
+              case 12:
+                size_name = "Small"
+                break
+              case 14:
+                size_name = "Medium"
+                break
+              case 16:
+                size_name = "Large"
+                break
+              default:
+                size_name = "Medium"
+            }
+            newEl.querySelector(".selected-size-name")!.textContent = size_name
+            activeFont?.classList.remove("text-selected")
+            span.classList.add("text-selected")
+            textControlOptions?.classList.remove("text-size-control-options-show")
+            controlOptionButton.src = arrowDown.src
+        }
+    }
+    // Text controls mouse enter and mouse leave
+
+    const textControlMouseEnterHandler = (newEl: HTMLElement) => {
+      return ()=> {
+        objectData.current[newEl.id].textActive = true
+      }
+    }
+    const textControlMouseLeaveHandler = (newEl: HTMLElement) => {
+      return () => {
+        objectData.current[newEl.id].textActive = false
+      }
+    }
+
+    // text input/contentEditable
+
+
+
+
+
+
     const createMultiplePoint = useCallback((e: MouseEvent | null, point: HTMLSpanElement | null) => {
       if (!e || !point) return
       // Ability of a line to have multiple breakpoints on a line instead of just the regular straight line (That's why we are using the svg path element)
@@ -1573,17 +1718,27 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const newPointUid = "point-"+uuidv4()
         newPoint.classList.add("point-indicators")
         newPoint.setAttribute("id", newPointUid)
-        newPoint.addEventListener("mousedown", (e) => {
-          console.log("mousedown, new point ")
-          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: newPoint}
-        }) 
-        newPoint.addEventListener("mouseup", (e) => {
-          eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: newPoint}
-        })
-        newPoint.addEventListener("dblclick", e => {
-          console.log("double click new point")
-          eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: newPoint}
-        })
+
+
+
+        const pMouseDownHandler =  pointMouseDownHandler(newPoint)
+        const pMouseUpHandler = pointMouseUpHandler(newPoint)
+        const pDblClickHandler = pointDblClickHandler(newPoint)
+  
+        let pMap = elementEventHandlers.current.get(newPoint)
+        
+        if (!pMap)
+        {
+          pMap = new Map()
+          elementEventHandlers.current.set(newPoint, pMap)
+          eventElementSet.current.add(newPoint)
+        }
+        pMap.set("mousedown", pMouseDownHandler)
+        pMap.set("mouseup", pMouseUpHandler)
+        pMap.set("dblclick", pDblClickHandler)
+        newPoint.addEventListener("mousedown", pMouseDownHandler) 
+        newPoint.addEventListener("mouseup", pMouseUpHandler)
+        newPoint.addEventListener("dblclick", pDblClickHandler)
         newPoint.style.top = point.style.top
         newPoint.style.left = point.style.left
         
@@ -1610,11 +1765,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         objectDetails.lineCoordinates![newPointDetails[0]][newPointDetails[1]!] = objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] as [number, number]
         const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
         path?.setAttribute("d", coordString)
+        eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: newPoint}
 
       }
 
       eventTracker.current.createMultiplePointEventInvoked = {status: false, event: null, element: null}
-
     }, [objectData])
 
 
@@ -1794,6 +1949,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         newEl.removeAttribute("data-object-type")
         newEl.removeAttribute("data-object-name")
 
+        let newElEventMap = elementEventHandlers.current.get(newEl)
+        
+        if (!newElEventMap) {
+          newElEventMap = new Map()
+          elementEventHandlers.current.set(newEl, newElEventMap)
+          eventElementSet.current.add(newEl)
+        }
+
 
         if (elementObjectType === "Shape" && elementObjectName === "Text") {
           // newEl.style.zIndex = "5"
@@ -1834,46 +1997,32 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           newEl.appendChild(textControl)
         
-        const textControlOptions = textControl.querySelector(".text-size-control-options")
+        const textControlOptions = textControl.querySelector(".text-size-control-options") as HTMLElement
         const controlOptionButton = textControl.querySelector(".open-control-options") as HTMLImageElement
 
-        controlOptionButton?.addEventListener("click", (e)=> {
-
-          if (textControlOptions?.classList.contains("text-size-control-options-show")) {
-            textControlOptions?.classList.remove("text-size-control-options-show")
-            controlOptionButton.src = arrowDown.src
-          } else {
-            textControlOptions?.classList.add("text-size-control-options-show")
-            controlOptionButton.src = arrowUp.src
+        if (controlOptionButton) {
+          let ctrlOptionBtnMap = elementEventHandlers.current.get(controlOptionButton)
+          if (!ctrlOptionBtnMap) {
+            ctrlOptionBtnMap = new Map()
+            elementEventHandlers.current.set(controlOptionButton, ctrlOptionBtnMap)
+            eventElementSet.current.add(controlOptionButton)
           }
-          
-        })
+          const ctrlOptHandler = controlOptionClickHandler(textControlOptions, controlOptionButton)
+          ctrlOptionBtnMap.set("click", ctrlOptHandler)          
+          controlOptionButton.addEventListener("click", ctrlOptHandler)
+        }
+        
+        
         textControlOptions?.querySelectorAll("span").forEach((span) => {
-          span.addEventListener("click", () => {
-            const activeFont = textControlOptions?.querySelector("span.text-selected")
-            objectData.current[newEl.id].font_size = parseInt(span.getAttribute("data-size") || "14")
-            newEl.style.fontSize = `${objectData.current[newEl.id].font_size}px`
-
-            let size_name;
-            switch(objectData.current[newEl.id].font_size) {
-              case 12:
-                size_name = "Small"
-                break
-              case 14:
-                size_name = "Medium"
-                break
-              case 16:
-                size_name = "Large"
-                break
-              default:
-                size_name = "Medium"
-            }
-            newEl.querySelector(".selected-size-name")!.textContent = size_name
-            activeFont?.classList.remove("text-selected")
-            span.classList.add("text-selected")
-            textControlOptions?.classList.remove("text-size-control-options-show")
-            controlOptionButton.src = arrowDown.src
-          })
+          let txtControlSpanMap = elementEventHandlers.current.get(span)
+          if (!txtControlSpanMap) {
+            txtControlSpanMap = new Map()
+            elementEventHandlers.current.set(span, txtControlSpanMap)
+            eventElementSet.current.add(span)
+          }
+          const txtControlSpanHandler = textControlOptionClickHandler(textControlOptions, newEl, span, controlOptionButton)
+          txtControlSpanMap.set("click", txtControlSpanHandler)
+          span.addEventListener("click", txtControlSpanHandler)
         })
 
 
@@ -1885,19 +2034,41 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             contentEditableDiv.classList.add("placeholder-style")
 
 
-          textControl.addEventListener("mouseenter", (e)=> {
-            objectData.current[newEl.id].textActive = true
-          })
-          textControl.addEventListener("mouseleave", (e)=> {
-            objectData.current[newEl.id].textActive = false
-          })
+          let textControlMap = elementEventHandlers.current.get(textControl)
+          if (!textControlMap) {
+            textControlMap = new Map()
+            elementEventHandlers.current.set(textControl, textControlMap)
+            eventElementSet.current.add(textControl)
+          }
+          const txtCtrlMouseEnterHandler = textControlMouseEnterHandler(newEl)
+          const txtCtrlMouseLeaveHandler = textControlMouseLeaveHandler(newEl)
+          textControlMap.set('mouseenter', txtCtrlMouseEnterHandler )
+          textControlMap.set('mouseleave', txtCtrlMouseLeaveHandler)
+
+
+          textControl.addEventListener("mouseenter",  txtCtrlMouseEnterHandler)
+          textControl.addEventListener("mouseleave", txtCtrlMouseLeaveHandler)
      
+
+          let contentEditableDivMap = elementEventHandlers.current.get(contentEditableDiv) 
+          if (!contentEditableDivMap) {
+            contentEditableDivMap = new Map()
+            elementEventHandlers.current.set(contentEditableDiv, contentEditableDivMap)
+            eventElementSet.current.add(contentEditableDiv)
+          }
+          const contEditableDblClickHandler = (e: MouseEvent) => handleDblClick(e, contentEditableDiv) 
+          contentEditableDivMap.set("dblclick", contEditableDblClickHandler)
+          contentEditableDiv.addEventListener("dblclick", contEditableDblClickHandler)
+
+          const contEditableFocusOutHandler = () => textFocusOut(newEl as HTMLDivElement, contentEditableDiv)
           
-          contentEditableDiv.addEventListener("dblclick", (e) => handleDblClick(e, contentEditableDiv))
+          contentEditableDivMap.set("focusout", contEditableFocusOutHandler)
+          contentEditableDivMap.set("keyup", handleInput)
 
-
-          contentEditableDiv.addEventListener("focusout", (e) => textFocusOut(newEl as HTMLDivElement, contentEditableDiv))
-          newEl.addEventListener("focusout", (e) => textFocusOut(newEl as HTMLDivElement, contentEditableDiv))
+          const newElTextFocusOutHandler = () => textFocusOut(newEl as HTMLDivElement, contentEditableDiv)
+          newElEventMap.set("focusout", newElTextFocusOutHandler)
+          contentEditableDiv.addEventListener("focusout", contEditableFocusOutHandler)
+          newEl.addEventListener("focusout", newElTextFocusOutHandler)
           contentEditableDiv.addEventListener("keyup", handleInput)
 
         } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
@@ -1907,9 +2078,19 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           newEl.setAttribute("data-variant", "line")
           newEl.classList.add("line-z-index")
           newEl.style.outline = "none"
-          newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
-          newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
-          newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
+
+          const lineFocusEventHandler = (e: FocusEvent)=> showPointVisibility(e, newEl)
+          const lineFocusOutEventHandler = (e: FocusEvent)=> hidePointVisibility(e, newEl)
+          const lineKeyEventHandler = (e: KeyboardEvent)=>handleShapeDelete(e, newEl)
+          newElEventMap.set("focus", lineFocusEventHandler)
+          newElEventMap.set("focusout", lineFocusEventHandler)
+          newElEventMap.set("keyup", lineKeyEventHandler)
+
+          newEl.addEventListener("focus", lineFocusEventHandler)
+          newEl.addEventListener("focusout", lineFocusOutEventHandler)
+          newEl.addEventListener("keyup", lineKeyEventHandler)
+          
+          
           const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
           const svg = newEl.querySelector("svg.line-svg")!
 
@@ -1934,8 +2115,21 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             `
             path!.setAttribute("stroke", "#beb4b4")
           }
-            
-          path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
+          
+          if (path) {
+            let pathEventMap = elementEventHandlers.current.get(path)
+
+            if (!pathEventMap) {
+              pathEventMap = new Map()
+              elementEventHandlers.current.set(path, pathEventMap)
+              eventElementSet.current.add(path)
+            }
+
+            const pathDblClickHandler = (e: MouseEvent) => showPointVisibility(e, newEl)
+            pathEventMap.set("dblclick", pathDblClickHandler)
+      
+            path.addEventListener("dblclick", pathDblClickHandler)
+          }
        
           // path!.addEventListener("mouseover", (e)=> console.log("hover"))
           const pointAnchorUid = "point-"+uuidv4()
@@ -1962,19 +2156,24 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             newPoint.classList.add("point-indicators")
             newPoint.classList.add("hide-indicator")
             newPoint.setAttribute("id", newPointUid)
-            newPoint.addEventListener("mousedown", (e)=> {
-              // console.log("mouse down called on newPoint", newPoint)
-              eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: newPoint}
+            let newPointEventMap = elementEventHandlers.current.get(newPoint)
+            if (!newPointEventMap) {
+              newPointEventMap = new Map()
+              elementEventHandlers.current.set(newPoint, newPointEventMap)
+              eventElementSet.current.add(newPoint)
+            }
+            const ptMouseDownHandler = pointMouseDownHandler(newPoint)
+            const ptMouseUpHandler = pointMouseUpHandler(newPoint)
+            const ptDblClickHandler = pointDblClickHandler(newPoint)
 
-            }) 
-            newPoint.addEventListener("mouseup", (e) => {
-              //  console.log("mouse up called on new point ", newPoint)
-               eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: newPoint}
-            })
-            newPoint.addEventListener("dblclick", e => {
-              console.log("dblclick called on new point ", newPoint)
-              eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: newPoint}
-            })
+            newPointEventMap.set("mousedown", ptMouseDownHandler)
+            newPointEventMap.set("mouseup", ptMouseUpHandler)
+            newPointEventMap.set("dblclick", ptDblClickHandler)
+
+            newPoint.addEventListener("mousedown", ptMouseDownHandler) 
+            newPoint.addEventListener("mouseup", ptMouseUpHandler)
+            newPoint.addEventListener("dblclick", ptDblClickHandler)
+
             if (pointIndex === movablePoints.length - 1)
               pointStore.current[newPointUid] = [{prev: prevPointUid, next: null}, ["L", pointIndex]]
             else
@@ -2035,25 +2234,31 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
           const resizePanels = newEl.querySelectorAll(".resize-panel");
           resizePanels.forEach((panel) => {
-            (panel as HTMLSpanElement).addEventListener('mousedown', (e)=> {
-              eventTracker.current.panelMouseDownEventInvoked = {status: true, event: e, element: panel as HTMLSpanElement}
-            })
+            let panelEventMap = elementEventHandlers.current.get(panel)
+            if (!panelEventMap) {
+              panelEventMap = new Map()
+              elementEventHandlers.current.set(panel, panelEventMap)
+              eventElementSet.current.add(panel)
+            }
+            const panelMouseDownEventHandler =  panelMouseDownHandler(panel as HTMLSpanElement)
+            panelEventMap.set("mousedown", panelMouseDownEventHandler);
+
+            (panel as HTMLSpanElement).addEventListener('mousedown', panelMouseDownEventHandler)
       
 
           })
-          newEl.addEventListener("focus", (e) => {
-            (e.target as HTMLElement).style.outline = "2px solid #006644";
-            resizePanels.forEach(panel=> {
-              panel.classList.add('resize-panel-show')
-            })
-          })
-          newEl.addEventListener("focusout", (e)=> {
-            (e.target as HTMLElement).style.outline = "none";
-            resizePanels.forEach(panel=> {
-              panel.classList.remove('resize-panel-show')
-            })
-          })
-          newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
+
+          const cmpFocusHandler = componentFocusHandler(resizePanels, newEl)
+          const cmpFocusOutHandler = componentFocusOutHandler(resizePanels, newEl)
+          const cmpShapeDelete = (e: KeyboardEvent)=>handleShapeDelete(e, newEl)
+
+          newElEventMap.set("focus", cmpFocusHandler)
+          newElEventMap.set("focusout", cmpFocusOutHandler)
+          newElEventMap.set("keyup", cmpShapeDelete)
+         
+          newEl.addEventListener("focus", cmpFocusHandler)
+          newEl.addEventListener("focusout", cmpFocusOutHandler)
+          newEl.addEventListener("keyup", cmpShapeDelete)
         }
 
 
@@ -2109,18 +2314,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             image.style.height = `${scaledHeight}px`
           }
         } 
-        newEl.addEventListener("mousedown", (e) => {
-          eventTracker.current.mouseDownEventInvoked = {
-            ...eventTracker.current.mouseDownEventInvoked, 
-            status: true, event: e, element: newEl
-          }
-        });
-        newEl.addEventListener("mouseup", (e) => {
-           eventTracker.current.mouseUpEventInvoked = {
-            ...eventTracker.current.mouseUpEventInvoked,
-            status: true, event: e, element: newEl
-          }
-        });
+
+        const cmpMouseDownEventHandler = componentMouseDownHandler(newEl)
+        const cmpMouseUpEventHandler = componentMouseUpHandler(newEl)
+
+        newElEventMap.set("mousedown", cmpMouseDownEventHandler)
+        newElEventMap.set("mouseup", cmpMouseUpEventHandler)
+  
+        newEl.addEventListener("mousedown", cmpMouseDownEventHandler);
+        newEl.addEventListener("mouseup", cmpMouseUpEventHandler);
         canvasRef.current.appendChild(newEl)
         objectLabels.current.add(data.label)
         if (data.properties.crusherType === "primary")
@@ -2130,17 +2332,18 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const tooltipWrapper = document.createElement("div")
           tooltipWrapper.classList.add('object-details-tooltip')
           tooltipWrapper.classList.add("hide-tooltip")
-
-          
           newEl.appendChild(tooltipWrapper)
-          newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl, tooltipWrapper, dataId, e))
-          newEl.addEventListener("mouseleave", (e)=> {
-            tooltipWrapper.classList.remove("show-tooltip")
-            tooltipWrapper.classList.add("hide-tooltip")
-            newEl.classList.remove('object-hover')
-            if (newEl.id !== currentObject.current?.id)
-              newEl.classList.remove("current-object")
-          })
+
+          const cmpMouseEnterEventHandler = (e: MouseEvent)=> showObjectDetailsToolTip(newEl, tooltipWrapper, dataId, e)
+          const cmpMouseLeaveEventHandler = componentMouseLeaveHandler(newEl, tooltipWrapper)
+
+          newElEventMap.set("mouseenter", cmpMouseEnterEventHandler)
+          newElEventMap.set("mouseleave", cmpMouseLeaveEventHandler)
+
+
+          newEl.addEventListener("mouseenter", cmpMouseEnterEventHandler)
+          newEl.addEventListener("mouseleave", cmpMouseLeaveEventHandler)
+          
         } else {
           // Set font size and focus the active element on the right font size option
           newEl.style.fontSize = `${data.font_size}px`
@@ -2190,6 +2393,15 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       if (elementObjectType === "Auxilliary") {
         auxilliaryType = element.getAttribute("data-object-type-variant")
         newEl.removeAttribute("data-object-type-variant")
+      }
+
+
+       let newElEventMap = elementEventHandlers.current.get(newEl)
+        
+      if (!newElEventMap) {
+        newElEventMap = new Map()
+        elementEventHandlers.current.set(newEl, newElEventMap)
+        eventElementSet.current.add(newEl)
       }
       // console.log(newEl, "new el")
       // 
@@ -2241,47 +2453,33 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         
         newEl.appendChild(textControl)
         
-        const textControlOptions = textControl.querySelector(".text-size-control-options")
+        const textControlOptions = textControl.querySelector(".text-size-control-options") as HTMLElement
         const controlOptionButton = textControl.querySelector(".open-control-options") as HTMLImageElement
 
-        controlOptionButton?.addEventListener("click", (e)=> {
-          if (textControlOptions?.classList.contains("text-size-control-options-show")) {
-            textControlOptions?.classList.remove("text-size-control-options-show")
-            controlOptionButton.src = arrowDown.src
-          } else {
-            textControlOptions?.classList.add("text-size-control-options-show")
-            controlOptionButton.src = arrowUp.src
+
+        if (controlOptionButton) {
+          let ctrlOptionBtnMap = elementEventHandlers.current.get(controlOptionButton)
+          if (!ctrlOptionBtnMap) {
+            ctrlOptionBtnMap = new Map()
+            elementEventHandlers.current.set(controlOptionButton, ctrlOptionBtnMap)
+            eventElementSet.current.add(controlOptionButton)
           }
-          
-        })
+          const ctrlOptHandler = controlOptionClickHandler(textControlOptions, controlOptionButton)
+          ctrlOptionBtnMap.set("click", ctrlOptHandler)          
+          controlOptionButton.addEventListener("click", ctrlOptHandler)
+        }
+
+       
         textControlOptions?.querySelectorAll("span").forEach((span) => {
-          span.addEventListener("click", () => {
-            const activeFont = textControlOptions?.querySelector("span.text-selected")
-            objectData.current[newEl.id].font_size = parseInt(span.getAttribute("data-size") || "14")
-            newEl.style.fontSize = `${objectData.current[newEl.id].font_size}px`
-
-         
-            let size_name;
-            switch(objectData.current[newEl.id].font_size) {
-              case 12:
-                size_name = "Small"
-                break
-              case 14:
-                size_name = "Medium"
-                break
-              case 16:
-                size_name = "Large"
-                break
-              default:
-                size_name = "Medium"
-            }
-            newEl.querySelector(".selected-size-name")!.textContent = size_name
-            activeFont?.classList.remove("text-selected")
-            span.classList.add("text-selected")
-            textControlOptions?.classList.remove("text-size-control-options-show")
-            controlOptionButton.src = arrowDown.src
-
-          })
+          let txtControlSpanMap = elementEventHandlers.current.get(span)
+          if (!txtControlSpanMap) {
+            txtControlSpanMap = new Map()
+            elementEventHandlers.current.set(span, txtControlSpanMap)
+            eventElementSet.current.add(span)
+          }
+          const txtControlSpanHandler = textControlOptionClickHandler(textControlOptions, newEl, span, controlOptionButton)
+          txtControlSpanMap.set("click", txtControlSpanHandler)
+          span.addEventListener("click", txtControlSpanHandler)
         })
 
 
@@ -2292,20 +2490,44 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         contentEditableDiv.classList.add("placeholder-style")
         contentEditableDiv.classList.add("shape-text-base-styles")
 
+        let textControlMap = elementEventHandlers.current.get(textControl)
+        if (!textControlMap) {
+          textControlMap = new Map()
+          elementEventHandlers.current.set(textControl, textControlMap)
+          eventElementSet.current.add(textControl)
+        }
+        const txtCtrlMouseEnterHandler = textControlMouseEnterHandler(newEl)
+        const txtCtrlMouseLeaveHandler = textControlMouseLeaveHandler(newEl)
+        textControlMap.set('mouseenter', txtCtrlMouseEnterHandler )
+        textControlMap.set('mouseleave', txtCtrlMouseLeaveHandler)
 
-        textControl.addEventListener("mouseenter", (e)=> {
-          objectData.current[newEl.id].textActive = true
-        })
-        textControl.addEventListener("mouseleave", (e)=> {
-          objectData.current[newEl.id].textActive = false
-        })
-   
-        contentEditableDiv.addEventListener("dblclick", (e) => handleDblClick(e, contentEditableDiv))
+
+        textControl.addEventListener("mouseenter",  txtCtrlMouseEnterHandler)
+        textControl.addEventListener("mouseleave", txtCtrlMouseLeaveHandler)
+     
+
+        let contentEditableDivMap = elementEventHandlers.current.get(contentEditableDiv) 
+        if (!contentEditableDivMap) {
+          contentEditableDivMap = new Map()
+          elementEventHandlers.current.set(contentEditableDiv, contentEditableDivMap)
+          eventElementSet.current.add(contentEditableDiv)
+        }
+        const contEditableDblClickHandler = (e: MouseEvent) => handleDblClick(e, contentEditableDiv) 
+        contentEditableDivMap.set("dblclick", contEditableDblClickHandler)
+        contentEditableDiv.addEventListener("dblclick", contEditableDblClickHandler)
 
 
-        contentEditableDiv.addEventListener("focusout", (e) => textFocusOut(newEl as HTMLDivElement, contentEditableDiv))
-        newEl.addEventListener("focusout", (e) => textFocusOut(newEl as HTMLDivElement, contentEditableDiv))
+        const contEditableFocusOutHandler = () => textFocusOut(newEl as HTMLDivElement, contentEditableDiv)
+          
+        contentEditableDivMap.set("focusout", contEditableFocusOutHandler)
+        contentEditableDivMap.set("keyup", handleInput)
+
+        const newElTextFocusOutHandler = () => textFocusOut(newEl as HTMLDivElement, contentEditableDiv)
+        newElEventMap.set("focusout", newElTextFocusOutHandler)
+        contentEditableDiv.addEventListener("focusout", contEditableFocusOutHandler)
+        newEl.addEventListener("focusout", newElTextFocusOutHandler)
         contentEditableDiv.addEventListener("keyup", handleInput)
+
 
       } else if (elementObjectType === "Shape" && elementObjectName === "Line") {
         // Lines 
@@ -2313,9 +2535,19 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         newEl.setAttribute("data-variant", "line")
         newEl.classList.add("line-z-index")
         newEl.style.outline = "none"
-        newEl.addEventListener("focus", (e)=> showPointVisibility(e, newEl))
-        newEl.addEventListener("focusout", (e)=> hidePointVisibility(e, newEl))
-        newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
+      
+        const lineFocusEventHandler = (e: FocusEvent)=> showPointVisibility(e, newEl)
+        const lineFocusOutEventHandler = (e: FocusEvent)=> hidePointVisibility(e, newEl)
+        const lineKeyEventHandler = (e: KeyboardEvent)=>handleShapeDelete(e, newEl)
+        newElEventMap.set("focus", lineFocusEventHandler)
+        newElEventMap.set("focusout", lineFocusEventHandler)
+        newElEventMap.set("keyup", lineKeyEventHandler)
+
+        newEl.addEventListener("focus", lineFocusEventHandler)
+        newEl.addEventListener("focusout", lineFocusOutEventHandler)
+        newEl.addEventListener("keyup", lineKeyEventHandler)
+        
+
         const lineWrapEl = newEl.querySelector(".line-wrap") as HTMLDivElement
         lineWrapEl.innerHTML = ""
         const lineSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -2328,7 +2560,23 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         `
         lineWrapEl.appendChild(lineSvg)
         const path = lineSvg.querySelector("path")
-        path!.addEventListener("dblclick", (e) => showPointVisibility(e, newEl))
+        
+        
+        if (path) {
+          let pathEventMap = elementEventHandlers.current.get(path)
+
+          if (!pathEventMap) {
+            pathEventMap = new Map()
+            elementEventHandlers.current.set(path, pathEventMap)
+            eventElementSet.current.add(path)
+          }
+
+          const pathDblClickHandler = (e: MouseEvent) => showPointVisibility(e, newEl)
+          pathEventMap.set("dblclick", pathDblClickHandler)
+    
+          path.addEventListener("dblclick", pathDblClickHandler)
+        }
+
         // path!.addEventListener("mouseover", (e)=> console.log("hover"))
         const point1Uid = "point-"+uuidv4()
         const point2Uid = "point-"+uuidv4()
@@ -2347,15 +2595,23 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         point2.classList.add("hide-indicator")
         point1.setAttribute("id", point1Uid)
         point2.setAttribute("id", point2Uid)
-        point2.addEventListener("mousedown", (e)=>{
-          eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: point2}
-        }) 
-        point2.addEventListener("mouseup", (e)=>{
-           eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: point2}
-        })
-        point2.addEventListener("dblclick", e => {
-          eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: point2}
-        })
+        let point2EventMap = elementEventHandlers.current.get(point2)
+        if (!point2EventMap) {
+          point2EventMap = new Map()
+          elementEventHandlers.current.set(point2, point2EventMap)
+          eventElementSet.current.add(point2)
+        }
+        const ptMouseDownHandler = pointMouseDownHandler(point2)
+        const ptMouseUpHandler = pointMouseUpHandler(point2)
+        const ptDblClickHandler = pointDblClickHandler(point2)
+
+        point2EventMap.set("mousedown", ptMouseDownHandler)
+        point2EventMap.set("mouseup", ptMouseUpHandler)
+        point2EventMap.set("dblclick", ptDblClickHandler)
+
+        point2.addEventListener("mousedown", ptMouseDownHandler) 
+        point2.addEventListener("mouseup", ptMouseUpHandler)
+        point2.addEventListener("dblclick", ptDblClickHandler)
         const startCoords: [number, number] = [15, 15]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
@@ -2407,24 +2663,32 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           )
           const resizePanels = newEl.querySelectorAll(".resize-panel");
           resizePanels.forEach((panel) => {
-            (panel as HTMLSpanElement).addEventListener('mousedown', (e)=> {
-              eventTracker.current.panelMouseDownEventInvoked = {status: true, event: e, element: panel as HTMLSpanElement}
-            })
+            let panelEventMap = elementEventHandlers.current.get(panel)
+            if (!panelEventMap) {
+              panelEventMap = new Map()
+              elementEventHandlers.current.set(panel, panelEventMap)
+              eventElementSet.current.add(panel)
+            }
+            const panelMouseDownEventHandler =  panelMouseDownHandler(panel as HTMLSpanElement)
+            panelEventMap.set("mousedown", panelMouseDownEventHandler);
+
+            (panel as HTMLSpanElement).addEventListener('mousedown', panelMouseDownEventHandler)
+
         
           })
-          newEl.addEventListener("focus", (e) => {
-            (e.target as HTMLElement).style.outline = "2px solid #006644";
-            resizePanels.forEach(panel=> {
-              panel.classList.add('resize-panel-show')
-            })
-          })
-          newEl.addEventListener("focusout", (e)=> {
-            (e.target as HTMLElement).style.outline = "none";
-            resizePanels.forEach(panel=> {
-              panel.classList.remove('resize-panel-show')
-            })
-          })
-          newEl.addEventListener("keyup", e=>handleShapeDelete(e, newEl))
+          
+          
+          const cmpFocusHandler = componentFocusHandler(resizePanels, newEl)
+          const cmpFocusOutHandler = componentFocusOutHandler(resizePanels, newEl)
+          const cmpShapeDelete = (e: KeyboardEvent)=>handleShapeDelete(e, newEl)
+
+          newElEventMap.set("focus", cmpFocusHandler)
+          newElEventMap.set("focusout", cmpFocusOutHandler)
+          newElEventMap.set("keyup", cmpShapeDelete)
+         
+          newEl.addEventListener("focus", cmpFocusHandler)
+          newEl.addEventListener("focusout", cmpFocusOutHandler)
+          newEl.addEventListener("keyup", cmpShapeDelete)
       }
 
       
@@ -2483,18 +2747,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
       } 
       LineConnector(newEl)
-      newEl.addEventListener("mousedown", (e) =>{
-        eventTracker.current.mouseDownEventInvoked = {
-          ...eventTracker.current.mouseDownEventInvoked,
-          status: true, event: e, element: newEl
-        }
-      });
-      newEl.addEventListener("mouseup", (e) =>{
-         eventTracker.current.mouseUpEventInvoked = {
-          ...eventTracker.current.mouseUpEventInvoked,
-          status: true, event: e, element: newEl
-        }
-      });
+    
+      const cmpMouseDownEventHandler = componentMouseDownHandler(newEl)
+      const cmpMouseUpEventHandler = componentMouseUpHandler(newEl)
+
+      newElEventMap.set("mousedown", cmpMouseDownEventHandler)
+      newElEventMap.set("mouseup", cmpMouseUpEventHandler)
+
+      newEl.addEventListener("mousedown", cmpMouseDownEventHandler);
+      newEl.addEventListener("mouseup", cmpMouseUpEventHandler);
+
       canvasRef.current.appendChild(newEl)
 
       if (elementObjectName !== "Text") {
@@ -2502,15 +2764,17 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const tooltipWrapper = document.createElement("div")
         tooltipWrapper.classList.add('object-details-tooltip')
         tooltipWrapper.classList.add("hide-tooltip")
-        newEl.appendChild(tooltipWrapper)
-        newEl.addEventListener("mouseenter",(e)=> showObjectDetailsToolTip(newEl as HTMLDivElement, tooltipWrapper, uuid4, e))
-        newEl.addEventListener("mouseleave", (e)=> {
-          tooltipWrapper.classList.remove("show-tooltip")
-          tooltipWrapper.classList.add("hide-tooltip")
-          newEl.classList.remove('object-hover')
-          if (newEl.id !== currentObject.current?.id)
-            newEl.classList.remove("current-object")
-        })
+        newEl.appendChild(tooltipWrapper)      
+        
+        const cmpMouseEnterEventHandler = (e: MouseEvent)=> showObjectDetailsToolTip(newEl as HTMLDivElement, tooltipWrapper, uuid4, e)
+        const cmpMouseLeaveEventHandler = componentMouseLeaveHandler(newEl, tooltipWrapper)
+
+        newElEventMap.set("mouseenter", cmpMouseEnterEventHandler)
+        newElEventMap.set("mouseleave", cmpMouseLeaveEventHandler)
+
+
+        newEl.addEventListener("mouseenter", cmpMouseEnterEventHandler)
+        newEl.addEventListener("mouseleave", cmpMouseLeaveEventHandler)
       } else {
           newEl.style.fontSize = `${defaultObjectData.font_size}px`
           setIsEdited(true)
@@ -2757,9 +3021,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
           
         }
-        document.addEventListener("mouseup", (e) => {
-          eventTracker.current.generalMouseUpEventInvoked = {status: true, event: e}
-        })
+        document.addEventListener("mouseup", documentMouseUpHandler)
         // fix this 
         // document.addEventListener("click", ()=> console.log("document clicked"))
         // console.log(e)
@@ -2800,8 +3062,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     useEffect(()=> {
       const CanvasContainer = canvasRef.current
       CanvasParentContainer.current = document.getElementById("canvas-parent-container")!
-      const objects = document.querySelectorAll(".objects")
-      const panels = document.querySelectorAll(".resize-panel")
 
       if (pageNotFound) return;
       // console.log(objects)
@@ -2823,6 +3083,28 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         setCanvasLoading(false)
       }
       if (!hasInstance.current) invokeLoadObjects()
+
+      const canvasMouseMoveHandler = (e: MouseEvent) => {
+        eventTracker.current.mouseMoveEventInvoked = {
+          status: true,
+          event: e,
+          element: CanvasContainer
+        }
+      }
+      const canvasMouseLeaveHandler = (e: MouseEvent) => {
+        eventTracker.current.mouseUpEventInvoked = {
+          status: true,
+          event: e,
+          element: CanvasContainer
+        }
+      }
+      const canvasMouseUpHandler =  (e: MouseEvent) => {
+        eventTracker.current.mouseUpEventInvoked = {
+          status: true,
+          event: e,
+          element: CanvasContainer
+        }
+      }
           
       
 
@@ -2831,99 +3113,29 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       animationFrameRef.current = requestAnimationFrame(animationFrame)
 
       // Main Project Canvas
-      CanvasContainer.addEventListener("mousemove", (e) => {
-        eventTracker.current.mouseMoveEventInvoked = {
-          status: true,
-          event: e,
-          element: CanvasContainer
-        }
-      });
-      CanvasContainer.addEventListener("mouseleave", (e) => {
-        eventTracker.current.mouseUpEventInvoked = {
-          status: true,
-          event: e,
-          element: CanvasContainer
-        }
-      });
-      CanvasContainer.addEventListener("mouseup", (e) => {
-        eventTracker.current.mouseUpEventInvoked = {
-          status: true,
-          event: e,
-          element: CanvasContainer
-        }
-      })
+      CanvasContainer.addEventListener("mousemove", canvasMouseMoveHandler);
+      CanvasContainer.addEventListener("mouseleave", canvasMouseLeaveHandler);
+      CanvasContainer.addEventListener("mouseup", canvasMouseUpHandler)
 
       // Sidebar Canvas
       // SidebarCanvas.addEventListener("mousemove",)
       // SidebarCanvas.addEventListener("mouseleave")
       
       return () => {
-        objects.forEach(object=> {
-          (object as HTMLElement).removeEventListener("mousedown", (e) => {
-            eventTracker.current.mouseDownEventInvoked = {
-              ...eventTracker.current.mouseDownEventInvoked, 
-              status: true, event: e, element: object as HTMLElement
-            }
-          });
-          (object as HTMLElement).removeEventListener("mouseup", (e) => {
-               eventTracker.current.mouseUpEventInvoked = {
-                ...eventTracker.current.mouseUpEventInvoked,
-                status: true, event: e, element: object as HTMLElement
-              }
-          });
-          (object as HTMLElement).removeEventListener("focus", (e)=> {
-            (e.target as HTMLElement).style.outline = "2px solid #006644";
-             panels.forEach(panel=> {
-              panel.classList.add('resize-panel-show')
-            })
-          });
-          (object as HTMLElement).removeEventListener("focusout", (e)=> {
-            (e.target as HTMLElement).style.outline = "none";
-            panels.forEach(panel=> {
-              panel.classList.remove('resize-panel-show')
-            })
-          });
-          (object as HTMLElement).removeEventListener("keyup", e=>handleShapeDelete(e, object as HTMLElement));
-          // object.removeEventListener("mousemove", handleMouseMove)
-        })
-        document.querySelectorAll(".point-indicators").forEach(point => {
-          (point as HTMLElement).removeEventListener("mousedown", (e)=> {
-           eventTracker.current.mouseDownEventInvoked = {status: true, event: e, element: null, point: point as HTMLSpanElement}
 
-          });
-          (point as HTMLElement).removeEventListener("mouseup", (e) => {
-             eventTracker.current.mouseUpEventInvoked = {status: true, event: e, point: point as HTMLSpanElement}
-          });
-          (point as HTMLElement).addEventListener("dblclick", e => {
-            eventTracker.current.createMultiplePointEventInvoked = {status: true, event: e, element: point as HTMLElement}
+        eventElementSet.current.forEach((element) => {
+          const elementMap = elementEventHandlers.current.get(element)
+          elementMap?.forEach((handlerFn, event) => {
+            element.removeEventListener(event, handlerFn as EventListenerOrEventListenerObject)
           })
+
         })
-        panels.forEach(panel => {
-          (panel as HTMLSpanElement).removeEventListener("mousedown", (e) =>  {
-            eventTracker.current.panelMouseDownEventInvoked = {status: true, event: e, element: panel as HTMLSpanElement}
-          })
-        })
-         CanvasContainer.removeEventListener("mousemove", (e) => {
-          eventTracker.current.mouseMoveEventInvoked = {
-            status: true,
-            event: e,
-            element: CanvasContainer
-          }
-        });
-        CanvasContainer.removeEventListener("mouseleave", (e) => {
-          eventTracker.current.mouseUpEventInvoked = {
-            status: true,
-            event: e,
-            element: CanvasContainer
-          }
-        });
-         CanvasContainer.removeEventListener("mouseup", (e) => {
-            eventTracker.current.mouseUpEventInvoked = {
-              status: true,
-              event: e,
-              element: CanvasContainer
-            }
-          });
+
+
+        CanvasContainer.removeEventListener("mousemove", canvasMouseMoveHandler);
+        CanvasContainer.removeEventListener("mouseleave", canvasMouseLeaveHandler);
+        CanvasContainer.removeEventListener("mouseup", canvasMouseUpHandler);
+        document.removeEventListener("mouseup", documentMouseUpHandler)
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
         
       }
