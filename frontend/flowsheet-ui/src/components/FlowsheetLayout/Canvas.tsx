@@ -96,7 +96,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const eventElementSet = useRef(new Set<Element | HTMLElement |  SVGPathElement>())
 
     const elementEventHandlers = useRef(new WeakMap<Element | HTMLElement |  SVGPathElement, Map<keyof DocumentEventMap, ((ev: MouseEvent) => void) | ((ev: FocusEvent) => void) | ((ev: KeyboardEvent) => void) >>()) // key is dom element value is a map of event to function.
-
+    const areListenersAttached = useRef(false)
 
 
     const eventTracker = useRef<{
@@ -1359,7 +1359,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const pointY = parseFloat((e.clientY - objectY).toFixed(6))
       const pointID = pointStore.current[point.id]
       const pointDetails = pointID[1] // point here is expected to be ["L", :any number]
-
+      console.log('point details', pointDetails)
       // console.log('object', object)
       // console.log('pointX', pointX)
       // console.log('pointY', pointY)
@@ -1369,10 +1369,13 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
      
       const objectDetails = objectData.current[object.id].properties.coordinates
       // console.log('objectDetails', objectDetails)
+
+
+      // there's an error here...
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
       point.style.left = `${pointX}px`
       point.style.top = `${pointY}px`
-
+      console.log("coords", objectDetails.lineCoordinates)
       const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
       const path = object.querySelector("svg.line-svg path")
       path?.setAttribute("d", coordString)
@@ -1601,7 +1604,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     const componentMouseDownHandler = (newEl: HTMLElement) => {
       // console.log(newEl)
       return (e: MouseEvent) => {
-          console.log("e", e)
           eventTracker.current.mouseDownEventInvoked = {
             ...eventTracker.current.mouseDownEventInvoked, 
             status: true, event: e, element: newEl
@@ -1661,7 +1663,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         }
     }
 
-    const textControlOptionClickHandler = (textControlOptions: HTMLElement, newEl: HTMLElement, span: HTMLSpanElement, controlOptionButton: HTMLImageElement) => {
+    const textControlOptionClickHandler = useCallback((textControlOptions: HTMLElement, newEl: HTMLElement, span: HTMLSpanElement, controlOptionButton: HTMLImageElement) => {
       return () => {
             const activeFont = textControlOptions?.querySelector("span.text-selected")
             objectData.current[newEl.id].font_size = parseInt(span.getAttribute("data-size") || "14")
@@ -1687,19 +1689,20 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             textControlOptions?.classList.remove("text-size-control-options-show")
             controlOptionButton.src = arrowDown.src
         }
-    }
+    }, [objectData])
     // Text controls mouse enter and mouse leave
 
-    const textControlMouseEnterHandler = (newEl: HTMLElement) => {
+    const textControlMouseEnterHandler = useCallback((newEl: HTMLElement) => {
       return ()=> {
         objectData.current[newEl.id].textActive = true
       }
-    }
-    const textControlMouseLeaveHandler = (newEl: HTMLElement) => {
+    }, [objectData])
+
+    const textControlMouseLeaveHandler = useCallback((newEl: HTMLElement) => {
       return () => {
         objectData.current[newEl.id].textActive = false
       }
-    }
+    }, [objectData])
 
     // text input/contentEditable
 
@@ -2352,10 +2355,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           textControlPanel.querySelector(".selected-size-name")!.textContent = data.font_size === 12 ? "Small" : data.font_size === 14 ? "Medium" : "Large"
           textControlPanel.querySelector(`[data-size="${data.font_size}"]`)?.classList.add("text-selected")
         }
-  
+        
       }
-     
-    }, [handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip, canvasRef, textFocusOut])
+      areListenersAttached.current = true
+    }, [handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip, canvasRef, textFocusOut, textControlMouseEnterHandler, textControlMouseLeaveHandler, textControlOptionClickHandler])
 
 
 
@@ -3063,8 +3066,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
     useEffect(()=> {
       const CanvasContainer = canvasRef.current
+      const elementSetRef =  eventElementSet.current
+      const elementEventHandlersRef = elementEventHandlers.current
       CanvasParentContainer.current = document.getElementById("canvas-parent-container")!
-
+      
+      
       if (pageNotFound) return;
       // console.log(objects)
       const invokeLoadObjects = async () => {
@@ -3109,7 +3115,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       }
           
       
+      // console.log("weak maps", elementEventHandlers.current)
+      // console.log("sets", eventElementSet.current)
 
+    
 
       // animate frame
       animationFrameRef.current = requestAnimationFrame(animationFrame)
@@ -3122,16 +3131,26 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       // Sidebar Canvas
       // SidebarCanvas.addEventListener("mousemove",)
       // SidebarCanvas.addEventListener("mouseleave")
+      if (!areListenersAttached.current && hasInstance.current) {
+        elementSetRef.forEach((element) => {
+          const elementMap = elementEventHandlersRef.get(element)
+          elementMap?.forEach((handlerFn, event) => {
+            element.addEventListener(event, handlerFn as EventListenerOrEventListenerObject)
+          })
+        })
+        areListenersAttached.current = true
+      }
       
       return () => {
-
-        eventElementSet.current.forEach((element) => {
-          const elementMap = elementEventHandlers.current.get(element)
-          elementMap?.forEach((handlerFn, event) => {
-            element.removeEventListener(event, handlerFn as EventListenerOrEventListenerObject)
+        if (areListenersAttached.current) {
+          elementSetRef.forEach((element) => {
+            const elementMap = elementEventHandlersRef.get(element)
+            elementMap?.forEach((handlerFn, event) => {
+              element.removeEventListener(event, handlerFn as EventListenerOrEventListenerObject)
+            })
           })
-
-        })
+          areListenersAttached.current = false
+        }
 
 
         CanvasContainer.removeEventListener("mousemove", canvasMouseMoveHandler);
@@ -3141,7 +3160,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
         
       }
-    }, [canvasRef, DrawPoint, handleMouseUpGeneral, params.flowsheet_id, params.project_id,setPageNotFound, pageNotFound, handleShapeDelete, setCanvasLoading,  loadObjectToCanvas, objectData, hasInstance, animationFrame])
+    }, [
+      objectData, hasInstance, canvasRef, pageNotFound, 
+      params.flowsheet_id, setPageNotFound, setCanvasLoading, 
+      loadObjectToCanvas, animationFrame
+    ])
 
     useEffect(() => {
       let intervalRef: NodeJS.Timeout | null = null;
