@@ -1599,6 +1599,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
     // component handlers
 
     const componentMouseDownHandler = (newEl: HTMLElement) => {
+      // console.log(newEl)
       return (e: MouseEvent) => {
           console.log("e", e)
           eventTracker.current.mouseDownEventInvoked = {
@@ -2317,12 +2318,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         const cmpMouseDownEventHandler = componentMouseDownHandler(newEl)
         const cmpMouseUpEventHandler = componentMouseUpHandler(newEl)
-
         newElEventMap.set("mousedown", cmpMouseDownEventHandler)
         newElEventMap.set("mouseup", cmpMouseUpEventHandler)
-  
         newEl.addEventListener("mousedown", cmpMouseDownEventHandler);
         newEl.addEventListener("mouseup", cmpMouseUpEventHandler);
+
+
         canvasRef.current.appendChild(newEl)
         objectLabels.current.add(data.label)
         if (data.properties.crusherType === "primary")
@@ -2351,8 +2352,9 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           textControlPanel.querySelector(".selected-size-name")!.textContent = data.font_size === 12 ? "Small" : data.font_size === 14 ? "Medium" : "Large"
           textControlPanel.querySelector(`[data-size="${data.font_size}"]`)?.classList.add("text-selected")
         }
-
+  
       }
+     
     }, [handleInput, handleShapeDelete, objectData, showObjectDetailsToolTip, canvasRef, textFocusOut])
 
 
