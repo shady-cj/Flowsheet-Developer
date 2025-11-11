@@ -43,7 +43,6 @@ class ListComponentMixin:
 
         cache_result = get_cache_data(cache_key)
         if cache_result:
-            print(cache_result)
             return Response(cache_result["data"], status=cache_result["status"])
         
         response = super().list(request, args, kwargs)

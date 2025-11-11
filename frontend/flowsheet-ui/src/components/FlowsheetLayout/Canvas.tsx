@@ -267,6 +267,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
       const element = currentObject.current
       if (element) {
+        // remove event listeners
+        if (eventElementSet.current.has(element)) {
+          const elRemove = elementEventHandlers.current.get(element)
+          elRemove?.forEach((handlerFn, event) => {
+            element.removeEventListener(event, handlerFn as EventListenerOrEventListenerObject)
+          })
+          eventElementSet.current.delete(element)
+          elementEventHandlers.current.delete(element)
+        }
+
         delete objectData.current[element.id]
         currentObject.current = prevActiveObject.current!
         element.remove()
@@ -1438,6 +1448,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         objectLabels.current.delete(objectData.current[element.id].label)
         if (objectData.current[element.id].properties.crusherType === "primary") 
           primaryCrusherInUse.current = false
+
+        if (eventElementSet.current.has(element)) {
+          const elRemove = elementEventHandlers.current.get(element)
+          elRemove?.forEach((handlerFn, event) => {
+            element.removeEventListener(event, handlerFn as EventListenerOrEventListenerObject)
+          })
+          eventElementSet.current.delete(element)
+          elementEventHandlers.current.delete(element)
+        }
+
         delete objectData.current[element.id]
 
         if (element.getAttribute("data-variant") !== "line") {
@@ -1802,6 +1822,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const parentElementContainer = element.closest(".text-object-container")!
       
       if (element.innerHTML!.length === 0 && e.keyCode === 8 && element.classList.contains("placeholder-style")) {
+        if (eventElementSet.current.has(element)) {
+          const elRemove = elementEventHandlers.current.get(element)
+          elRemove?.forEach((handlerFn, event) => {
+            element.removeEventListener(event, handlerFn as EventListenerOrEventListenerObject)
+          })
+          eventElementSet.current.delete(element)
+          elementEventHandlers.current.delete(element)
+        }
+
+        
         element.remove()
         // Send a delete request to the backend to update the delete (if already created by check if there is an id field)
         delete objectData.current[parentElementContainer.id]
