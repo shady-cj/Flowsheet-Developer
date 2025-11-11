@@ -1359,7 +1359,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       const pointY = parseFloat((e.clientY - objectY).toFixed(6))
       const pointID = pointStore.current[point.id]
       const pointDetails = pointID[1] // point here is expected to be ["L", :any number]
-      console.log('point details', pointDetails)
       // console.log('object', object)
       // console.log('pointX', pointX)
       // console.log('pointY', pointY)
@@ -1372,10 +1371,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
 
       // there's an error here...
+
       objectDetails.lineCoordinates![pointDetails[0]][pointDetails[1]!] = [pointX, pointY]
       point.style.left = `${pointX}px`
       point.style.top = `${pointY}px`
-      console.log("coords", objectDetails.lineCoordinates)
       const coordString = LineCoordinateToPathString(objectDetails.lineCoordinates!)
       const path = object.querySelector("svg.line-svg path")
       path?.setAttribute("d", coordString)
@@ -1506,7 +1505,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       eventTracker.current.generalMouseUpEventInvoked = {status: false, event: null}
     }, [LineConnector, objectData, setIsEdited])
 
-    const handleMouseUpGeneral = useCallback((e: MouseEvent) => {
+    const handleMouseUpGeneral = useCallback((e: MouseEvent | null) => {
+      if (!e) return
       // console.log('mouse up called in general ', onPanelResize.current, "mouse down", onMouseDown.current)
       handleMouseUpUtil()
     },[handleMouseUpUtil])
@@ -1780,10 +1780,12 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
     const showPointVisibility = (e: FocusEvent | MouseEvent, element: HTMLElement) => {
       // on focus reveal each line breakpoints
+      
       const indicators = element.querySelectorAll(".point-indicators")
       indicators.forEach(indicator => {
         indicator.classList.remove("hide-indicator")
-      }) 
+      })
+      // console.log("showing point visibilties")
     }
 
     const hidePointVisibility = (e: FocusEvent, element: HTMLElement) => {
@@ -1792,6 +1794,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
       indicators.forEach(indicator => {
         indicator.classList.add("hide-indicator")
       }) 
+      // console.log("hiding point visibilities")
     }
 
     const handleInput = useCallback((e: KeyboardEvent) => {
@@ -2087,11 +2090,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const lineFocusOutEventHandler = (e: FocusEvent)=> hidePointVisibility(e, newEl)
           const lineKeyEventHandler = (e: KeyboardEvent)=>handleShapeDelete(e, newEl)
           newElEventMap.set("focus", lineFocusEventHandler)
-          newElEventMap.set("focusout", lineFocusEventHandler)
+          newElEventMap.set("blur", lineFocusOutEventHandler)
           newElEventMap.set("keyup", lineKeyEventHandler)
 
           newEl.addEventListener("focus", lineFocusEventHandler)
-          newEl.addEventListener("focusout", lineFocusOutEventHandler)
+          newEl.addEventListener("blur", lineFocusOutEventHandler)
           newEl.addEventListener("keyup", lineKeyEventHandler)
           
           
@@ -2257,11 +2260,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const cmpShapeDelete = (e: KeyboardEvent)=>handleShapeDelete(e, newEl)
 
           newElEventMap.set("focus", cmpFocusHandler)
-          newElEventMap.set("focusout", cmpFocusOutHandler)
+          newElEventMap.set("blur", cmpFocusOutHandler)
           newElEventMap.set("keyup", cmpShapeDelete)
          
           newEl.addEventListener("focus", cmpFocusHandler)
-          newEl.addEventListener("focusout", cmpFocusOutHandler)
+          newEl.addEventListener("blur", cmpFocusOutHandler)
           newEl.addEventListener("keyup", cmpShapeDelete)
         }
 
@@ -2545,11 +2548,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const lineFocusOutEventHandler = (e: FocusEvent)=> hidePointVisibility(e, newEl)
         const lineKeyEventHandler = (e: KeyboardEvent)=>handleShapeDelete(e, newEl)
         newElEventMap.set("focus", lineFocusEventHandler)
-        newElEventMap.set("focusout", lineFocusEventHandler)
+        newElEventMap.set("blur", lineFocusOutEventHandler)
         newElEventMap.set("keyup", lineKeyEventHandler)
 
         newEl.addEventListener("focus", lineFocusEventHandler)
-        newEl.addEventListener("focusout", lineFocusOutEventHandler)
+        newEl.addEventListener("blur", lineFocusOutEventHandler)
         newEl.addEventListener("keyup", lineKeyEventHandler)
         
 
@@ -2688,11 +2691,11 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           const cmpShapeDelete = (e: KeyboardEvent)=>handleShapeDelete(e, newEl)
 
           newElEventMap.set("focus", cmpFocusHandler)
-          newElEventMap.set("focusout", cmpFocusOutHandler)
+          newElEventMap.set("blur", cmpFocusOutHandler)
           newElEventMap.set("keyup", cmpShapeDelete)
          
           newEl.addEventListener("focus", cmpFocusHandler)
-          newEl.addEventListener("focusout", cmpFocusOutHandler)
+          newEl.addEventListener("blur", cmpFocusOutHandler)
           newEl.addEventListener("keyup", cmpShapeDelete)
       }
 
@@ -3040,13 +3043,16 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         panelMouseDownEventInvoked, 
         mouseUpEventInvoked, 
         mouseMoveEventInvoked,
-        createMultiplePointEventInvoked
+        createMultiplePointEventInvoked,
+        generalMouseUpEventInvoked
       } = eventTracker.current
 
 
       if (mouseMoveEventInvoked.status) 
         handleMouseMove(mouseMoveEventInvoked.event)
 
+      if (generalMouseUpEventInvoked.status)
+        handleMouseUpGeneral(generalMouseUpEventInvoked.event)
 
       if (mouseDownEventInvoked.status)
         handleMouseDown(mouseDownEventInvoked.event, mouseDownEventInvoked.element as HTMLElement)
@@ -3061,7 +3067,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         createMultiplePoint(createMultiplePointEventInvoked.event, createMultiplePointEventInvoked.element)     
 
       animationFrameRef.current = requestAnimationFrame(animationFrame)
-    }, [handleMouseDown, handleMouseMove, handleMouseUp, onPanelMouseDown, createMultiplePoint])
+    }, [handleMouseDown, handleMouseMove, handleMouseUp, onPanelMouseDown, createMultiplePoint, handleMouseUpGeneral])
     
 
     useEffect(()=> {
