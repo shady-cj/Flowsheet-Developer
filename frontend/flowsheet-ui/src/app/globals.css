@@ -3,12 +3,48 @@
 @tailwind utilities;
 @import url('https://fonts.googleapis.com/css2?family=Alumni+Sans:ital,wght@0,100..900;1,100..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-html, body {
-  font-family: "Instrument Sans", sans-serif !important;
-  font-optical-sizing: auto;
+:root {
+  --grid-width: 30px;
+  --grid-height: 30px;
+
 }
 
 
+html, body {
+  font-family: "Instrument Sans", sans-serif !important;
+  font-optical-sizing: auto;
+  overscroll-behavior-x: none;
+}
+.small-screen-message {
+  display: none;
+}
+
+
+@media (max-width: 1200px) {
+  .app-content {
+    display: none !important;
+  }
+  .small-screen-message {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    width: 100vw;
+    height: 100vh;
+    background: #3c41c2;
+    color: white;
+    padding: 30px;
+    font-size: 3vw;
+    transition: all 0.3s ease-in-out;
+    text-align: center;
+  }
+  .small-screen-message > 
+  .emoji {
+    font-size: 3em;
+    margin-bottom: 15px;
+  }
+}
 
 body {
   background-color: #FAFBFC;
@@ -79,13 +115,28 @@ body {
   background-repeat: repeat;
 }
 
-.small-grid-bg {
+/* .small-grid-bg {
   background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
-  background-size: 30px 30px;
+  background-size: 32px 32px;
+  background-color: transparent;
 }
 .large-grid-bg {
   background-image: linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
-  background-size:90px 90px;
+  background-size: 96px 96px;
+  background-color: transparent;
+} */
+
+.grid-bg {
+  background-image:
+  linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px),
+  linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size:
+    120px 120px,
+    120px 120px,
+    40px 40px,
+    40px 40px;
   background-color: transparent;
 }
 

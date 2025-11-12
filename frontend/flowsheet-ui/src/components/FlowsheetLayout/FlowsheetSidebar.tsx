@@ -296,7 +296,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
             </div>
             <div className="pt-6">
             
-                <Image src={importComponent} width={200} height={118} alt="import" quality={100} className="w-full cursor-pointer" draggable={false} onClick={(e)=>setAddCustomComponent(true)}/>
+                <Image src={importComponent} width={200} height={118} alt="import" priority quality={100} className="w-full cursor-pointer" draggable={false} onClick={(e)=>setAddCustomComponent(true)}/>
             </div>
         </section>
         {

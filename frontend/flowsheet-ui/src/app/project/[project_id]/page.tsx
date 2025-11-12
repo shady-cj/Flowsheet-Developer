@@ -55,10 +55,10 @@ const ProjectPage = async ({params}: {params: Promise<{project_id: string}>}) =>
             <div className="px-4 pb-8 border-b border-solid border-[#E6E6E6]">
               <div className="h-[75vh] flex gap-x-14">
                   <div className="project-preview-wrapper">
-                      <Image height={300} width={600} className='w-full h-full absolute z-1 top-0 left-0 object-con border rounded border-[#E6E6E6] bg-grayVariant' src={result.project.background_preview_url} alt={"preview_background"}/>
+                      <Image fill className='w-auto h-full absolute z-1 top-0 left-0 object-cover border rounded border-[#E6E6E6] bg-grayVariant' src={result.project.background_preview_url} priority alt={"preview_background"}/>
                       
                       {
-                        result.project.preview_url ? <Image height={300} width={600} className="w-auto h-full relative z-10 bg-transparent" src={result.project.preview_url} alt={result.project.name}/> : <></>
+                        result.project.preview_url ? <Image fill className="w-auto h-full object-contain relative z-10 bg-transparent" src={result.project.preview_url} alt={result.project.name}/> : <></>
                       }
                       
 

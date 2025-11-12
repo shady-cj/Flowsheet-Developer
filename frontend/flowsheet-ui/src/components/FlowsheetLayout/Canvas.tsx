@@ -1505,7 +1505,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             currentActivePoint.current = null
             eventTracker.current.mouseUpEventInvoked.point = undefined
 
-          } else {
+          } else if (obj) {
             objectData.current[obj.id].properties.coordinates.lastX = parseFloat((obj?.offsetLeft as number).toFixed(6))
             objectData.current[obj.id].properties.coordinates.lastY = parseFloat((obj?.offsetTop as number).toFixed(6))
             objectData.current[obj.id].x_coordinate = parseFloat((obj?.offsetLeft as number).toFixed(6))
@@ -2593,10 +2593,10 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         const lineSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         lineSvg.classList.add("overflow-visible")
         lineSvg.classList.add("line-svg")
-        lineSvg.setAttribute("width", "30")
-        lineSvg.setAttribute("height", "30")
+        lineSvg.setAttribute("width", "20")
+        lineSvg.setAttribute("height", "20")
         lineSvg.innerHTML = `
-          <path d="M0 10 L30 10" fill="none" stroke="#beb4b4" strokeWidth="1.5"/>
+          <path d="M10 10 L20 10" fill="none" stroke="#beb4b4" strokeWidth="1.5"/>
         `
         lineWrapEl.appendChild(lineSvg)
         const path = lineSvg.querySelector("path")
@@ -2652,7 +2652,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         point2.addEventListener("mousedown", ptMouseDownHandler) 
         point2.addEventListener("mouseup", ptMouseUpHandler)
         point2.addEventListener("dblclick", ptDblClickHandler)
-        const startCoords: [number, number] = [15, 15]
+        const startCoords: [number, number] = [10, 10]
         point1.style.top = `${startCoords[1]}px`
         point1.style.left = `${startCoords[0]}px`
         point2.style.left = `60px`
@@ -2677,7 +2677,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
         
 
 
-        const lineCoordinates: lineCordsType  = {"M": startCoords, "L": [[50, 15]]}
+        const lineCoordinates: lineCordsType  = {"M": startCoords, "L": [[50, 10]]}
         defaultCoords["lineCoordinates"] = lineCoordinates
         const coordString = LineCoordinateToPathString(lineCoordinates)
         path?.setAttribute("d", coordString)
@@ -3025,32 +3025,32 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
             // Enable scrolling while dragging of the window to the right and bottom
 
-            const parentContainerRight = CanvasParentContainer.current.getBoundingClientRect().right - CanvasParentContainer.current.getBoundingClientRect().x
-            const parentContainerBottom = CanvasParentContainer.current.getBoundingClientRect().bottom - CanvasParentContainer.current.getBoundingClientRect().y
-            const scrollNextX = nextX - CanvasParentContainer.current.scrollLeft
-            const scrollNextY = nextY - CanvasParentContainer.current.scrollTop
-            if (parentContainerRight - scrollNextX < 70) {
-              // const difference = parentContainerRight - scrollNextX
-              CanvasParentContainer.current.scrollLeft += 50
-            }
-            if (parentContainerBottom - scrollNextY < 70) {
-              CanvasParentContainer.current.scrollTop += 50
-            }
-            // Enable scrolling while dragging back
-            let scrollTop = CanvasParentContainer.current.scrollTop
-            let scrollLeft = CanvasParentContainer.current.scrollLeft
+            // const parentContainerRight = CanvasParentContainer.current.getBoundingClientRect().right - CanvasParentContainer.current.getBoundingClientRect().x
+            // const parentContainerBottom = CanvasParentContainer.current.getBoundingClientRect().bottom - CanvasParentContainer.current.getBoundingClientRect().y
+            // const scrollNextX = nextX - CanvasParentContainer.current.scrollLeft
+            // const scrollNextY = nextY - CanvasParentContainer.current.scrollTop
+            // if (parentContainerRight - scrollNextX < 70) {
+            //   // const difference = parentContainerRight - scrollNextX
+            //   CanvasParentContainer.current.scrollLeft += 50
+            // }
+            // if (parentContainerBottom - scrollNextY < 70) {
+            //   CanvasParentContainer.current.scrollTop += 50
+            // }
+            // // Enable scrolling while dragging back
+            // let scrollTop = CanvasParentContainer.current.scrollTop
+            // let scrollLeft = CanvasParentContainer.current.scrollLeft
           
 
-            if (scrollLeft > 0 && nextX - scrollLeft < 30) {
-              scrollLeft -= 20
-              if (scrollLeft < 0) scrollLeft = 0
-              CanvasParentContainer.current.scrollLeft = scrollLeft
-            }
-            if (scrollTop > 0 && nextY - scrollTop < 30) {
-              scrollTop -= 20
-              if (scrollTop < 0) scrollTop = 0
-              CanvasParentContainer.current.scrollTop = scrollTop
-            }
+            // if (scrollLeft > 0 && nextX - scrollLeft < 30) {
+            //   scrollLeft -= 20
+            //   if (scrollLeft < 0) scrollLeft = 0
+            //   CanvasParentContainer.current.scrollLeft = scrollLeft
+            // }
+            // if (scrollTop > 0 && nextY - scrollTop < 30) {
+            //   scrollTop -= 20
+            //   if (scrollTop < 0) scrollTop = 0
+            //   CanvasParentContainer.current.scrollTop = scrollTop
+            // }
 
             // update the obj top and left css styles
             obj.style.top = `${nextY}px`
@@ -3270,17 +3270,14 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           Page not found
         </div> :  (
           <main className="relative overflow-scroll custom-scrollbar bg-white h-full w-full">
-            <div className={`relative overflow-hidden h-[${canvasContainerContentHeight}px] w-[${canvasContainerContentWidth}px]`}>
+            <div className={`relative overflow-hidden h-[${canvasContainerContentHeight}px] w-[${canvasContainerContentWidth}px]`}>             
 
-              <div className="relative overflow-hidden canvas-bg small-grid-bg w-[10000px] h-[10000px]">
-
-                <div className="relative overflow-hidden z-1 canvas-bg large-grid-bg w-[10000px] h-[10000px]">
-                  <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-hidden w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
-                      { 
-                        isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} closeFormUnsaved={closeFormUnsaved} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
-                      }
-                    </div>
-                </div>
+              <div className="relative overflow-hidden z-1 canvas-bg grid-bg w-[10000px] h-[10000px]">
+                <div onDragOver={isOpened ? (e)=>false :  (e)=> e.preventDefault()} className="relative z-2 cursor-move overflow-hidden w-full h-full opacity-2" ref={canvasRef} onDrop={handleDrop} >
+                    { 
+                      isOpened &&<ObjectForm formFields={formFields} position={objectFormPosition} handleFormState={handleFormState} saveForm={handleFormSave} closeFormUnsaved={closeFormUnsaved} formState={formState as formStateObjectType} objectFormType={objectFormType.current}/>
+                    }
+                  </div>
               </div>
             </div>
 
