@@ -8,7 +8,7 @@ const HomeHeader = () => {
         <div className="flex py-5 px-24 justify-between items-center">
            <Logo logoIcon={logoIcon}/>
             <nav className="flex items-center gap-x-10">
-                <Link href={"/"} className="font-normal text-base text-gray-3">Documentation</Link>
+                <Link href={"https://github.com/shady-cj/MineProFlo/blob/main/README.md"} target="blank" className="font-normal text-base text-gray-3">Documentation</Link>
                 <Link href={"/#features"} className="font-normal text-base text-gray-3">Features</Link>
                 <div className="flex gap-4">
 
