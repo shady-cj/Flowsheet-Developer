@@ -404,20 +404,22 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
 
         
         if (nextObject?.properties.gape || nextObject?.properties.aperture) {
+
           if (!prevObject.properties.gape && !prevObject.properties.aperture && !prevObject.properties.maxOreSize) return true // skip (no need for validating connection)
           if (prevObject.properties.aperture && (!prevObject.properties.maxOreSize || parseFloat(prevObject.properties.maxOreSize) >= parseFloat(prevObject.properties.aperture)))
             prevObject.properties.maxOreSize = prevObject.properties.aperture
           else if (prevObject.properties.gape && (!prevObject.properties.maxOreSize || parseFloat(prevObject.properties.maxOreSize) >= parseFloat(prevObject.properties.gape)))
             prevObject.properties.maxOreSize = prevObject.properties.gape
+ 
+
           let feedSize = null
           if (prevObject.properties.set) {
               // using 1.25 because theoretically 1.2 - 1.5 x set would usually be the maximum ore size in the product
-
-            if (parseFloat(prevObject.properties.set!) * 1.25 > parseFloat(prevObject.properties.maxOreSize!)) feedSize = parseFloat(prevObject.properties.maxOreSize!)
-            else feedSize = parseFloat(prevObject.properties.set!) * 1.25
+            if (parseFloat(prevObject.properties.set) * 1.25 > parseFloat(prevObject.properties.maxOreSize!)) feedSize = parseFloat(prevObject.properties.maxOreSize!)
+            else feedSize = parseFloat(prevObject.properties.set) * 1.25
           } else if (prevObject.properties.aperture) {
-            if (parseFloat(prevObject.properties.aperture!) > parseFloat(prevObject.properties.maxOreSize!)) feedSize = parseFloat(prevObject.properties.maxOreSize!)
-            else feedSize = parseFloat(prevObject.properties.aperture!)
+            if (parseFloat(prevObject.properties.aperture) > parseFloat(prevObject.properties.maxOreSize!)) feedSize = parseFloat(prevObject.properties.maxOreSize!)
+            else feedSize = parseFloat(prevObject.properties.aperture)
           } else {
             feedSize = parseFloat(prevObject.properties.maxOreSize!)
           }
@@ -3010,9 +3012,8 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             nextY = nextY < offsetY ? parseFloat(offsetY.toFixed(6)) : nextY > offsetBottom ? parseFloat(offsetBottom.toFixed(6)): parseFloat(nextY.toFixed(6))
     
 
-            // console.log(nextX, "nextX")
-
-  
+            obj.style.top = `${nextY}px`
+            obj.style.left = `${nextX}px`
             
             // const containerBounds = CanvasParentContainer.getBoundingClientRect()
             // const currentElementBounds = obj.getBoundingClientRect()
@@ -3053,8 +3054,7 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
             // }
 
             // update the obj top and left css styles
-            obj.style.top = `${nextY}px`
-            obj.style.left = `${nextX}px`
+ 
             
           }
           
@@ -3062,9 +3062,6 @@ const Canvas = ({params}: {params: {project_id: string, flowsheet_id: string}}) 
           
         }
         document.addEventListener("mouseup", documentMouseUpHandler)
-        // fix this 
-        // document.addEventListener("click", ()=> console.log("document clicked"))
-        // console.log(e)
         eventTracker.current.mouseMoveEventInvoked = {status: false, event: null, element: null}
       }, [DrawPoint, objectData])
 

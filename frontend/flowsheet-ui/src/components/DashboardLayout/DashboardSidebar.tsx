@@ -76,7 +76,7 @@ const DashboardSidebar = () => {
                   const link = selectType.current.value === "projects" ? `/project/${item.id}` : `/project/${(item as fetchedFlowsheetsType).project}/flowsheet/${item.id}`
                   return (<Link href={link} key={item.id} className="flex justify-between text-[#4D4D4D]">
                     <h2>{item.name}</h2>
-                    <Image src={arrowRight} height={10} width={10} alt="arrow right"/>
+                    <Image src={arrowRight} height={10} width={10} className="w-auto h-auto" alt="arrow right"/>
                   </Link>)
                 }):""}
               </div>

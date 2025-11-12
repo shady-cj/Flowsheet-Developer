@@ -150,7 +150,7 @@ const DashboardPageRenderer = () => {
 
         currentType.current = type
       
-    }, [type, tType, getProjects, getFlowsheets, projects, flowsheets])
+    }, [type, tType, getProjects, getFlowsheets])
 
 
 
@@ -314,9 +314,9 @@ export const CardRenderer = ({data, setData, type, revalidate}: rendererPropType
                         </div>
 
                         <div className="flowsheet-preview-wrapper">
-                            <Image fill className='w-full h-full absolute z-1 top-0 left-0 border rounded border-[#E6E6E6] bg-grayVariant' src={item.background_preview_url} priority alt={"preview_background"}/>
+                            <Image fill sizes="(max-width: 1600px) 100vw, 70vw" className='w-full h-full absolute z-1 top-0 left-0 border rounded border-[#E6E6E6] bg-grayVariant' src={item.background_preview_url} priority alt={"preview_background"}/>
                             {
-                                item.preview_url ? <Image fill className='w-auto h-full object-contain relative z-10 bg-transparent' src={item.preview_url} alt={item.name}/> : <></>
+                                item.preview_url ? <Image fill sizes="(max-width: 1600px) 100vw, 70vw" className='w-auto h-full object-contain relative z-10 bg-transparent' src={item.preview_url} alt={item.name}/> : <></>
 
                             }
                             
