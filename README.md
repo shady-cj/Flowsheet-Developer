@@ -96,7 +96,8 @@ ProFlo is a **mineral processing design software** built for engineers, students
 - **Document** your work with professional reports suitable for project documentation and engineering reviews
 - **Export** your designs as images and comprehensive PDF reports
 
-![ProFlo Features Overview](./docs/images/features-overview.png)
+<img width="1129" height="808" alt="image" src="https://github.com/user-attachments/assets/7bc54020-c516-4580-ad39-6ead0b8d45c7" />
+
 
 ---
 
@@ -1133,7 +1134,7 @@ Connectors are thin, so selecting them can be tricky! Two methods:
 <img width="163" height="248" alt="multi line point" src="https://github.com/user-attachments/assets/db2b6d1d-47bf-4e81-918b-eb4280e44d1a" />
 
 Once selected, you can:
-- Drag the pivot to move the entire line
+- Drag the pivot or any other non indicator dot area to move the entire line
 - Click, hold and Drag any indicator dot (except pivot) to extend and change direction
 - Double-click arrow endpoint to add bend points
 
@@ -1904,7 +1905,7 @@ We're exploring a "Simulation Studio" feature where you could:
 ### Bond's Energy Calculation Approximations
 
 **Current Approach:**
-- F₈₀ = 80% of maxOreSize (or gape)
+- F₈₀ = 80% of maxOreSize or gape
 - P₈₀ = 80% of Set
 - Provides design-level estimates
 
@@ -2149,7 +2150,7 @@ A: Yes! Enter any Work Index value manually. A reference table is provided for c
 ### Export & Sharing
 
 **Q: What resolution is the PNG export?**
-A: [INSERT RESOLUTION INFORMATION HERE]
+A: Usually the best possible resolution of your design, it automatically calculates the maximum width and height of your design and exports it un-resized.
 
 **Q: Can I export to other formats (SVG, DWG, etc.)?**
 A: Currently, only PNG and PDF are supported. Other formats may be added based on user demand.
@@ -2161,7 +2162,7 @@ A: The PDF is a static document. To make changes, edit your flowsheet in ProFlo 
 A: Use the Share option to copy a URL, or send them the exported PNG/PDF files.
 
 **Q: Can others edit my shared flowsheets?**
-A: [INSERT SHARING PERMISSIONS INFORMATION HERE]
+A: No, but you can view shared flowsheets and project pages.
 
 ### Technical Issues
 
@@ -2192,14 +2193,15 @@ A: Try:
 - Refreshing the page
 - Clearing browser cache and cookies
 - Using a different browser
-- Checking if ProFlo is experiencing downtime [INSERT STATUS PAGE LINK]
+- You can raise a complaint on the feedback page with screenshot
 
 **Q: I lost my work! What happened?**
 A: Check:
-- Browser console for errors
 - Your internet connection
 - If you saved before the issue occurred
 - Recent/auto-save status
+
+Take a screenshot and reach out to us so we can look into the issue
 
 Always use auto-save or save frequently to protect your work!
 
@@ -2234,10 +2236,7 @@ Need help? Here's how to get support:
 - **Product Updates:** [INSERT NEWSLETTER/BLOG LINK]
 - **Social Media:** [INSERT SOCIAL MEDIA LINKS]
 
-### Developer Resources
-- **API Documentation:** [INSERT IF AVAILABLE]
-- **GitHub Repository:** [INSERT IF AVAILABLE]
-- **Contributing Guidelines:** [INSERT IF AVAILABLE]
+
 
 ---
 
@@ -2249,7 +2248,6 @@ ProFlo was built with mineral processing professionals, students, and researcher
 - Early adopters who helped shape ProFlo's features
 - Everyone who shares feedback to make ProFlo better
 
-**Built with:** [INSERT TECH STACK IF DESIRED]
 
 ---
 
@@ -2270,7 +2268,7 @@ ProFlo was built with mineral processing professionals, students, and researcher
 - PNG and PDF export
 - Manual and auto-save
 
-**### Other "not available yet" features coming in v2 or future versions (Plans for Future Versions)**
+### Other "not available yet" features coming in v2 or future versions (Plans for Future Versions)
 - Additional component types
 - Equipment database
 - And more based on your feedback!
@@ -2294,7 +2292,7 @@ ProFlo was built with mineral processing professionals, students, and researcher
 ## Quick Reference Card
 
 ### Keyboard Shortcuts
-[INSERT KEYBOARD SHORTCUTS IF AVAILABLE]
+- backspace / del key - To delete a selected component
 
 ### Common Actions
 | Action | How To |
