@@ -127,7 +127,7 @@ Every operation and piece of equipment in your flowsheet should be carefully doc
 **Important:** ProFlo is currently a **desktop-only application**.
 
 - **Supported:** Desktop browsers (Chrome, Firefox, Safari, Edge)
-- **Not Supported:** Mobile devices and tablets
+- **Not Supported:** Mobile devices tablets, and small screen PCs
 
 We recommend using ProFlo on a desktop or laptop computer for the best experience.
 
