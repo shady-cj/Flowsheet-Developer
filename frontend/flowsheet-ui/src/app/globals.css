@@ -140,6 +140,27 @@ body {
   background-color: transparent;
 }
 
+.project-flowsheet-preview-grid {
+  background-image:
+  linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px),
+  linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size:
+    90px 90px,
+    90px 90px,
+    30px 30px,
+    30px 30px;
+  background-color: transparent;
+}
+.mini-grid-size {
+  background-size:
+    60px 60px,
+    60px 60px,
+    20px 20px,
+    20px 20px;
+}
+
 .bg-auth-image {
   background: linear-gradient(144deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.40) 100%), url('../assets/auth-page-image.jpeg') lightgray -738.428px 0px / 194.891% 100% no-repeat;
   background-position: 0 0 ;

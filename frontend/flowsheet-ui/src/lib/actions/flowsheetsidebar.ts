@@ -8,14 +8,12 @@ const BASE_URL = process.env.API_URL as string
 export async function fetchObjects(objectEndpoint: string) {
     const accessToken = await getAccessToken()
 
-
     try {
         const response = await fetch(`${BASE_URL}/${objectEndpoint}/`, {
             headers: {
                 "Authorization": `Bearer ${accessToken}`
             }
         })
-  
         if (response.status === 200){
             const result = await response.json()
             // const end = performance.now()

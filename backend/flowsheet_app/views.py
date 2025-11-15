@@ -150,7 +150,7 @@ class FeedbackView(APIView):
     def post(self, request, format=None):
         data = request.data
         images = data.getlist("screenshots")
-        feedback = FeedBack.objects.create(description=data.get("description"))
+        feedback = FeedBack.objects.create(creator=request.user, description=data.get("description"))
         image_urls = upload_images_default(images=images, feedback_id=feedback.id)
         feedback.screenshots = image_urls
         feedback.save()

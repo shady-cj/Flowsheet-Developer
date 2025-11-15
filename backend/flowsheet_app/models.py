@@ -21,7 +21,8 @@ class Shape(models.Model):
         primary_key=True, unique=True, default=uuid.uuid4, editable=False
     )
     name = models.CharField(max_length=20, unique=True)
-
+    def __str__(self):
+        return self.name
 
 # Screeners
 class Screener(models.Model):
@@ -35,10 +36,11 @@ class Screener(models.Model):
     creator = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="screeners", null=True, blank=True
     )
-
+    def __str__(self):
+        return f"{self.name} created by {self.creator.email}"
 
 # #
-#     def save(self, *args, **kwargs):
+#     def save(elf, *args, **kwargs):
 #         print(self.test, "test")
 
 
@@ -59,6 +61,8 @@ class Crusher(models.Model):
     creator = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="crushers", null=True, blank=True
     )
+    def __str__(self):
+        return f"{self.name} created by {self.creator.email}"
 
 
 # Grinding machines variations
@@ -77,7 +81,8 @@ class Grinder(models.Model):
     creator = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="grinders", null=True, blank=True
     )
-
+    def __str__(self):
+        return f"{self.name} created by {self.creator.email}"
 
 # Both grinder and crusher would be extended in the future to factor in the probability of achieving the desired size
 
@@ -109,7 +114,8 @@ class Concentrator(models.Model):
     )
     # recovery_rate = models.DecimalField(max_digits=10, decimal_places=4) # amount of valuable mineral in the concentrate / total amount of valuable mineral in the feed
     # dilution_gain = models.DecimalField(max_digits=10, decimal_places=4) # amount of waste in the concentrate / toatal amount of concentrate
-
+    def __str__(self):
+        return f"{self.name} created by {self.creator.email}"
 
 # Miscellaneous like ore, holding facilities etc...
 class Auxilliary(models.Model):
@@ -135,7 +141,9 @@ class Auxilliary(models.Model):
 
     class Meta:
         verbose_name_plural = "Auxilliaries"
-
+    
+    def __str__(self):
+        return f"{self.name} created by {self.creator.email}"
 
 # A project can contain multiple flowsheets
 
@@ -155,6 +163,8 @@ class Project(models.Model):
         ago = ago.split(", ")[0]
         return "now" if ago == "0 minutes" else ago
 
+    def __str__(self):
+        return f"{self.name} created by {self.creator.email}"
 
 # Defines each flowsheet for a project, that contains multiple object mapper
 # This model would be extended overtime as more information arises
@@ -180,7 +190,7 @@ class Flowsheet(models.Model):
     save_frequency = models.IntegerField(blank=True, null=True)  # in secs
 
     def __str__(self):
-        return f"{self.name} ---- project/{self.project.id}/flowsheet/{self.id}"
+        return f"{self.name} ---- project/{self.project.id}/flowsheet/{self.id} under project {self.project.name}"
 
     def get_mins_ago(self):
         ago = unicodedata.normalize("NFKD", timesince(self.last_edited, timezone.now()))
@@ -232,3 +242,8 @@ class FlowsheetObject(models.Model):
 class FeedBack(models.Model):
     description = models.TextField()
     screenshots = models.JSONField(null=True, blank=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="feedbacks")
+
+
+    def __str__(self):
+        return f"Feed back {self.description} by {self.creator.email}"
