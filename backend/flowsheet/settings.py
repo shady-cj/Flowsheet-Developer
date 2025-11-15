@@ -28,15 +28,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-tl%%$f8lf7hcr6(_c93u!dbold2u$g*+ckvod=5l$2uy#*x#jk"
+SECRET_KEY = getenv("DJANGO_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = getenv("ENVIRONMENT") == "development" or not getenv('ENVIRONMENT')
 
+SECRET_KEY = "django-insecure-tl%%$f8lf7hcr6(_c93u!dbold2u$g*+ckvod=5l$2uy#*x#jk" if DEBUG else getenv("DJANGO_SECRET")
 ALLOWED_HOSTS = []
 
+if not DEBUG:
+    ALLOWED_HOSTS = ["mineproflo-v1-0-0.onrender.com"]
+    CSRF_TRUSTED_ORIGINS = ["https://mineproflo-v1-0-0.onrender.com"]
 
 # Application definition
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -48,6 +53,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
     # internal apps
     "flowsheet_app",
     "authentication",
@@ -55,7 +61,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -83,6 +92,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "flowsheet.wsgi.application"
 
+CORS_ALLOWED_ORIGINS = [
+    "https://proflo-shadycjs-projects.vercel.app",
+    "https://mineproflo.vercel.app",
+    "https://proflo-git-main-shadycjs-projects.vercel.app",
+    "https://proflo-53jifmy2h-shadycjs-projects.vercel.app",
+]
+
 
 CACHES = {
     "default": {
@@ -95,6 +111,24 @@ CACHES = {
     }
 }
 
+
+if not DEBUG:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": getenv('REDIS_URL'), 
+            "TIMEOUT": 60 * 60 * 24 * 30,  # 1 month
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "REDIS_CLIENT_KWARGS": {
+                    "ssl": True,
+                    "ssl_cert_reqs": None,
+                }
+            }
+
+        }
+    }
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -104,21 +138,20 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
-
-# DATABASES = {
-#   'default': {
-#     'ENGINE': 'django.db.backends.postgresql',
-#     'NAME': getenv('PGDATABASE'),
-#     'USER': getenv('PGUSER'),
-#     'PASSWORD': getenv('PGPASSWORD'),
-#     'HOST': getenv('PGHOST'),
-#     'PORT': getenv('PGPORT', 5432),
-#     'OPTIONS': {
-#       'sslmode': 'require',
-#     },
-#   }
-# }
+if not DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': getenv('PGDATABASE'),
+            'USER': getenv('PGUSER'),
+            'PASSWORD': getenv('PGPASSWORD'),
+            'HOST': getenv('PGHOST'),
+            'PORT': eval(getenv('PGPORT', '5432')),
+            'OPTIONS': {
+            'sslmode': 'require',
+            },
+        }
+    }
 
 
 # Password validation
@@ -167,10 +200,10 @@ SIMPLE_JWT = {
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_HOST = getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = eval(getenv("EMAIL_PORT", 587))
+EMAIL_PORT = eval(getenv("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = eval(getenv("EMAIL_USE_TLS", True))
+EMAIL_USE_TLS = eval(getenv("EMAIL_USE_TLS", "True"))
 DEFAULT_FROM_EMAIL = getenv("DEFAULT_FROM_EMAIL")
 
 # ======================================================================================================================
@@ -205,10 +238,35 @@ cloudinary.config(
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "authentication.User"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000        # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True             # redirect all HTTP to HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

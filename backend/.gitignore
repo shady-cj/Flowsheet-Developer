@@ -106,6 +106,7 @@ ENV/
 env.bak/ 
 venv.bak/
 .flowsheet_env
+secrets/
 
 # mkdocs documentation 
 /site 

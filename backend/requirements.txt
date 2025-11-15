@@ -6,5 +6,8 @@ python-dotenv
 psycopg2-binary
 django-redis
 cloudinary
+django-cors-headers
+gunicorn
+whitenoise
 rembg
 rembg[gpu]
