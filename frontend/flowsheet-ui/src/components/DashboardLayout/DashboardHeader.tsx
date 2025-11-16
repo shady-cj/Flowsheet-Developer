@@ -45,12 +45,10 @@ const DashboardHeader = () => {
     const query = searchInputRef.current?.value.trim()
 
     if (query){
-      console.log("qeuery", query, query.length)
       if (query.length < 3) {
         setSearchResult(null)
         return
       }
-      console.log("getting here")
       const result = await dashboardSearch(query)
       setSearchResult(result)
     }
