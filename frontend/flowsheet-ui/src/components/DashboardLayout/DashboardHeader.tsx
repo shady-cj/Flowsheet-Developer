@@ -46,7 +46,8 @@ const DashboardHeader = () => {
       setSearchResult(null)
       return
     }
-    setSearchResult(await dashboardSearch(query))
+    const result = await dashboardSearch(query)
+    setSearchResult(result)
     
   }
   const handleFeedbackClick = () => {
