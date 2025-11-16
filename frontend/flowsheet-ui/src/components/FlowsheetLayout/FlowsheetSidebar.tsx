@@ -154,12 +154,11 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
 
                 }
             }
-            
+            setLoadComponent({status: false, type: ""})
         }
 
         if (loadComponent.status) {
             fetchObj()
-            setLoadComponent({status: false, type: ""})
         }
 
     }, [loadComponent])
