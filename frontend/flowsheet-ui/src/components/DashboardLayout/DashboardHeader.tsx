@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link"
 import { logout } from "@/lib/actions/auth"
+import { USER_CACHE_KEY } from "../context/UserProvider";
 import { MouseEvent, useState, useContext, ChangeEvent, useRef, FormEvent, useEffect } from "react";
 import Logo from "../Logo";
 import logoIcon from "@/assets/logo-icon-2.svg"
@@ -35,6 +36,7 @@ const DashboardHeader = () => {
 
   const Logout = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    localStorage.removeItem(USER_CACHE_KEY)
     await logout()
 
   }

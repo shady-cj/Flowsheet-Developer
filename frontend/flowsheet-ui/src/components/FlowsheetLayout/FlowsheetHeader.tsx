@@ -107,7 +107,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
               <Loader fullScreen={false} color="black" small={true} />
             </div> 
             :
-              flowsheetObject && !flowsheetObject.is_owner 
+              flowsheetObject && user && user.id !== flowsheetObject.project_creator_id
             ?
             <Logo logoIcon={logoIcon} />   
             :

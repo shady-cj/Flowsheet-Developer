@@ -23,7 +23,6 @@ export async function login(prevState: any, formData:FormData) {
         email, password
     }
     try {
-
         const response = await fetch(`${BASE_URL}/auth/token/`, {
             method: "POST",
             body: JSON.stringify(details),

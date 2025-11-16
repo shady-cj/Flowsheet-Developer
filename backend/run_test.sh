@@ -1,1 +1,1 @@
-python manage.py test --settings=flowsheet.settings_test
+python manage.py test --keepdb --settings=flowsheet.settings_test

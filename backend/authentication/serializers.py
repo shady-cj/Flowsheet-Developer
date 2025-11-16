@@ -7,11 +7,11 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "email", "password", "projects"]
+        fields = ["id", "email", "password"]
 
         depth = 1
         extra_kwargs = {"password": {"write_only": True}}
-        read_only_fields = ["id", "projects"]
+        read_only_fields = ["id"]
 
     def create(self, validated_data):
         email = validated_data.get("email").strip()

@@ -8,7 +8,9 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from threading import Thread
 from rest_framework_simplejwt.tokens import RefreshToken
+from flowsheet_app.cache_utils import cache_data, get_cache_data
 from .utils import create_reset_link, send_password_reset_email, validate_reset_token
+
 
 # Create your views here.
 
@@ -25,8 +27,15 @@ class RetrieveUserView(APIView):
     def get(self, request, format=None):
         # returning the current user
         user = request.user
+        cache_key = f"user-detail-{user.id}"
+        cache_result = get_cache_data(cache_key)
+        if (cache_result):
+            return Response(cache_result)
+
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        data = serializer.data
+        cache_data(cache_key, data)
+        return Response(data)
 
 
 class OauthAuthentication(APIView):

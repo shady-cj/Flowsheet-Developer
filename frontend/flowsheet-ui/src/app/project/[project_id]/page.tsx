@@ -9,7 +9,7 @@ import ProjectDetailFlowsheets from "@/components/DashboardLayout/ProjectDetail"
 const BASE_URL = process.env.API_URL as string
 const ProjectPage = async ({params}: {params: Promise<{project_id: string}>}) => {
       const route_params = await params
-      let result: {project: fetchedProjectType, flowsheets: fetchedFlowsheetsType[]}
+      let result: {project: fetchedProjectType, flowsheets: fetchedFlowsheetsType[], is_owner: boolean}
       let response;
       const accessToken = (await cookies()).get("access")?.value
       if (!accessToken)
@@ -82,7 +82,7 @@ const ProjectPage = async ({params}: {params: Promise<{project_id: string}>}) =>
               <div className="flex justify-between pr-4">
                 <h1 className="text-4xl font-bold mb-6">Flowsheets</h1>
                 {
-                  !result.project.is_owner ? 
+                  !result.is_owner ? 
                   <div /> : 
                   <Link href={`/project/${route_params.project_id}/flowsheet/create`} className="text-text-blue-variant">Add new flowsheet</Link>
                 }

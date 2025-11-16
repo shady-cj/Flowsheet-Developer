@@ -416,6 +416,7 @@ class RetrieveUpdateDestroyProject(ObjectPermissionMixin, RetrieveUpdateDestroyA
         # retrieves the object and calls the permission has_object_permission()
         serialized_project = ProjectDetailSerializer(instance, context={"request": request})
         data = serialized_project.data
+        data["is_owner"] = instance.creator == request.user
         cache_data(cache_key, {"data": data, "status":status.HTTP_200_OK})
         # cache serialized_project
         

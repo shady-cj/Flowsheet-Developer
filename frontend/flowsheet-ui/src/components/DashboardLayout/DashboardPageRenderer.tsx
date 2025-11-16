@@ -31,7 +31,7 @@ export type fetchedProjectType = {
     starred: boolean,
     last_edited: string,
     link: string,
-    is_owner: boolean
+    // is_owner: boolean
 }
 
 export type fetchedFlowsheetsType = fetchedProjectType & {

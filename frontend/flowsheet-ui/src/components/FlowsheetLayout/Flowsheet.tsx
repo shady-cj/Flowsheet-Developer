@@ -9,12 +9,13 @@ import Loader from "../utils/loader"
 
 const Flowsheet = ({params}: {params: {project_id: string, flowsheet_id: string}}) => {
   const {canvasLoading, getFlowsheet, flowsheetObject} = useContext(FlowsheetContext)
+  const {loadingUser, user} = useContext(UserContext)
   useEffect(() => {
    
     getFlowsheet(params.project_id, params.flowsheet_id);
   }, [getFlowsheet, params.flowsheet_id, params.project_id])
 
-  if (flowsheetObject?.is_owner) {
+  if (!loadingUser && user && flowsheetObject && user.id === flowsheetObject.project_creator_id) {
     return (
       <>
           <FlowsheetSidebar params={params} />
@@ -29,7 +30,7 @@ const Flowsheet = ({params}: {params: {project_id: string, flowsheet_id: string}
           </section>
       </>
     )
-  } else if (flowsheetObject && (!flowsheetObject.is_owner)) {
+  } else if (!loadingUser && user && flowsheetObject && user.id !== flowsheetObject.project_creator_id) {
     return (
       <>
          <section className="flex w-[100%] flex-col h-screen overflow-hidden">

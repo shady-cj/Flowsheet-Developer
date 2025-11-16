@@ -1,6 +1,11 @@
 from django.db.models.signals import post_save, post_delete
 from django.core.cache import cache
 from django.dispatch import receiver
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 # from django_redis import get_redis_connection
 ## get_redis_connection("default") or cache.client.get_client()
 
@@ -69,33 +74,27 @@ def invalidate_flowsheet_cache(instance):
 def invalidate_project_cache_on_save(sender, instance, *args, **kwargs):
     try:
         invalidate_project_cache(instance)
-    except:
-        pass
+    except Exception as e:
+        logger.error(f"Failed to invalidate project save cache for {instance.pk}: {e}")
+
 
 
 @receiver(post_delete, sender=Project)
 def invalidate_project_cache_on_delete(sender, instance, *args, **kwargs):
     try:
         invalidate_project_cache(instance, deleted=True)
-    except:
-        pass
+    except Exception as e:
+        logger.error(f"Failed to invalidate project delete cache for {instance.pk}: {e}")
 
 
 
 @receiver(post_save, sender=Flowsheet)
-def invalidate_flowsheet_cache_on_save(sender, instance, *args, **kwargs):
-    try:
-        invalidate_flowsheet_cache(instance)
-    except:
-        pass
-
-
 @receiver(post_delete, sender=Flowsheet)
-def invalidate_flowsheet_cache_on_delete(sender, instance, *args, **kwargs):
+def invalidate_flowsheet_cache_on_change(sender, instance, *args, **kwargs):
     try:
         invalidate_flowsheet_cache(instance)
-    except:
-        pass
+    except Exception as e:
+        logger.error(f"Failed to invalidate flowsheet cache for {instance.pk}: {e}")
 
 
 
@@ -128,7 +127,13 @@ def delete_components_from_cache_for_all_users(url):
 @receiver(post_save, sender=Screener)
 @receiver(post_save, sender=Concentrator)
 @receiver(post_save, sender=Auxilliary)
-def invalidate_component_cache_on_delete(sender, instance, *args, **kwargs):
+@receiver(post_delete, sender=Shape)
+@receiver(post_delete, sender=Crusher)
+@receiver(post_delete, sender=Grinder)
+@receiver(post_delete, sender=Screener)
+@receiver(post_delete, sender=Concentrator)
+@receiver(post_delete, sender=Auxilliary)
+def invalidate_component_cache_on_change(sender, instance, *args, **kwargs):
     try:
         #delete key user:{user.id}:{get_full_path}"
 
@@ -144,5 +149,5 @@ def invalidate_component_cache_on_delete(sender, instance, *args, **kwargs):
                delete_components_from_cache_for_all_users(url)
             else:
                 cache.delete(f"user:{str(user.id)}:{url}")
-    except:
-        pass
+    except Exception as e:
+        logger.error(f"Failed to invalidate component cache for {instance.pk}: {e}")

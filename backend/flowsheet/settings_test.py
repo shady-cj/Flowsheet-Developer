@@ -6,3 +6,4 @@ CACHES = {
         "LOCATION": "test-cache",
     }
 }
+

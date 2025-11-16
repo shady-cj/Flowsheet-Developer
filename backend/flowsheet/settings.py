@@ -37,8 +37,8 @@ SECRET_KEY = "django-insecure-tl%%$f8lf7hcr6(_c93u!dbold2u$g*+ckvod=5l$2uy#*x#jk
 ALLOWED_HOSTS = []
 
 if not DEBUG:
-    ALLOWED_HOSTS = ["mineproflo-v1-0-0.onrender.com"]
-    CSRF_TRUSTED_ORIGINS = ["https://mineproflo-v1-0-0.onrender.com"]
+    ALLOWED_HOSTS = ["mineproflo-v1-0-0.onrender.com", "localhost"]
+    CSRF_TRUSTED_ORIGINS = ["https://mineproflo-v1-0-0.onrender.com", "http://localhost:8000"]
 
 # Application definition
 
@@ -259,14 +259,14 @@ LOGGING = {
     },
 }
 
-if not DEBUG:
-    SECURE_HSTS_SECONDS = 31536000        # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True             # redirect all HTTP to HTTPS
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# if not DEBUG:
+#     SECURE_HSTS_SECONDS = 31536000        # 1 year
+#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+#     SECURE_HSTS_PRELOAD = True
+#     SECURE_SSL_REDIRECT = True             # redirect all HTTP to HTTPS
+#     SESSION_COOKIE_SECURE = True
+#     CSRF_COOKIE_SECURE = True
+#     X_FRAME_OPTIONS = 'DENY'
+#     SECURE_BROWSER_XSS_FILTER = True
+#     SECURE_CONTENT_TYPE_NOSNIFF = True
+#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

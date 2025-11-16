@@ -133,7 +133,7 @@ class ModelTests(TestCase):
             description='Test flowsheet description',
             project=project
         )
-        expected_str = f"Test Flowsheet ---- project/{project.id}/flowsheet/{flowsheet.id}"
+        expected_str = f"Test Flowsheet ---- project/{project.id}/flowsheet/{flowsheet.id} under project {project.name}"
         self.assertEqual(str(flowsheet), expected_str)
 
     def test_flowsheet_object_creation(self):
@@ -520,7 +520,7 @@ class ProjectViewTests(APITestCase):
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data['project']['is_owner'])
+        self.assertTrue(response.data['is_owner'])
 
 
 class FlowsheetViewTests(APITestCase):
