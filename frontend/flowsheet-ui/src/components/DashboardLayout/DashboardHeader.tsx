@@ -143,11 +143,16 @@ const DashboardHeader = () => {
       descriptionRef.current.value = ''
     }
   }, [showFeedbackForm])
+  
+  useEffect(()=>{
+    console.log("search result", searchResult)
+  }, [searchResult])
 
   if (!context) {
     return null
   }
   const {user, loadingUser} = context
+  
   
   return (
     <>
