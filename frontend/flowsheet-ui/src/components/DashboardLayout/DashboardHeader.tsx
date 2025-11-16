@@ -31,6 +31,7 @@ const DashboardHeader = () => {
   const [previews, setPreviews] = useState<{id: string, preview: (ArrayBuffer | string | null)}[]>([])
   
   const [searchResult, setSearchResult] = useState<null | {projects: fetchedProjectType[], flowsheets: fetchedFlowsheetsType[]}>(null)
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
   
 
@@ -41,15 +42,18 @@ const DashboardHeader = () => {
 
   }
   const handleSearchInput = async (e: ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value.trim()
-    console.log("qeuery", query, query.length)
-    if (query.length < 3) {
-      setSearchResult(null)
-      return
+    const query = searchInputRef.current?.value.trim()
+
+    if (query){
+      console.log("qeuery", query, query.length)
+      if (query.length < 3) {
+        setSearchResult(null)
+        return
+      }
+      console.log("getting here")
+      const result = await dashboardSearch(query)
+      setSearchResult(result)
     }
-    console.log("getting here")
-    const result = await dashboardSearch(query)
-    setSearchResult(result)
     
   }
   const handleFeedbackClick = () => {
@@ -144,9 +148,6 @@ const DashboardHeader = () => {
     }
   }, [showFeedbackForm])
   
-  useEffect(()=>{
-    console.log("search result", searchResult)
-  }, [searchResult])
 
   if (!context) {
     return null
@@ -161,12 +162,12 @@ const DashboardHeader = () => {
             <Logo logoIcon={logoIcon}/>
             <div className="relative py-2 px-4 flex items-center gap-2 border border-[#B3B3B3] rounded-lg ml-auto">
               <Image src={searchIcon} width={20} height={20} alt="search icon" />
-              <input type="text" placeholder="Search project or flowsheet" className="bg-transparent text-sm font-normal text-[#666666] focus:outline-none" onChange={handleSearchInput}/>
+              <input type="text" placeholder="Search project or flowsheet" className="bg-transparent text-sm font-normal text-[#666666] focus:outline-none" onChange={handleSearchInput} ref={searchInputRef}/>
               {
-                searchResult ? (
+                searchInputRef.current && searchInputRef.current.value.trim().length > 2 && searchResult ? (
                   <div className='absolute shadow-sm w-[25vw] min-h-[20vh] left-0 top-[150%] z-20 bg-white text-black rounded-xl px-4 py-6'>
                     <h2 className='text-xl font-semibold mb-2'>Search Results</h2> 
-                    <hr />
+                    <hr /> 
 
                     {
                       searchResult.projects && searchResult.projects.length ? (
