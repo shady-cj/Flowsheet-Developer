@@ -157,7 +157,6 @@ const DashboardHeader = () => {
             <div className="relative py-2 px-4 flex items-center gap-2 border border-[#B3B3B3] rounded-lg ml-auto">
               <Image src={searchIcon} width={20} height={20} alt="search icon" />
               <input type="text" placeholder="Search project or flowsheet" className="bg-transparent text-sm font-normal text-[#666666] focus:outline-none" onChange={handleSearchInput}/>
-              {console.log("search result here", searchResult)}
               {
                 searchResult ? (
                   <div className='absolute shadow-sm w-[25vw] min-h-[20vh] left-0 top-[150%] z-20 bg-white text-black rounded-xl px-4 py-6'>
