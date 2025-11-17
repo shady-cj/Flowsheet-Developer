@@ -10,7 +10,7 @@ def send_password_reset_email(user, reset_link):
     Send a password reset email to the user.
     """
     subject = "Password Reset Request"
-    text_content = f"Hello {user.email},\n\nTo reset your password, please click the link below:\n{reset_link}\n\nIf you did not request this, please ignore this email."
+    text_content = f"Hello {user.email},\n\nTo reset your password, please click the link below:\n{reset_link}\n\nLink is valid for 10 minutes\n\nIf you did not request this, please ignore this email."
     from_email = None  # Use the default from email configured in settings
     recipient_list = [user.email]
     html_content = render_to_string(

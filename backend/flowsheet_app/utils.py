@@ -3,7 +3,8 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from .models import FlowsheetObject
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageStat
+import math
 from io import BytesIO
 from rembg import remove
 from cloudinary.uploader import upload
@@ -158,17 +159,49 @@ def destroy_object_util(object_id, object_type, user):
     # return {"message": f"object ({obj.name}) successfully deleted", "success": True}
 
 
+def is_transparent_background(img, border_width=4, threshold=10, percent=0.8):
+    """
+    Detects if image edges are mostly transparent.
+    percent = fraction of border pixels that must be transparent (0.8 = 80%)
+    """
+    img = img.convert("RGBA")
+    w, h = img.size
+
+    # Get border regions
+    top = img.crop((0, 0, w, border_width))
+    bottom = img.crop((0, h - border_width, w, h))
+    left = img.crop((0, 0, border_width, h))
+    right = img.crop((w - border_width, 0, w, h))
+
+    border_alpha = []
+    for region in (top, bottom, left, right):
+        border_alpha.extend([a for (_, _, _, a) in region.getdata()])
+
+    total = len(border_alpha)
+    transparent = sum(1 for a in border_alpha if a <= threshold)
+
+    return (transparent / total) >= percent
+
 def process_component_image(data):
     image = data["image"]
 
     if not image:
         return None
 
-    input = Image.open(image)
-    print("input", input.format, input.mode, input.filename)
-    if input.format != "PNG" or input.mode != "RGBA":
+    input = Image.open(image).convert("RGBA")
+    # print("input", input.format, input.mode, input.filename)
+    # Fix: Convert palette images to RGBA so Pillow stops warning
+    # if input.mode == "P":
+    #     input = input.convert("RGBA")
+
+    # if input.format != "PNG" or input.mode != "RGBA":
+    #     input = remove(input)
+
+        
+    if not is_transparent_background(input):
         input = remove(input)
     input.thumbnail((100, 100))
+
     # enhanced_img = ImageEnhance.Brightness(input)
     data["image_width"], data["image_height"] = input.size
     imageBuffer = BytesIO()

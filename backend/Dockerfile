@@ -3,6 +3,7 @@
 ARG PYTHON_VERSION=3.12-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
+ENV ORT_NO_GPU=1
 # Create a virtual environment
 RUN python -m venv /opt/venv
 
@@ -34,8 +35,10 @@ COPY requirements.txt /tmp/requirements.txt
 
 
 # Install the Python project requirements
-RUN pip install -r /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Pre-download U²-Net model so it's ready at runtime
+RUN python3 -c "from rembg import new_session; print('Downloading U2Net model...'); new_session('u2net')"
 
 # copy the project code into the container's working directory
 COPY . .

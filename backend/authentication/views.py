@@ -175,12 +175,13 @@ class PasswordResetView(APIView):
 
             user = User.objects.get(email=email)
             if not user.password_reset_token or user.password_reset_token != token:
+                user.password_reset_token = None  # Clear the token after use
+                user.save()
                 return Response(
                     {"error": "Invalid token."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            user.password_reset_token = None  # Clear the token after use
-            user.save()
+              
 
             serializer = PasswordChangeSerializer(
                 data={
@@ -191,7 +192,8 @@ class PasswordResetView(APIView):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-
+            user.password_reset_token = None  # Clear the token after use
+            user.save()
             return Response(
                 {
                     "message": "Password has been reset successfully, You can now login with your new password."

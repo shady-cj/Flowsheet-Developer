@@ -48,6 +48,4 @@ class PasswordChangeSerializer(serializers.Serializer):
             user.set_password(new_password)
             user.save()
         else:
-            raise serializers.ValidationError(
-                "New password cannot be the same as the old password."
-            )
+            raise serializers.ValidationError("New password cannot be the same as the old password.")

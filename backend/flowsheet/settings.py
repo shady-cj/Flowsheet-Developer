@@ -1,12 +1,10 @@
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-import os
 from os import getenv
 from dotenv import load_dotenv
 
-# Force ONNX Runtime to CPU-only
-os.environ["ORT_NO_GPU"] = "1"
+
 
 load_dotenv()
 """

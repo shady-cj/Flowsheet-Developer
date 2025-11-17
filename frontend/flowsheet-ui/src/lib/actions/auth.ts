@@ -206,6 +206,7 @@ export async function passwordChange(formState: {new_password: string, confirm_p
         } else {
             return {error: data.error || "Something went wrong"}
         }
+        
 
     } catch(err) {
         if (err instanceof Error)
