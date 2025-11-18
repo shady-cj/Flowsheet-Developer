@@ -853,10 +853,10 @@ Once created, your custom component shows up in **two places**:
 - **Format:** PNG recommended for best quality (other formats supported)
 - **Resolution:** Use good resolution images for crisp display
 - **Size:** Under 2MB recommended (larger files may fail or take excessive time to upload)
-- **Background:** Non-PNG images are automatically processed to remove backgrounds for cleaner canvas appearance
+- **Background:** Images with no transparent backgrounds are automatically processed to remove backgrounds for cleaner canvas appearance
 
 **Scaling:**
-- Images are automatically scaled to 60×60 pixels (or proportional, up to max 100px)
+- Images are automatically scaled down to 60×60 pixels (or proportional, up to max 100px)
 - Aspect ratio is preserved
 - Don't worry about exact sizing - ProFlo handles it!
 
