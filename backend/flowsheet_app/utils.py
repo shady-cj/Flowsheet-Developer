@@ -6,7 +6,7 @@ from .models import FlowsheetObject
 from PIL import Image, ImageStat
 import math
 from io import BytesIO
-from rembg import remove
+from .removebg import remove_bg
 from cloudinary.uploader import upload
 import base64
 
@@ -159,28 +159,38 @@ def destroy_object_util(object_id, object_type, user):
     # return {"message": f"object ({obj.name}) successfully deleted", "success": True}
 
 
-def is_transparent_background(img, border_width=4, threshold=10, percent=0.8):
+
+
+def is_transparent_background(img, border_width=1, alpha_threshold=80, ratio_threshold=0.8):
     """
-    Detects if image edges are mostly transparent.
-    percent = fraction of border pixels that must be transparent (0.8 = 80%)
+        Detects if image edges are mostly transparent.
+        percent = fraction of border pixels that must be transparent (0.8 = 80%)
     """
-    img = img.convert("RGBA")
+    if img.mode != "RGBA":
+        img = img.convert("RGBA")
+
+    alpha = img.getchannel("A")
     w, h = img.size
 
-    # Get border regions
-    top = img.crop((0, 0, w, border_width))
-    bottom = img.crop((0, h - border_width, w, h))
-    left = img.crop((0, 0, border_width, h))
-    right = img.crop((w - border_width, 0, w, h))
+    # Define each border as its own region
+    borders = [
+        alpha.crop((0, 0, w, border_width)),        # top
+        alpha.crop((0, h-border_width, w, h)),      # bottom
+        alpha.crop((0, 0, border_width, h)),        # left
+        alpha.crop((w-border_width, 0, w, h))       # right
+    ]
 
-    border_alpha = []
-    for region in (top, bottom, left, right):
-        border_alpha.extend([a for (_, _, _, a) in region.getdata()])
+    for border in borders:
+        pixels = border.getdata()
+        total = len(pixels)
 
-    total = len(border_alpha)
-    transparent = sum(1 for a in border_alpha if a <= threshold)
+        transparent_count = sum(1 for p in pixels if p <= alpha_threshold)
+        ratio = transparent_count / total
+        # If any border is mostly transparent, return True
+        if ratio >= ratio_threshold:
+            return True
 
-    return (transparent / total) >= percent
+    return False
 
 def process_component_image(data):
     image = data["image"]
@@ -196,11 +206,11 @@ def process_component_image(data):
 
     # if input.format != "PNG" or input.mode != "RGBA":
     #     input = remove(input)
-
-        
     if not is_transparent_background(input):
-        input = remove(input)
+        input = remove_bg(input)
     input.thumbnail((100, 100))
+      
+
 
     # enhanced_img = ImageEnhance.Brightness(input)
     data["image_width"], data["image_height"] = input.size

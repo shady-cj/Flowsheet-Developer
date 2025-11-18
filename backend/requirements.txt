@@ -9,5 +9,4 @@ cloudinary
 django-cors-headers
 gunicorn
 whitenoise
-# rembg
-rembg[cpu]
+withoutbg
