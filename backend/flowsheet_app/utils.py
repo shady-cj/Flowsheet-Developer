@@ -3,7 +3,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from .models import FlowsheetObject
-from PIL import Image, ImageStat
+from PIL import Image
 import math
 from io import BytesIO
 from .removebg import remove_bg
