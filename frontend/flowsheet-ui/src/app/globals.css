@@ -32,8 +32,7 @@ html, body {
     gap: 1rem;
     width: 100vw;
     height: 100vh;
-    background: #3c41c2;
-    color: white;
+    color: #3c41c2;
     padding: 30px;
     font-size: 3vw;
     transition: all 0.3s ease-in-out;

@@ -22,7 +22,7 @@ export default function RootLayout({
           {children}
         
         </div>
-        <div className="small-screen-message">
+        <div className="bg-backgroundColor small-screen-message">
           <div className="emoji">📱❌</div>
           <h1>Oops! Screen too small</h1>
           <p>It looks like You&apos;re using a device or screen size that is too small to properly view this page.</p>
