@@ -18,7 +18,7 @@ const Logo = ({logoIcon, isEdited}: {logoIcon: StaticImageData, isEdited?: boole
       }
     }}>
         <Image src={logoIcon} alt="logo" width={24} height={24.75} />
-        <span className="logo-text">ProFlo</span>
+        <span className="logo-text">MineProFlo</span>
     </Link>
   )
 }
