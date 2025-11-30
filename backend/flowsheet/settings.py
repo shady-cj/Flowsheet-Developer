@@ -29,8 +29,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = getenv("DJANGO_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = getenv("ENVIRONMENT") == "development" or not getenv('ENVIRONMENT')
@@ -98,6 +96,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://mineproflo.vercel.app",
     "https://proflo-git-main-shadycjs-projects.vercel.app",
     "https://proflo-53jifmy2h-shadycjs-projects.vercel.app",
+    # "http://localhost:3000",
 ]
 
 
@@ -260,14 +259,14 @@ LOGGING = {
     },
 }
 
-# if not DEBUG:
-#     SECURE_HSTS_SECONDS = 31536000        # 1 year
-#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-#     SECURE_HSTS_PRELOAD = True
-#     SECURE_SSL_REDIRECT = True             # redirect all HTTP to HTTPS
-#     SESSION_COOKIE_SECURE = True
-#     CSRF_COOKIE_SECURE = True
-#     X_FRAME_OPTIONS = 'DENY'
-#     SECURE_BROWSER_XSS_FILTER = True
-#     SECURE_CONTENT_TYPE_NOSNIFF = True
-#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000        # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True             # redirect all HTTP to HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

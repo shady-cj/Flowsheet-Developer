@@ -10,7 +10,7 @@ export default async function Projects ({searchParams}: {searchParams: Promise<{
         <>
             <section className="flex w-full justify-between items-center">
                 <h1 className="text-2xl font-bold">All Projects</h1>
-                <Link href='/projects/create' className="hover:bg-blueVariant text-white px-4 py-3 rounded-md shadow-md font-bold active:opacity-90 bg-normalBlueVariant active:scale-90 transition mr-4"> Create New Project </Link>
+                <Link href='/projects/create' className="hover:bg-blueVariant text-white text-sm xl:text-base px-4 py-3 rounded-md shadow-md font-bold active:opacity-90 bg-normalBlueVariant active:scale-90 transition mr-4"> Create New Project </Link>
             </section>
             <Suspense fallback={<Loader fullScreen={false} offsetHeightClass="h-[500px]" color="black" />}>
                 <ProjectListWrapper searchParams={searchParams}/>

@@ -5,7 +5,7 @@ const Button = ({title, ...otherProps}: {title: string, [x:string]: any}) => {
     const {pending} = useFormStatus()
     return (
         <button type='submit' className={`rounded-lg p-3 w-2/3 bg-blueVariant
-            text-[#F5F7FA] text-base font-bold transition ${pending ? "": "hover:bg-darkBlueVariant"} 
+            text-[#F5F7FA] text-[15px] xl:text-base font-bold transition ${pending ? "": "hover:bg-darkBlueVariant"} 
             font-bold transition-colors mt-3`}
             disabled={pending} {...otherProps}>
             {pending ? 

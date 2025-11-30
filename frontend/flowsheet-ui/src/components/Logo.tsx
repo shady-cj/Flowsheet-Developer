@@ -17,7 +17,7 @@ const Logo = ({logoIcon, isEdited}: {logoIcon: StaticImageData, isEdited?: boole
         router.push(`/`);
       }
     }}>
-        <Image src={logoIcon} alt="logo" width={24} height={24.75} />
+        <Image src={logoIcon} alt="logo" width={24} height={24.75} className="w-6 h-6 xl:w-7 xl:h-7"/>
         <span className="logo-text">MineProFlo</span>
     </Link>
   )

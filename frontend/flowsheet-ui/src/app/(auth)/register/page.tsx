@@ -39,8 +39,8 @@ const Register = () => {
             <div className='flex flex-col gap-4'>
                 <Logo logoIcon={logoIcon} />
                 <div className='flex flex-col gap-2'>
-                <h2 className='text-[#16191C] text-[2.5rem] font-semibold leading-[3.1rem]'>Create account</h2>
-                <p className='text-[#666666] text-base font-normal'>Get started by creating an account.</p>
+                <h2 className='text-[#16191C] text-[2rem] xl:text-[2.5rem] font-semibold leading-[3.1rem]'>Create account</h2>
+                <p className='text-[#666666] text-sm xl:text-base font-normal'>Get started by creating an account.</p>
                 </div>
                 <div className='mt-4 flex justify-center items-center border border-[#C7CFD6] rounded-lg cursor-pointer' onClick={() => signIn("google")}>
                     <div className='flex gap-4 py-2 items-center'>
@@ -58,25 +58,25 @@ const Register = () => {
             </div>
             <form action={formAction} className='flex flex-col gap-y-5'>
                 <div className='flex flex-col gap-2'>
-                    <label htmlFor="email" className='text-sm font-medium'>Email</label>
-                    <input type="email" id="email" name='email' placeholder='Enter your email address' className='py-3 px-4 rounded-lg border border-[#C7CFD6] text-sm text-[#808080] font-normal min-w-[20rem] bg-transparent' required/>
+                    <label htmlFor="email" className='text-xs xl:text-sm font-medium'>Email</label>
+                    <input type="email" id="email" name='email' placeholder='Enter your email address' className='py-3 px-4 rounded-lg border border-[#C7CFD6] text-xs xl:text-sm text-[#808080] font-normal min-w-[20rem] bg-transparent' required/>
                 </div>
                 <div className='flex flex-col gap-2'>
-                    <label htmlFor="password" className='text-sm font-medium'>Password</label>
+                    <label htmlFor="password" className='text-xs xl:text-sm font-medium'>Password</label>
                     <PasswordInput name="password" id="password" placeholder='Input your password'/>
                 </div>
                 <div className='flex flex-col gap-2'>
-                    <label htmlFor="confirmpassword" className='text-sm font-medium'>Confirm Password</label>
+                    <label htmlFor="confirmpassword" className='text-xs xl:text-sm font-medium'>Confirm Password</label>
                     <PasswordInput name="confirm_password" id="confirmpassword" placeholder='Confirm your password'/>
                 </div>
                 {
                     state && <AuthStatusBox state={state}/>
                 }
-                <div className='mt-8'>
+                <div className='mt-4'>
                 
                     <Button title="Register Account"/>
                 </div>
-                <div className='text-[#16191C] font-normal text-base '>
+                <div className='text-[#16191C] font-normal text-sm xl:text-base'>
                     Already have an account? <Link href="/login" className='text-[#2570BB] font-medium text-base'>Login</Link>
                 </div>
             </form>

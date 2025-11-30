@@ -42,22 +42,22 @@ const FormCreate = ({title, nameField, descriptionField, action, param, buttonTi
     }
 
   return (
-    <section className="px-5 h-full w-full flex justify-center items-center pt-8">
+    <section className="px-5 h-full w-full flex justify-center items-center pt-5 xl:pt-8">
 
-        <form className="p-4 flex flex-col gap-y-4 w-2/3" action={formAction}>
-            <h1 className="text-4xl font-bold mb-4">{title}</h1>
-            <section className="flex flex-col gap-y-4">
-                <label htmlFor={nameField.labelFor} className="text-lg font-bold">{nameField.label}</label>
-                <input type="text" id={nameField.labelFor} name="name" className="border border-black p-2 text-lg" />
+        <form className="p-2 xl:p-4 flex flex-col gap-y-2 xl:gap-y-4 w-2/3" action={formAction}>
+            <h1 className="text-3xl xl:text-4xl font-bold mb-4">{title}</h1>
+            <section className="flex flex-col gap-y-2 xl:gap-y-4">
+                <label htmlFor={nameField.labelFor} className="text-base xl:text-lg font-bold">{nameField.label}</label>
+                <input type="text" id={nameField.labelFor} name="name" className="border border-black p-2 text-base xl:text-lg" />
             </section>
-            <section className="flex flex-col gap-y-4 mt-4">
-                <label htmlFor={descriptionField.labelFor} className="text-lg font-bold">{descriptionField.label}</label>
-                <textarea name="description" id={descriptionField.labelFor} className="border border-black p-2 text-lg"></textarea>
+            <section className="flex flex-col gap-y-2 xl:gap-y-4 mt-4">
+                <label htmlFor={descriptionField.labelFor} className="text-base xl:text-lg font-bold">{descriptionField.label}</label>
+                <textarea name="description" id={descriptionField.labelFor} className="border border-black p-2 text-base xl:text-lg"></textarea>
             </section>
             {
-                param && param.type == "flowsheet" ? <section  className="flex flex-col gap-y-4 mt-4">
-                    <label htmlFor="footprint" className="text-lg font-bold">Flowsheet Footprint</label>
-                    <select name="flowsheetFootprint" id="footprint" defaultValue={"none"} className="border border-black p-2 text-lg" >
+                param && param.type == "flowsheet" ? <section  className="flex flex-col gap-y-2 xl:gap-y-4 mt-4">
+                    <label htmlFor="footprint" className="text-base xl:text-lg font-bold">Flowsheet Footprint</label>
+                    <select name="flowsheetFootprint" id="footprint" defaultValue={"none"} className="border border-black p-2 text-base xl:text-lg" >
                         <option value="none">-- Choose a footprint --</option>
                         {
                             param.data.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)

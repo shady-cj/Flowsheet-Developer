@@ -13,19 +13,19 @@ const DashboardMain = () => {
 return (
     <section className='overflow-y-auto h-[90vh]' id='dashboard-main'>
         <section>
-            <section className='pt-12 px-5 h-[14.5rem] border-b border-solid border-[#E6E6E6]'>
+            <section className='pt-8 xl:pt-12 px-5 h-[13.5rem] xl:h-[14.5rem] border-b border-solid border-[#E6E6E6]'>
 
-                <h2 className='mb-4 font-medium text-xl text-text-black-2'>Quick Actions</h2>
+                <h2 className='mb-4 font-medium text-lg xl:text-xl text-text-black-2'>Quick Actions</h2>
                 <div className='flex gap-x-4'>
                     <CreateFlowsheetCard />
                     <Link href="/projects/create" className='inline-flex bg-[#E6FAF3] w-[14.5rem] p-4 flex-col gap-y-3 rounded-lg'>
                         
                         <Image src={folder} alt="" width={24} height={24} />
-                        <span className='text-[#006644] text-normal'>New Project</span>
+                        <span className='text-[#006644] font-medium text-sm xl:text-base'>New Project</span>
                     </Link>
                 </div>
             </section>
-            <section className='py-12 px-5'>
+            <section className='py-8 xl:py-12 px-5'>
                 <Suspense fallback={<Loader fullScreen={false} offsetHeightClass='h-[200px]' color='black' />}>
                     <DashboardPageRenderer/>
                 </Suspense>

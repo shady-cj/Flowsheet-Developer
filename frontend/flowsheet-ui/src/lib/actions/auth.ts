@@ -41,6 +41,7 @@ export async function login(prevState: any, formData:FormData) {
         }
         
     } catch(err) {
+
         if (err instanceof Error)
             return {error: "Sorry!, An error occured"}
         else

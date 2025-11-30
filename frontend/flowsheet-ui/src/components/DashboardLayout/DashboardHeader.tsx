@@ -156,7 +156,7 @@ const DashboardHeader = () => {
   return (
     <>
     <header className="w-full sticky bg-grayVariant border-b border-[#DFE1E6] top-0 z-30 flex-initial text-white" id="dashboard-header">
-        <div className="flex py-4 px-8 w-full">
+        <div className="flex py-3 xl:py-4 px-8 w-full">
             <Logo logoIcon={logoIcon}/>
             <div className="relative py-2 px-4 flex items-center gap-2 border border-[#B3B3B3] rounded-lg ml-auto">
               <Image src={searchIcon} width={20} height={20} alt="search icon" />
@@ -227,10 +227,10 @@ const DashboardHeader = () => {
                   <Loader fullScreen={false}  color="black"  small/>
                 </div> : 
                 user ? <>
-                  <div className="bg-[#E381E3] font-semibold text-[#261A26] text-base w-10 h-10 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
+                  <div className="bg-[#E381E3] font-semibold text-[#261A26] text-sm xl:text-base w-9 h-9 xl:w-10 xl:h-10 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
                     {user.email.substring(0, 2).toUpperCase()}
                   </div>
-                  <p className="text-base font-normal text-black">
+                  <p className="text-sm xl:text-base font-normal text-black">
                     {user?.email}
                   </p>
                 </> : ""
@@ -238,9 +238,9 @@ const DashboardHeader = () => {
               
               <div className="relative">
                 <Image src={showDropDown? arrowUp : arrowDown} width={10} height={10} alt="arrow Down" className="cursor-pointer" onClick={() => setShowDropDown((prev)=> !prev)}/>
-                <div className={`z-10 p-4 absolute shadow-sm rounded-md flex-col bg-white transition-all top-[400%] -left-[1200%] ${showDropDown ? "opacity-100 visible" : "invisible opacity-0"}`}>
-                  <button className="text-black py-2 px-4 font-bold hover:text-[rgba(0,0,0,0.6)]" onClick={Logout}>Logout</button>
-                  <button className="text-black py-2 px-4 font-bold hover:text-[rgba(0,0,0,0.6)]" onClick={handleFeedbackClick}>Feedback</button>
+                <div className={`z-10 px-2 xl:px-4 py-2 absolute shadow-sm rounded-md flex-col bg-white transition-all top-[400%] -left-[1200%] ${showDropDown ? "opacity-100 visible" : "invisible opacity-0"}`}>
+                  <button className="text-black text-sm xl:text-base py-2 px-3 font-bold hover:text-[rgba(0,0,0,0.6)]" onClick={Logout}>Logout</button>
+                  <button className="text-black text-sm xl:text-base py-2 px-3 font-bold hover:text-[rgba(0,0,0,0.6)]" onClick={handleFeedbackClick}>Feedback</button>
                 </div>
               </div>
                 

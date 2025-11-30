@@ -71,7 +71,7 @@ const ProjectList = ({projects, revalidate, result}: {projects: fetchedProjectTy
     
     
     
-    return <div className=' flex flex-row flex-wrap gap-5 gap-y-10 w-full min-h-[90vh] content-start justify-start'>
+    return <div className=' flex flex-row flex-wrap gap-5 gap-y-10 w-full min-h-[50vh] content-start justify-start'>
                     
              <CardRenderer  type="projects" setData={setProjectsState} data={projectsState} revalidate={revalidate} />
                  

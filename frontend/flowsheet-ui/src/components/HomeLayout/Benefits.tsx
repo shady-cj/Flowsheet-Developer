@@ -10,8 +10,8 @@ import featureFlowsheet from "@/assets/feature-canvas.png"
 
 const Benefits = () => {
   return (
-    <section className="pt-44 px-24" id="features">
-      <h1 className="text-5xl lg:text-[3.5rem] xl:text-7xl hero-text font-semibold text-center">Features &<br/> Benefits</h1>
+    <section className="pt-32 xl:pt-44 px-20 xl:px-24" id="features">
+      <h1 className="text-5xl text-[3.3rem] xl:text-7xl hero-text font-semibold text-center">Features &<br/> Benefits</h1>
       <div className="mt-32 w-full h-[35.625rem] bg-[#16191C] rounded-xl">
         <div className="pt-12 max-w-[1500px] ml-24 2xl:mx-auto flex h-full gap-12">
 
@@ -79,7 +79,7 @@ const Benefits = () => {
 
         </div>
       </div>
-      <div className="h-[35.625rem] rounded-xl bg-[#006644] w-full overflow-hidden">
+      <div className="h-[35.625rem] rounded-xl bg-[#006644] border border-[#CCCCCC] w-full overflow-hidden">
         <div className="max-w-[1500px] 2xl:mx-auto flex gap-24 pt-[3.812rem]">
           <div className="basis-1/2  grow-0 shrink-0 relative">
             <div className="w-[1134px] h-[736.5px] absolute right-0 top-0">

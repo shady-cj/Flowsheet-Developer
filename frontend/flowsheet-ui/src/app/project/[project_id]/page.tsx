@@ -67,24 +67,24 @@ const ProjectPage = async ({params}: {params: Promise<{project_id: string}>}) =>
                   </div>
                   {/* <Image height={200} width={560} className="w-auto h-full bg-grayVariant" src={result.project.preview_url} alt={result.project.name} /> */}
                   <div className="flex flex-col gap-4 justify-center">
-                    <h2 className="text-4xl text-text-black font-bold">{result.project.name}</h2>
-                    <p className="text-lg text-text-black-2 italic">
+                    <h2 className="text-3xl xl:text-4xl text-text-black font-bold">{result.project.name}</h2>
+                    <p className="text-base xl:text-lg text-text-black-2 italic">
                       {result.project.description}
 
                     </p>
-                    <p className="text-lg text-text-black-2">last edited on <em>{new Date(result.project.last_edited).toDateString()}</em></p>
-                    <p className="text-lg text-text-black-2">flowsheets <em>{result.flowsheets.length}</em></p>
+                    <p className="text-base xl:text-lg text-text-black-2">last edited on <em>{new Date(result.project.last_edited).toDateString()}</em></p>
+                    <p className="text-base xl:text-lg text-text-black-2">flowsheets <em>{result.flowsheets.length}</em></p>
                   
                   </div>
               </div>
             </div>
             <div className="py-10 px-4">
               <div className="flex justify-between pr-4">
-                <h1 className="text-4xl font-bold mb-6">Flowsheets</h1>
+                <h1 className="text-3xl xl:text-4xl font-bold mb-6">Flowsheets</h1>
                 {
                   !result.is_owner ? 
                   <div /> : 
-                  <Link href={`/project/${route_params.project_id}/flowsheet/create`} className="text-text-blue-variant">Add new flowsheet</Link>
+                  <Link href={`/project/${route_params.project_id}/flowsheet/create`} className="text-text-blue-variant text-sm xl:text-base">Add new flowsheet</Link>
                 }
               </div>
 
