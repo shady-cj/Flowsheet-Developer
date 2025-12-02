@@ -46,7 +46,7 @@ const ResetPassword = async ({searchParams}: {searchParams: Promise<{token: stri
                 <div className='flex flex-col gap-4'>
                     <Logo logoIcon={logoIcon}/>
                     <div className='flex flex-col gap-2'>
-                        <h1 className='text-[#16191C] text-[2.5rem] font-semibold leading-[3.1rem]'>Change Your Password</h1>
+                        <h1 className='text-[#16191C] text-[2rem] xl:text-[2.5rem] font-semibold leading-[3.1rem]'>Change Your Password</h1>
                     </div>
                 </div>
                 <PasswordChange token={token} email={data.email}/>

@@ -7,12 +7,12 @@ import { fetchObjects, removeObject } from "@/lib/actions/flowsheetsidebar";
 import Image, { StaticImageData } from "next/image";
 import Logo from "../Logo";
 import trash from "@/assets/trash.svg"
+import trashHover from "@/assets/trash-hover.svg"
 import logoIcon from "@/assets/logo-icon.svg"
 import Crusher from "../Objects/Crusher";
 import Grinder from "../Objects/Grinder";
 import Screener from "../Objects/Screener";
 import Auxilliary from "../Objects/Auxilliary";
-import mineflo from "@/assets/mineflo-full.svg"
 import search from "@/assets/search.svg"
 import menu from "@/assets/menu.svg"
 import arrowDown from "@/assets/arrow-down.svg"
@@ -164,12 +164,12 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
     }, [loadComponent])
   return (
     <>
-    <div className="w-[25%] custom-scrollbar bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-10 border-r border-[#DFE1E6] border-solid">
+    <div className="w-[25%] custom-scrollbar bg-white overflow-y-auto pt-6 pl-6 pb-5 pr-4 flex flex-col gap-y-8 xl:gap-y-10 border-r border-[#DFE1E6] border-solid">
         <header>
             <Logo logoIcon={logoIcon} isEdited={isEdited}/>
         </header>
         <section>
-            <div className="border border-[#DFE1E6] rounded-lg p-2 flex gap-x-3">
+            <div className="border border-[#DFE1E6] rounded-lg py-2 px-3 flex gap-x-3">
                 <label htmlFor="search-components" className="flex justify-center items-center">
                     <Image className="cursor-pointer w-3 h-auto" width={14} height={14} src={search} alt="search" quality={100}/>
                 </label>
@@ -212,7 +212,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                                 <span className="cursor-pointer text-text-black" onClick={()=> setActiveComponent({properties: [], type: ""})}>&laquo;</span>
 
                                 {activeComponent.type === "Auxilliaries" ? "Auxilliary Components" : activeComponent.type}</h2>
-                            <div className="flex flex-wrap gap-5 overflow-hidden p-2 w-full">
+                            <div className="flex flex-wrap gap-3 xl:gap-5 overflow-hidden p-2 w-full">
                             {
                                 activeComponent.properties.map(component => {
                         
@@ -226,7 +226,7 @@ const FlowsheetSidebar = ({params}: {params: {project_id: string, flowsheet_id: 
                             }
                             </div>
                         </section>: components.map(c => {
-                            return <div key={c.name} aria-label={c.name} onClick={handleComponentSwitch} className="border border-solid shadow-sm border-[#DFE1E6] p-3 flex flex-col items-center gap-y-4 rounded-lg flex-auto cursor-pointer">
+                            return <div key={c.name} aria-label={c.name} onClick={handleComponentSwitch} className="border border-solid shadow-sm border-[#DFE1E6] p-2 xl:p-3 flex flex-col items-center gap-y-3 xl:gap-y-4 rounded-lg flex-auto cursor-pointer">
                             <Image width={24} height={24} src={c.image} alt={c.name} quality={100} className="pointer-events-none"/>    
                             <h2 className="text-black-2 text-xs font-md pointer-events-none">{c.name}</h2>
                             </div>
@@ -312,11 +312,12 @@ export default FlowsheetSidebar
 
 
 const ObjectComponentWrapper = ({children, showTrashIcon = false, handleTrashClick}: {children: React.ReactNode, showTrashIcon?: boolean, handleTrashClick?: () => void}) => {
+    const [trashHoverEvent, setTrashHoverEvent] = useState(false)
     return (
-        <div className="relative p-3 shadow-sm border border-[#DFE1E6] rounded-lg flex-1 min-w-[120px]">
+        <div className="relative flex justify-center p-3 shadow-sm border border-[#DFE1E6] rounded-lg flex-1 min-w-[120px]">
             {
                 showTrashIcon ? <div className="absolute z-10 right-[5%] top-[10%]">
-                    <Image src={trash} width={16} height={16} className="cursor-pointer" alt="more" onClick={handleTrashClick}/> 
+                    <Image onMouseEnter={() => setTrashHoverEvent(true)} onMouseLeave={() => setTrashHoverEvent(false)} src={trashHoverEvent ? trashHover : trash} width={16} height={16} className="cursor-pointer w-3.5 h-3.5 xl:w-4 xl:h-4 transition-all" alt="more" onClick={handleTrashClick}/> 
                 </div> : ""
             }
             {children}

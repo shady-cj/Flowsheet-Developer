@@ -89,15 +89,7 @@ body {
 .hero-text {
   line-height: 58px;
 }
-@media (min-width: 1440px) {
-  .hero-text {
-    line-height: 83px !important;
-  }
-   .logo-text {
-    font-size: 24px;
-  }
 
-}
 
 .font-size-default {
   font-size: clamp(0.7vw, 1rem, 4vw);
@@ -135,12 +127,33 @@ body {
   linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
   linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
   background-size:
-    120px 120px,
-    120px 120px,
-    40px 40px,
-    40px 40px;
+      90px 90px,
+      90px 90px,
+      30px 30px,
+      30px 30px;
+ 
   background-color: transparent;
 }
+@media (min-width: 1300px){
+  .grid-bg {
+    background-size:
+      120px 120px,
+      120px 120px,
+      40px 40px,
+      40px 40px;  
+  }
+}
+
+@media (min-width: 1440px) {
+  .hero-text {
+    line-height: 83px !important;
+  }
+   .logo-text {
+    font-size: 24px;
+  }
+
+}
+
 
 .project-flowsheet-preview-grid {
   background-image:

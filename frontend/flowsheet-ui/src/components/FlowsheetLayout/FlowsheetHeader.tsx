@@ -99,7 +99,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
 
   return (
     <>
-      <header className="w-full z-10 border-b border-text-gray bg-grayVariant flex justify-between items-center py-2 px-5">
+      <header className="w-full z-10 border-b border-text-gray bg-grayVariant flex justify-between items-center py-1 xl:py-2 px-5">
           
           {
             loadingUser ? 
@@ -183,7 +183,7 @@ const FlowsheetHeader = ({params}: {params: {project_id: string, flowsheet_id: s
 
                 <Loader fullScreen={false} color="black" small={true} />
               </div> : user ?
-              <div className="bg-[#E381E3] font-semibold text-[#261A26] text-sm w-9 h-9 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
+              <div className="bg-[#E381E3] font-semibold text-[#261A26] text-sm w-8 h-8 xl:w-9 xl:h-9 border border-[#CC74CC] flex items-center justify-center rounded-full" style={{boxShadow: "0px -4px 5px -2px #0000000D inset"}}>
                 {
                   user?.email.substring(0, 2).toLocaleUpperCase()
                 }
