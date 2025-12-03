@@ -37,8 +37,29 @@ SECRET_KEY = "django-insecure-tl%%$f8lf7hcr6(_c93u!dbold2u$g*+ckvod=5l$2uy#*x#jk
 ALLOWED_HOSTS = []
 
 if not DEBUG:
-    ALLOWED_HOSTS = ["mineproflo-v1-0-0.onrender.com", "localhost"]
-    CSRF_TRUSTED_ORIGINS = ["https://mineproflo-v1-0-0.onrender.com", "http://localhost:8000"]
+    allowed_hosts = getenv("ALLOWED_HOSTS")
+    if allowed_hosts:
+        allowed_hosts = allowed_hosts.split(",")
+    else:
+        allowed_hosts = ALLOWED_HOSTS
+    ALLOWED_HOSTS = allowed_hosts
+    crsf_trusted_origins = getenv('CRSF_TRUSTED_ORIGINS')
+    if crsf_trusted_origins:
+        crsf_trusted_origins = crsf_trusted_origins.split(",")
+    else:
+        crsf_trusted_origins = []
+    CSRF_TRUSTED_ORIGINS = crsf_trusted_origins
+
+    cors_allowed_origins = getenv("CORS_ALLOWED_ORIGINS")
+    if cors_allowed_origins:
+        cors_allowed_origins = cors_allowed_origins.split(",")
+    else:
+        cors_allowed_origins = []
+
+    CORS_ALLOWED_ORIGINS = cors_allowed_origins
+
+
+
 
 # Application definition
 
@@ -91,13 +112,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "flowsheet.wsgi.application"
 
-CORS_ALLOWED_ORIGINS = [
-    "https://proflo-shadycjs-projects.vercel.app",
-    "https://mineproflo.vercel.app",
-    "https://proflo-git-main-shadycjs-projects.vercel.app",
-    "https://proflo-53jifmy2h-shadycjs-projects.vercel.app",
-    # "http://localhost:3000",
-]
+
 
 
 CACHES = {
