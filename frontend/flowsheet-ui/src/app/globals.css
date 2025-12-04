@@ -199,7 +199,7 @@ body {
 }
 
 .text-z-index {
-  z-index: 9!important;
+  z-index: 6;
 }
 
 .current-object {
