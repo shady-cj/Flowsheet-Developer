@@ -1,12 +1,14 @@
-"use client"
-import React from 'react'
+"use client";
+import logoIcon from "@/assets/logo-icon.svg"
+
+import Logo from "@/components/Logo";
 
 const Error = () => {
   return (
-    <div className='flex flex-col items-center justify-center h-screen bg-white text-black overflow-hidden'>
-      <h1 className='text-2xl font-bold'>Error</h1>
-      <p className='text-lg'>Something went wrong. Please try again later.</p>
-    </div>
+    <div className="w-screen h-screen flex flex-col gap-4 justify-center items-center">
+        <h1 className="text-2xl">Sorry, An error occurred</h1>
+        <Logo logoIcon={logoIcon} />
+    </div>  
   )
 }
 
