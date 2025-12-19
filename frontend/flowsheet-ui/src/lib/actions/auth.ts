@@ -36,8 +36,10 @@ export async function login(prevState: any, formData:FormData) {
             const refresh_token = data.refresh 
             await storeTokens(access_token, refresh_token)
             return {success: "Login Succesful"}
-        } else {
+        } else if (response.status == 401) {
             return {error: "Invalid Credentials"}
+        } else {
+            return {error: "Something went wrong"}
         }
         
     } catch(err) {
